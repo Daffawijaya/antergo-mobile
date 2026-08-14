@@ -8,8 +8,11 @@ import { Colors } from '@/constants/colors';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/stores/auth-store';
 
+import '@/lib/driver-location-service';
+
 function Router() {
   const user = useAuthStore((state) => state.user);
+  const activeRole = useAuthStore((state) => state.activeRole);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const restoreSession = useAuthStore((state) => state.restoreSession);
 
@@ -18,9 +21,9 @@ function Router() {
 
   return <Stack screenOptions={{ headerShown: false }}>
     <Stack.Protected guard={!user}><Stack.Screen name="(auth)" /></Stack.Protected>
-    <Stack.Protected guard={user?.role === 'customer'}><Stack.Screen name="(customer)" /></Stack.Protected>
-    <Stack.Protected guard={user?.role === 'driver'}><Stack.Screen name="(driver)" /></Stack.Protected>
-    <Stack.Protected guard={user?.role === 'merchant'}><Stack.Screen name="(merchant)" /></Stack.Protected>
+    <Stack.Protected guard={!!user && activeRole === 'customer' && user.roles.includes('customer')}><Stack.Screen name="(customer)" /></Stack.Protected>
+    <Stack.Protected guard={!!user && activeRole === 'driver' && user.roles.includes('driver')}><Stack.Screen name="(driver)" /></Stack.Protected>
+    <Stack.Protected guard={!!user && activeRole === 'merchant' && user.roles.includes('merchant')}><Stack.Screen name="(merchant)" /></Stack.Protected>
   </Stack>;
 }
 

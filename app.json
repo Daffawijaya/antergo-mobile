@@ -8,9 +8,11 @@
     "scheme": "antergomobile",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.antergo.mobile",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.antergo.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -33,7 +35,17 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Izinkan AnterGo menggunakan lokasi Anda untuk memilih pickup dan memperbarui posisi driver saat aplikasi terbuka.",
+          "locationAlwaysAndWhenInUsePermission": "Izinkan AnterGo menggunakan lokasi saat aplikasi tidak dibuka agar driver Online tetap dapat menerima dan menjalankan pesanan.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
