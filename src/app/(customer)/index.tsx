@@ -1,44 +1,475 @@
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { OrderStatusBadge } from '@/components/order-status-badge';
-import { ServiceIcon, ServiceLabel } from '@/components/service-icon';
-import { Card, PageHeader, Screen, SectionHeader } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
-import { listCustomerOrders } from '@/lib/api/rides';
-import { formatRupiah } from '@/lib/format';
-import { orderKeys } from '@/lib/query-keys';
-import { useAuthStore } from '@/stores/auth-store';
-import { useCartStore } from '@/stores/cart-store';
-import type { Order } from '@/types/api';
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Screen } from "@/components/ui";
+import { Colors } from "@/constants/colors";
+import { listNearbyProducts } from "@/lib/api/food";
+import { formatRupiah } from "@/lib/format";
+import type { ServiceVariant } from "@/types/api";
 
-function orderPath(order: Order) {
-  if (order.type === 'food') return { pathname: '/(customer)/food/order/[id]' as const, params: { id: String(order.id) } };
-  if (order.type === 'send') return { pathname: '/(customer)/send/[id]' as const, params: { id: String(order.id) } };
-  return { pathname: '/(customer)/ride/[id]' as const, params: { id: String(order.id) } };
-}
-const terminal = new Set(['completed', 'cancelled', 'rejected']);
+type Service = {
+  type: ServiceVariant;
+  label: string;
+  emoji: string;
+  onPress: () => void;
+};
+
 export default function CustomerHome() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
-  const cartCount = useCartStore((state) => state.items.reduce((sum, item) => sum + item.quantity, 0));
-  const orders = useQuery({ queryKey: [...orderKeys.all, 'home'], queryFn: () => listCustomerOrders(1) });
-  const active = orders.data?.data.find((order) => !terminal.has(order.status));
-  const shortcuts = [
-    { type: 'ride' as const, title: 'Ride', detail: 'Perjalanan cepat', action: () => router.push('/(customer)/ride/create') },
-    { type: 'food' as const, title: 'Food', detail: cartCount ? `${cartCount} item di keranjang` : 'Kuliner lokal', action: () => router.push(cartCount ? '/(customer)/food/cart' : '/(customer)/food') },
-    { type: 'send' as const, title: 'Send', detail: 'Kirim barang', action: () => router.push('/(customer)/send/create') },
+  const products = useQuery({
+    queryKey: ["products", "nearby"],
+    queryFn: () => listNearbyProducts(1),
+  });
+  const services: Service[] = [
+    {
+      type: "food",
+      label: "Food",
+      emoji: "🍳",
+      onPress: () =>
+        router.push({
+          pathname: "/(customer)/food",
+          params: { service: "food" },
+        }),
+    },
+    {
+      type: "delivery",
+      label: "Delivery",
+      emoji: "📦",
+      onPress: () => router.push("/(customer)/send/create"),
+    },
+    {
+      type: "shopping",
+      label: "Shopping",
+      emoji: "🛒",
+      onPress: () =>
+        router.push({
+          pathname: "/(customer)/food",
+          params: { service: "shopping" },
+        }),
+    },
+    {
+      type: "bike",
+      label: "Bike",
+      emoji: "🛵",
+      onPress: () =>
+        router.push({
+          pathname: "/(customer)/ride/create",
+          params: { service: "bike" },
+        }),
+    },
+    {
+      type: "car",
+      label: "Car",
+      emoji: "🚙",
+      onPress: () =>
+        router.push({
+          pathname: "/(customer)/ride/create",
+          params: { service: "car" },
+        }),
+    },
   ];
-  const initial = user?.name?.trim().charAt(0).toUpperCase() || 'A';
-  return <Screen>
-    <PageHeader eyebrow="ANTERGO" title={`Halo, ${user?.name?.split(' ')[0] ?? 'Kamu'}!`} description="Mau ke mana hari ini?" action={<Pressable accessibilityRole="button" accessibilityLabel="Buka profil" onPress={() => router.push('/(customer)/profile')} style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></Pressable>} />
-    <Pressable onPress={() => router.push('/(customer)/ride/create')} style={({ pressed }) => [styles.location, pressed && styles.pressed]}><View style={styles.locationIcon}><SymbolView name={{ ios: 'location.fill', android: 'location_on', web: 'location_on' }} size={20} tintColor={Colors.primary} /></View><View style={styles.locationCopy}><Text style={styles.locationLabel}>LOKASI KAMU</Text><Text style={styles.locationValue}>Tentukan titik jemput</Text></View><SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={20} tintColor={Colors.subtle} /></Pressable>
-    <View style={styles.hero}><View style={styles.heroCopy}><Text style={styles.heroEyebrow}>Satu aplikasi, banyak kebutuhan</Text><Text style={styles.heroTitle}>Jalan, makan, dan kirim jadi lebih mudah.</Text><Text style={styles.heroBody}>Layanan lokal yang siap menemani aktivitasmu.</Text></View><View style={styles.heroMark}><Text style={styles.heroMarkText}>A</Text></View></View>
-    <SectionHeader title="Pilih layanan" />
-    <View style={styles.services}>{shortcuts.map((item) => <Pressable key={item.type} accessibilityRole="button" onPress={item.action} style={({ pressed }) => [styles.service, pressed && styles.pressed]}><ServiceIcon type={item.type} size={54} /><Text style={styles.serviceTitle}>{item.title}</Text><Text style={styles.serviceDetail}>{item.detail}</Text></Pressable>)}</View>
-    {active ? <><SectionHeader title="Pesanan aktif" action={<Pressable onPress={() => router.push('/(customer)/orders')}><Text style={styles.link}>Lihat semua</Text></Pressable>} /><Pressable onPress={() => router.push(orderPath(active))} style={({ pressed }) => pressed && styles.pressed}><Card><View style={styles.orderTop}><ServiceLabel type={active.type} /><OrderStatusBadge status={active.status} /></View><Text style={styles.orderNumber}>{active.order_number}</Text><Text numberOfLines={2} style={styles.orderAddress}>{active.destination_address ?? active.pickup_address ?? 'Detail tujuan tersedia di pesanan'}</Text><View style={styles.orderBottom}><Text style={styles.total}>{formatRupiah(active.total_price)}</Text><Text style={styles.link}>Lacak pesanan</Text></View></Card></Pressable></> : null}
-    {cartCount ? <Pressable onPress={() => router.push('/(customer)/food/cart')} style={({ pressed }) => [styles.cart, pressed && styles.pressed]}><SymbolView name={{ ios: 'cart.fill', android: 'shopping_cart', web: 'shopping_cart' }} size={22} tintColor={Colors.white} /><Text style={styles.cartText}>{cartCount} item menunggu di keranjang</Text><Text style={styles.cartAction}>Buka</Text></Pressable> : null}
-  </Screen>;
+
+  return (
+    <Screen contentStyle={styles.screen}>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.search}
+          onPress={() => router.push("/(customer)/search")}
+        >
+          <SymbolView
+            name={{ ios: "magnifyingglass", android: "search", web: "search" }}
+            size={27}
+            tintColor="#292929"
+          />
+          <Text style={styles.searchText}>Cari item</Text>
+        </Pressable>
+        <Pressable
+          style={styles.avatar}
+          onPress={() => router.push("/(customer)/profile")}
+        >
+          <SymbolView
+            name={{ ios: "person.fill", android: "person", web: "person" }}
+            size={28}
+            tintColor={Colors.primaryDark}
+          />
+        </Pressable>
+      </View>
+
+      <View style={styles.serviceArea}>
+        <View style={styles.serviceGrid}>
+          <View style={styles.serviceRow}>
+            {services.slice(0, 3).map((service) => (
+              <Pressable
+                key={service.type}
+                style={styles.service}
+                onPress={service.onPress}
+              >
+                <Text style={styles.emoji}>{service.emoji}</Text>
+                <Text style={styles.serviceLabel}>{service.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.serviceRowBottom}>
+            {services.slice(3).map((service) => (
+              <Pressable
+                key={service.type}
+                style={styles.service}
+                onPress={service.onPress}
+              >
+                <Text style={styles.emoji}>{service.emoji}</Text>
+                <Text style={styles.serviceLabel}>{service.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.walletScroller}>
+        <Pressable
+          style={[styles.wallet, styles.balanceCard]}
+          onPress={() => router.push("/(customer)/payments")}
+        >
+          <View>
+            <Text style={styles.walletCaption}>Balance</Text>
+            <Text style={styles.walletTitle}>Rp0</Text>
+          </View>
+          <View style={styles.balanceIcon}>
+            <Text style={styles.balanceMark}>A</Text>
+          </View>
+        </Pressable>
+        <Pressable
+          style={[styles.wallet, styles.topupCard]}
+          onPress={() => router.push("/(customer)/payments")}
+        >
+          <View>
+            <Text style={styles.walletCaption}>Bayar sekaligus</Text>
+            <Text style={styles.walletTitle}>Top up & tagihan</Text>
+          </View>
+          <View style={styles.billIcon}>
+            <SymbolView
+              name={{
+                ios: "doc.text.fill",
+                android: "receipt_long",
+                web: "receipt_long",
+              }}
+              size={24}
+              tintColor={Colors.primaryDark}
+            />
+          </View>
+        </Pressable>
+      </View>
+
+      <Pressable
+        style={styles.banner}
+        onPress={() =>
+          router.push({
+            pathname: "/(customer)/ride/create",
+            params: { service: "car" },
+          })
+        }
+      >
+        <View style={styles.bannerCopy}>
+          <Text style={styles.bannerTitle}>Mau santai di perjalanan?</Text>
+          <View style={styles.bannerButton}>
+            <Text style={styles.bannerButtonText}>Pesan AnterGo Car</Text>
+          </View>
+        </View>
+        <Text style={styles.bannerEmoji}>🚙</Text>
+      </Pressable>
+
+      <View style={styles.productGrid}>
+        {products.data?.data.slice(0, 4).map((product) => (
+          <Pressable
+            key={product.id}
+            style={styles.productCard}
+            onPress={() =>
+              router.push({
+                pathname: "/(customer)/food/merchant/[id]",
+                params: {
+                  id: String(product.merchant_id),
+                  service:
+                    product.product_type === "goods" ? "shopping" : "food",
+                },
+              })
+            }
+          >
+            {product.image ? (
+              <Image
+                source={{ uri: product.image }}
+                style={styles.productImage}
+              />
+            ) : (
+              <View style={styles.productFallback}>
+                <Text style={styles.fallbackEmoji}>
+                  {product.product_type === "goods" ? "🛍️" : "🍜"}
+                </Text>
+              </View>
+            )}
+            <View style={styles.discount}>
+              <Text style={styles.discountText}>
+                {product.product_type === "goods"
+                  ? "Produk terdekat"
+                  : "Kuliner terdekat"}
+              </Text>
+            </View>
+            <View style={styles.productInfo}>
+              <Text numberOfLines={1} style={styles.productName}>
+                {product.name}
+              </Text>
+              <Text style={styles.price}>{formatRupiah(product.price)}</Text>
+            </View>
+          </Pressable>
+        ))}
+        {!products.isLoading && !products.data?.data.length ? (
+          <>
+            <View style={styles.demoCard}>
+              <View style={styles.demoFood}>
+                <Text style={styles.fallbackEmoji}>🍛</Text>
+              </View>
+              <View style={styles.discount}>
+                <Text style={styles.discountText}>Kuliner terdekat</Text>
+              </View>
+            </View>
+            <View style={styles.demoCard}>
+              <View style={styles.demoShop}>
+                <Text style={styles.fallbackEmoji}>🛍️</Text>
+              </View>
+              <View style={styles.discount}>
+                <Text style={styles.discountText}>Produk terdekat</Text>
+              </View>
+            </View>
+          </>
+        ) : null}
+      </View>
+    </Screen>
+  );
 }
-const styles = StyleSheet.create({ avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary }, avatarText: { color: Colors.white, fontSize: 18, fontWeight: '800' }, location: { minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 1, borderColor: Colors.border }, locationIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft }, locationCopy: { flex: 1, gap: 2 }, locationLabel: { color: Colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: .6 }, locationValue: { color: Colors.text, ...Typography.cardTitle }, hero: { minHeight: 170, flexDirection: 'row', overflow: 'hidden', padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.primary }, heroCopy: { flex: 1, justifyContent: 'center', gap: Spacing.sm, zIndex: 1 }, heroEyebrow: { color: '#D1FAE5', ...Typography.caption }, heroTitle: { color: Colors.white, fontSize: 22, lineHeight: 28, fontWeight: '800' }, heroBody: { color: '#ECFDF5', ...Typography.metadata }, heroMark: { position: 'absolute', right: -25, bottom: -36, width: 150, height: 150, borderRadius: 75, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,.13)' }, heroMarkText: { color: 'rgba(255,255,255,.85)', fontSize: 76, fontWeight: '900' }, services: { flexDirection: 'row', gap: Spacing.md }, service: { flex: 1, minHeight: 130, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 1, borderColor: Colors.border }, serviceTitle: { color: Colors.text, ...Typography.cardTitle }, serviceDetail: { color: Colors.muted, fontSize: 11, lineHeight: 15, textAlign: 'center' }, pressed: { opacity: .72 }, link: { color: Colors.primaryDark, ...Typography.caption }, orderTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md }, orderNumber: { color: Colors.text, ...Typography.cardTitle }, orderAddress: { color: Colors.muted, ...Typography.body }, orderBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, total: { color: Colors.text, ...Typography.cardTitle }, cart: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: Colors.primary, borderRadius: Radius.lg, padding: Spacing.lg }, cartText: { flex: 1, color: Colors.white, ...Typography.metadata, fontWeight: '700' }, cartAction: { color: Colors.white, ...Typography.button } });
+
+const styles = StyleSheet.create({
+  screen: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    gap: 0,
+    backgroundColor: "#FFFFFF",
+  },
+  header: {
+    minHeight: 82,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#A7EFD2",
+  },
+  search: {
+    flex: 1,
+    height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 13,
+    paddingHorizontal: 18,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
+  },
+  searchText: {
+    color: "#9A9A9A",
+    fontSize: 18,
+    fontFamily: "Outfit_400Regular",
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E8FFF7",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  avatarText: {
+    color: Colors.primaryDark,
+    fontSize: 20,
+    fontWeight: "800",
+    fontFamily: "Outfit_800ExtraBold",
+  },
+  serviceArea: {
+    paddingTop: 28,
+    paddingBottom: 25,
+    backgroundColor: "#FFFFFF",
+  },
+  serviceGrid: { paddingHorizontal: 20, gap: 28 },
+  serviceRow: { flexDirection: "row", justifyContent: "center" },
+  serviceRowBottom: { flexDirection: "row", justifyContent: "center" },
+  service: { width: "30%", alignItems: "center", gap: 7 },
+  emoji: { fontSize: 44, lineHeight: 54 },
+  serviceLabel: {
+    color: "#222222",
+    fontSize: 15,
+    fontFamily: "Outfit_400Regular",
+    textAlign: "center",
+  },
+  walletScroller: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 28,
+    backgroundColor: "#FFFFFF",
+  },
+  wallet: {
+    minHeight: 92,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D8D8D8",
+  },
+  balanceCard: { width: "41%" },
+  topupCard: { flex: 1 },
+  walletCaption: {
+    color: "#757575",
+    fontSize: 14,
+    fontFamily: "Outfit_400Regular",
+    marginBottom: 5,
+  },
+  walletTitle: {
+    color: "#171717",
+    fontSize: 17,
+    fontWeight: "800",
+    fontFamily: "Outfit_800ExtraBold",
+  },
+  balanceIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primarySoft,
+    borderWidth: 3,
+    borderColor: Colors.primary,
+  },
+  balanceMark: { color: Colors.primaryDark, fontWeight: "900" },
+  billIcon: {
+    width: 37,
+    height: 37,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#DDF8EE",
+  },
+  banner: {
+    minHeight: 150,
+    marginHorizontal: 16,
+    marginBottom: 28,
+    overflow: "hidden",
+    flexDirection: "row",
+    borderRadius: 19,
+    backgroundColor: "#DEDEDE",
+  },
+  bannerCopy: {
+    flex: 1,
+    zIndex: 1,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    gap: 18,
+    paddingLeft: 18,
+  },
+  bannerTitle: {
+    color: "#2B2B2B",
+    fontSize: 20,
+    fontWeight: "800",
+    fontFamily: "Outfit_800ExtraBold",
+  },
+  bannerButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+  },
+  bannerButtonText: {
+    color: "#202020",
+    fontSize: 15,
+    fontWeight: "800",
+    fontFamily: "Outfit_800ExtraBold",
+  },
+  bannerEmoji: {
+    alignSelf: "flex-end",
+    marginRight: 10,
+    marginBottom: 17,
+    fontSize: 68,
+  },
+  productGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    paddingHorizontal: 16,
+  },
+  productCard: {
+    width: "48%",
+    flexGrow: 1,
+    overflow: "hidden",
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#EEEEEE",
+  },
+  productImage: { width: "100%", height: 180, resizeMode: "cover" },
+  productFallback: {
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E8F8F1",
+  },
+  fallbackEmoji: { fontSize: 70 },
+  discount: {
+    marginTop: -35,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderTopRightRadius: 18,
+    backgroundColor: Colors.primary,
+  },
+  discountText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+    fontFamily: "Outfit_700Bold",
+  },
+  productInfo: { padding: 12, gap: 4 },
+  productName: {
+    color: "#222222",
+    fontSize: 15,
+    fontWeight: "700",
+    fontFamily: "Outfit_700Bold",
+  },
+  price: {
+    color: Colors.primaryDark,
+    fontSize: 14,
+    fontWeight: "800",
+    fontFamily: "Outfit_800ExtraBold",
+  },
+  demoCard: {
+    width: "48%",
+    flexGrow: 1,
+    height: 220,
+    overflow: "hidden",
+    borderRadius: 18,
+    backgroundColor: "#F2F2F2",
+  },
+  demoFood: {
+    height: 220,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F5E3D7",
+  },
+  demoShop: {
+    height: 220,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#DDF6EE",
+  },
+});

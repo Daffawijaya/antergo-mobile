@@ -1,5 +1,5 @@
-export type UserRole = 'customer' | 'driver' | 'merchant' | 'admin';
-export type AppRole = Exclude<UserRole, 'admin'>;
+export type UserRole = "customer" | "driver" | "merchant" | "admin";
+export type AppRole = Exclude<UserRole, "admin">;
 
 export type User = {
   id: number;
@@ -51,6 +51,7 @@ export type Driver = {
 export type Product = {
   id: number;
   merchant_id: number;
+  product_type: "food" | "goods";
   name: string;
   description: string | null;
   price: string;
@@ -81,24 +82,28 @@ export type Merchant = {
   updated_at?: string;
 };
 
-export type OrderType = 'ride' | 'send' | 'food';
+export type OrderType = "ride" | "send" | "food";
+export type ServiceVariant = "bike" | "car" | "delivery" | "food" | "shopping";
+export type VehicleType = "motorcycle" | "car";
 export type OrderStatus =
-  | 'pending'
-  | 'searching_driver'
-  | 'driver_assigned'
-  | 'driver_arrived'
-  | 'merchant_confirmed'
-  | 'preparing'
-  | 'ready_for_pickup'
-  | 'picked_up'
-  | 'in_progress'
-  | 'delivering'
-  | 'completed'
-  | 'cancelled';
+  | "pending"
+  | "searching_driver"
+  | "driver_assigned"
+  | "driver_arrived"
+  | "merchant_confirmed"
+  | "preparing"
+  | "ready_for_pickup"
+  | "picked_up"
+  | "in_progress"
+  | "delivering"
+  | "completed"
+  | "cancelled";
 
-export type DriverRideStatusUpdate = 'driver_arrived' | 'in_progress' | 'completed';
-export type DriverFoodStatusUpdate = 'picked_up' | 'delivering' | 'completed';
-export type DriverSendStatusUpdate = 'driver_arrived' | 'picked_up' | 'delivering' | 'completed';
+export type DriverRideStatusUpdate =
+  "driver_arrived" | "in_progress" | "completed";
+export type DriverFoodStatusUpdate = "picked_up" | "delivering" | "completed";
+export type DriverSendStatusUpdate =
+  "driver_arrived" | "picked_up" | "delivering" | "completed";
 
 export type OrderStatusHistory = {
   id: number;
@@ -123,13 +128,13 @@ export type OrderItem = {
 export type Payment = {
   id: number;
   order_id: number;
-  method: 'cash';
-  status: 'pending' | 'paid' | 'failed' | 'refunded';
+  method: "cash";
+  status: "pending" | "paid" | "failed" | "refunded";
   amount: string;
   transaction_id: string | null;
   paid_at: string | null;
 };
-export type RatingTarget = 'driver' | 'merchant';
+export type RatingTarget = "driver" | "merchant";
 export type Rating = {
   id: number;
   order_id: number;
@@ -154,6 +159,8 @@ export type Order = {
   driver_id: number | null;
   merchant_id: number | null;
   type: OrderType;
+  service_variant?: ServiceVariant | null;
+  vehicle_type?: VehicleType | null;
   pickup_address: string | null;
   pickup_latitude: string | null;
   pickup_longitude: string | null;
@@ -197,12 +204,18 @@ export type CreateSendInput = {
   recipient_name: string;
   recipient_phone: string;
   notes?: string | null;
-  payment_method: 'cash';
+  payment_method: "cash";
+  vehicle_type: VehicleType;
 };
 export type CreateSendResponse = {
   message: string;
   order: Order;
-  fare: { base_fare: number; price_per_km: number; distance_km: number; total: number };
+  fare: {
+    base_fare: number;
+    price_per_km: number;
+    distance_km: number;
+    total: number;
+  };
 };
 export type CreateRideInput = {
   pickup_address: string;
@@ -212,16 +225,21 @@ export type CreateRideInput = {
   destination_latitude: number;
   destination_longitude: number;
   notes?: string | null;
+  service_type?: "bike" | "car";
 };
 
 export type CreateRideResponse = {
   message: string;
   order: Order;
-  fare: { base_fare: number; price_per_km: number; distance_km: number; total: number };
+  fare: {
+    base_fare: number;
+    price_per_km: number;
+    distance_km: number;
+    total: number;
+  };
 };
 export type OrderDetailResponse = { order: Order };
 export type CancelRideResponse = { message: string; order: Order };
-
 
 export type CreateFoodOrderInput = {
   merchant_id: number;
@@ -229,8 +247,9 @@ export type CreateFoodOrderInput = {
   destination_address: string;
   destination_latitude: number;
   destination_longitude: number;
-  payment_method: 'cash';
+  payment_method: "cash";
   notes?: string | null;
+  service_type?: "food" | "shopping";
 };
 export type FoodOrderResponse = { message: string; order: Order };
 export type LaravelPaginator<T> = {
@@ -249,15 +268,15 @@ export type LaravelPaginator<T> = {
 };
 
 export type PushRoute =
-  | 'customer_ride_detail'
-  | 'customer_food_detail'
-  | 'customer_send_detail'
-  | 'driver_ride_detail'
-  | 'driver_food_detail'
-  | 'driver_send_detail'
-  | 'customer_chat'
-  | 'driver_chat'
-  | 'merchant_food_detail';
+  | "customer_ride_detail"
+  | "customer_food_detail"
+  | "customer_send_detail"
+  | "driver_ride_detail"
+  | "driver_food_detail"
+  | "driver_send_detail"
+  | "customer_chat"
+  | "driver_chat"
+  | "merchant_food_detail";
 
 export type PushNotificationData = {
   type: string;
@@ -290,7 +309,7 @@ export type ChatMessage = {
   read_at: string | null;
   created_at: string;
   updated_at: string;
-  sender: Pick<User, 'id' | 'name' | 'avatar'>;
+  sender: Pick<User, "id" | "name" | "avatar">;
 };
 export type ChatConversation = Order & {
   unread_count: number;

@@ -1,23 +1,174 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { LocationField } from '@/components/location-field';
-import { BackButton, Button, Card, FormField, KeyValue, Notice, PageHeader, Screen, SectionHeader, StatusState } from '@/components/ui';
-import { Colors, Spacing, Typography } from '@/constants/colors';
-import { createFoodOrder } from '@/lib/api/food';
-import { getApiErrorMessage } from '@/lib/api/client';
-import { foodKeys } from '@/lib/food-query-keys';
-import { formatRupiah } from '@/lib/format';
-import { orderKeys } from '@/lib/query-keys';
-import { useCartStore } from '@/stores/cart-store';
-import { useLocationPickerStore } from '@/stores/location-picker-store';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { LocationField } from "@/components/location-field";
+import {
+  BackButton,
+  Button,
+  Card,
+  FormField,
+  KeyValue,
+  Notice,
+  PageHeader,
+  Screen,
+  SectionHeader,
+  StatusState,
+} from "@/components/ui";
+import { Colors, Spacing, Typography } from "@/constants/colors";
+import { createFoodOrder } from "@/lib/api/food";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { foodKeys } from "@/lib/food-query-keys";
+import { formatRupiah } from "@/lib/format";
+import { orderKeys } from "@/lib/query-keys";
+import { useCartStore } from "@/stores/cart-store";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
 export default function FoodCheckoutScreen() {
- const router = useRouter(); const client = useQueryClient(); const merchant = useCartStore((s) => s.merchant); const items = useCartStore((s) => s.items); const clear = useCartStore((s) => s.clear); const destination = useLocationPickerStore((s) => s.selections['food-destination']); const [notes, setNotes] = useState(''); const [validation, setValidation] = useState('');
- const subtotal = items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0); const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
- const mutation = useMutation({ mutationFn: createFoodOrder, onSuccess: async ({ order }) => { clear(); await Promise.all([client.invalidateQueries({ queryKey: orderKeys.all }), client.invalidateQueries({ queryKey: foodKeys.merchants })]); router.replace({ pathname: '/(customer)/food/order/[id]', params: { id: String(order.id) } }); } });
- const submit = () => { if (!merchant || !items.length) return; if (!destination) { setValidation('Pilih alamat pengantaran terlebih dahulu.'); return; } setValidation(''); mutation.mutate({ merchant_id: merchant.id, items: items.map((item) => ({ product_id: item.product.id, quantity: item.quantity })), destination_address: destination.address, destination_latitude: destination.coordinate.latitude, destination_longitude: destination.coordinate.longitude, payment_method: 'cash', notes: notes.trim() || null }); };
- if (!merchant || !items.length) return <Screen><StatusState type="empty" title="Keranjang kosong" message="Tambahkan menu sebelum melanjutkan checkout." action={<Button title="Cari makanan" onPress={() => router.replace('/(customer)/food')} />} /></Screen>;
- return <Screen><PageHeader eyebrow="CHECKOUT" title="Konfirmasi pesanan" description="Periksa alamat dan ringkasan sebelum memesan." action={<BackButton onPress={() => router.back()} />} /><View style={styles.section}><SectionHeader title="Alamat pengantaran" /><LocationField label="Kirim ke" value={destination?.address} placeholder="Pilih alamat pengantaran" onPress={() => router.push({ pathname: '/(customer)/location-picker', params: { purpose: 'food-destination' } })} /></View>{validation ? <Notice tone="danger">{validation}</Notice> : null}<View style={styles.section}><SectionHeader title="Pesanan" /><Card muted><Text style={styles.merchant}>{merchant.name}</Text>{items.map((item) => <View key={item.product.id} style={styles.item}><Text numberOfLines={1} style={styles.itemName}>{item.quantity}× {item.product.name}</Text><Text style={styles.itemPrice}>{formatRupiah(Number(item.product.price) * item.quantity)}</Text></View>)}</Card></View><Card><KeyValue label={`${itemCount} item`} value={formatRupiah(subtotal)} /><KeyValue label="Pembayaran" value="Tunai" /><View style={styles.divider} /><KeyValue label="Total sementara" value={formatRupiah(subtotal)} /></Card><FormField label="Catatan untuk merchant (opsional)" placeholder="Contoh: jangan terlalu pedas" value={notes} onChangeText={setNotes} maxLength={500} multiline />{mutation.isError ? <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice> : null}<Text style={styles.helper}>Ongkir dan total final dihitung otomatis oleh server.</Text><Button title="Pesan sekarang" loading={mutation.isPending} onPress={submit} /></Screen>;
+  const router = useRouter();
+  const client = useQueryClient();
+  const merchant = useCartStore((s) => s.merchant);
+  const items = useCartStore((s) => s.items);
+  const clear = useCartStore((s) => s.clear);
+  const destination = useLocationPickerStore(
+    (s) => s.selections["food-destination"],
+  );
+  const [notes, setNotes] = useState("");
+  const [validation, setValidation] = useState("");
+  const service =
+    items[0]?.product.product_type === "goods" ? "shopping" : "food";
+  const subtotal = items.reduce(
+    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    0,
+  );
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const mutation = useMutation({
+    mutationFn: createFoodOrder,
+    onSuccess: async ({ order }) => {
+      clear();
+      await Promise.all([
+        client.invalidateQueries({ queryKey: orderKeys.all }),
+        client.invalidateQueries({ queryKey: foodKeys.merchants }),
+      ]);
+      router.replace({
+        pathname: "/(customer)/food/order/[id]",
+        params: { id: String(order.id) },
+      });
+    },
+  });
+  const submit = () => {
+    if (!merchant || !items.length) return;
+    if (!destination) {
+      setValidation("Pilih alamat pengantaran terlebih dahulu.");
+      return;
+    }
+    setValidation("");
+    mutation.mutate({
+      merchant_id: merchant.id,
+      items: items.map((item) => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+      })),
+      destination_address: destination.address,
+      destination_latitude: destination.coordinate.latitude,
+      destination_longitude: destination.coordinate.longitude,
+      payment_method: "cash",
+      notes: notes.trim() || null,
+      service_type: service,
+    });
+  };
+  if (!merchant || !items.length)
+    return (
+      <Screen>
+        <StatusState
+          type="empty"
+          title="Keranjang kosong"
+          message="Tambahkan menu sebelum melanjutkan checkout."
+          action={
+            <Button
+              title="Cari makanan"
+              onPress={() => router.replace("/(customer)/food")}
+            />
+          }
+        />
+      </Screen>
+    );
+  return (
+    <Screen>
+      <PageHeader
+        eyebrow={service === "shopping" ? "SHOPPING" : "FOOD"}
+        title="Konfirmasi pesanan"
+        description="Periksa alamat dan ringkasan sebelum memesan."
+        action={<BackButton onPress={() => router.back()} />}
+      />
+      <View style={styles.section}>
+        <SectionHeader title="Alamat pengantaran" />
+        <LocationField
+          label="Kirim ke"
+          value={destination?.address}
+          placeholder="Pilih alamat pengantaran"
+          onPress={() =>
+            router.push({
+              pathname: "/(customer)/location-picker",
+              params: { purpose: "food-destination" },
+            })
+          }
+        />
+      </View>
+      {validation ? <Notice tone="danger">{validation}</Notice> : null}
+      <View style={styles.section}>
+        <SectionHeader title="Pesanan" />
+        <Card muted>
+          <Text style={styles.merchant}>{merchant.name}</Text>
+          {items.map((item) => (
+            <View key={item.product.id} style={styles.item}>
+              <Text numberOfLines={1} style={styles.itemName}>
+                {item.quantity}× {item.product.name}
+              </Text>
+              <Text style={styles.itemPrice}>
+                {formatRupiah(Number(item.product.price) * item.quantity)}
+              </Text>
+            </View>
+          ))}
+        </Card>
+      </View>
+      <Card>
+        <KeyValue label={`${itemCount} item`} value={formatRupiah(subtotal)} />
+        <KeyValue label="Pembayaran" value="Tunai" />
+        <View style={styles.divider} />
+        <KeyValue label="Total sementara" value={formatRupiah(subtotal)} />
+      </Card>
+      <FormField
+        label="Catatan untuk merchant (opsional)"
+        placeholder="Contoh: jangan terlalu pedas"
+        value={notes}
+        onChangeText={setNotes}
+        maxLength={500}
+        multiline
+      />
+      {mutation.isError ? (
+        <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
+      ) : null}
+      <Text style={styles.helper}>
+        Ongkir dan total final dihitung otomatis oleh server.
+      </Text>
+      <Button
+        title="Pesan sekarang"
+        loading={mutation.isPending}
+        onPress={submit}
+      />
+    </Screen>
+  );
 }
-const styles = StyleSheet.create({ section: { gap: Spacing.md }, merchant: { color: Colors.text, ...Typography.cardTitle }, item: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.md }, itemName: { flex: 1, color: Colors.muted, ...Typography.body }, itemPrice: { color: Colors.text, ...Typography.metadata, fontWeight: '700' }, divider: { height: 1, backgroundColor: Colors.border }, helper: { color: Colors.muted, ...Typography.metadata, textAlign: 'center' } });
+const styles = StyleSheet.create({
+  section: { gap: Spacing.md },
+  merchant: { color: Colors.text, ...Typography.cardTitle },
+  item: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+  },
+  itemName: { flex: 1, color: Colors.muted, ...Typography.body },
+  itemPrice: { color: Colors.text, ...Typography.metadata, fontWeight: "700" },
+  divider: { height: 1, backgroundColor: Colors.border },
+  helper: { color: Colors.muted, ...Typography.metadata, textAlign: "center" },
+});

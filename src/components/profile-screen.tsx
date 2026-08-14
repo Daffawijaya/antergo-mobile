@@ -1,21 +1,477 @@
-import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
-import { getApiErrorMessage } from '@/lib/api/client';
-import { useAuthStore } from '@/stores/auth-store';
-import { usePushNotificationStore } from '@/stores/push-notification-store';
-import type { AppRole } from '@/types/api';
-import { Button, Card, KeyValue, Notice, PageHeader, Screen, SectionHeader } from './ui';
-const ROLE_LABELS: Record<AppRole, string> = { customer: 'Customer', driver: 'Driver', merchant: 'Merchant' };
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { useState } from "react";
+import {
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "@/constants/colors";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { useAuthStore } from "@/stores/auth-store";
+import { usePushNotificationStore } from "@/stores/push-notification-store";
+import type { AppRole } from "@/types/api";
+import { Notice } from "./ui";
+
+const ROLE_LABELS: Record<AppRole, string> = {
+  customer: "Customer",
+  driver: "Driver",
+  merchant: "Merchant",
+};
+const ROLES: AppRole[] = ["customer", "driver", "merchant"];
+const roleSymbol = (role: AppRole) =>
+  role === "customer"
+    ? {
+        ios: "person.fill" as const,
+        android: "person" as const,
+        web: "person" as const,
+      }
+    : role === "driver"
+      ? {
+          ios: "motorcycle.fill" as const,
+          android: "two_wheeler" as const,
+          web: "two_wheeler" as const,
+        }
+      : {
+          ios: "storefront.fill" as const,
+          android: "storefront" as const,
+          web: "storefront" as const,
+        };
+
 export function ProfileScreen() {
-  const user = useAuthStore((state) => state.user); const activeRole = useAuthStore((state) => state.activeRole); const setActiveRole = useAuthStore((state) => state.setActiveRole); const logout = useAuthStore((state) => state.logout);
-  const [loading, setLoading] = useState(false); const [error, setError] = useState<string>();
-  const pushStatus = usePushNotificationStore((state) => state.status); const pushMessage = usePushNotificationStore((state) => state.message); const retryPush = usePushNotificationStore((state) => state.retry);
-  const availableRoles = (['customer', 'driver', 'merchant'] as AppRole[]).filter((role) => user?.roles.includes(role));
-  const handleLogout = async () => { setLoading(true); setError(undefined); try { await logout(); } catch (cause) { setError(getApiErrorMessage(cause)); } finally { setLoading(false); } };
-  const pushLabel = pushStatus === 'registered' ? 'Aktif' : pushStatus === 'denied' ? 'Izin diperlukan' : pushStatus === 'unavailable' ? 'Tidak tersedia' : pushStatus === 'error' ? 'Gagal' : 'Memeriksa…';
-  const initial = user?.name?.trim().charAt(0).toUpperCase() || 'A';
-  return <Screen><PageHeader eyebrow="AKUN" title="Profil" description="Kelola identitas, mode kerja, dan notifikasi." /><View style={styles.identity}><View style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></View><View style={styles.identityCopy}><Text style={styles.name}>{user?.name ?? 'Pengguna AnterGo'}</Text><Text style={styles.email}>{user?.email ?? '-'}</Text><View style={styles.roleBadge}><Text style={styles.roleText}>{activeRole ? ROLE_LABELS[activeRole] : 'Akun'}</Text></View></View></View><SectionHeader title="Informasi akun" /><Card muted><KeyValue label="Nomor telepon" value={user?.phone ?? '-'} /><KeyValue label="Akses tersedia" value={user?.roles.map((role) => role === 'admin' ? 'Admin' : ROLE_LABELS[role]).join(', ') ?? '-'} /></Card>{availableRoles.length > 1 ? <><SectionHeader title="Ganti mode" /><View style={styles.roles}>{availableRoles.map((role) => <Pressable key={role} onPress={() => { void setActiveRole(role); }} style={[styles.roleOption, activeRole === role && styles.roleOptionActive]}><SymbolView name={role === 'customer' ? { ios: 'person.fill', android: 'person', web: 'person' } : role === 'driver' ? { ios: 'motorcycle.fill', android: 'two_wheeler', web: 'two_wheeler' } : { ios: 'storefront.fill', android: 'storefront', web: 'storefront' }} size={20} tintColor={activeRole === role ? Colors.white : Colors.primary} /><Text style={[styles.roleOptionText, activeRole === role && styles.roleOptionTextActive]}>{ROLE_LABELS[role]}</Text></Pressable>)}</View></> : null}<SectionHeader title="Notifikasi" /><Card><View style={styles.setting}><View style={styles.settingIcon}><SymbolView name={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} size={22} tintColor={Colors.primary} /></View><View style={styles.settingCopy}><Text style={styles.settingTitle}>Push notification</Text><Text style={styles.settingDetail}>{pushLabel}</Text></View><View style={[styles.dot, pushStatus === 'registered' && styles.dotActive]} /></View>{pushMessage ? <Text style={styles.message}>{pushMessage}</Text> : null}{(pushStatus === 'denied' || pushStatus === 'error') && retryPush ? <Button compact title="Coba aktifkan" variant="secondary" onPress={() => { void retryPush(); }} /> : null}{pushStatus === 'denied' ? <Button compact title="Buka pengaturan aplikasi" variant="secondary" onPress={() => { void Linking.openSettings(); }} /> : null}</Card>{error ? <Notice tone="danger">{error}</Notice> : null}<Button variant="danger" title="Keluar dari akun" loading={loading} onPress={handleLogout} /></Screen>;
+  const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const activeRole = useAuthStore((state) => state.activeRole);
+  const setActiveRole = useAuthStore((state) => state.setActiveRole);
+  const logout = useAuthStore((state) => state.logout);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
+  const pushStatus = usePushNotificationStore((state) => state.status);
+  const pushMessage = usePushNotificationStore((state) => state.message);
+  const retryPush = usePushNotificationStore((state) => state.retry);
+  const pushLabel =
+    pushStatus === "registered"
+      ? "Aktif"
+      : pushStatus === "denied"
+        ? "Izin diperlukan"
+        : pushStatus === "unavailable"
+          ? "Tidak tersedia"
+          : pushStatus === "error"
+            ? "Gagal"
+            : "Memeriksa…";
+
+  const switchRole = async (role: AppRole) => {
+    if (!user?.roles.includes(role)) return;
+    await setActiveRole(role);
+  };
+  const handleLogout = async () => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      await logout();
+    } catch (cause) {
+      setError(getApiErrorMessage(cause));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+      >
+        <View style={styles.hero}>
+          <Pressable
+            accessibilityLabel="Kembali"
+            onPress={() => router.back()}
+            style={styles.back}
+          >
+            <SymbolView
+              name={{
+                ios: "chevron.left",
+                android: "arrow_back",
+                web: "arrow_back",
+              }}
+              size={28}
+              tintColor="#111111"
+            />
+          </Pressable>
+          <View style={styles.identityCard}>
+            <View style={styles.identityRow}>
+              <View style={styles.avatar}>
+                <SymbolView
+                  name={{
+                    ios: "person.fill",
+                    android: "person",
+                    web: "person",
+                  }}
+                  size={42}
+                  tintColor="#FFFFFF"
+                />
+              </View>
+              <View style={styles.identityCopy}>
+                <Text numberOfLines={1} style={styles.name}>
+                  {user?.name ?? "Pengguna AnterGo"}
+                </Text>
+                <Text numberOfLines={1} style={styles.email}>
+                  {user?.email ?? "-"}
+                </Text>
+              </View>
+              <View style={styles.profilePill}>
+                <Text style={styles.profilePillText}>Profil</Text>
+              </View>
+            </View>
+            <View style={styles.accountLine}>
+              <SymbolView
+                name={{ ios: "phone.fill", android: "phone", web: "phone" }}
+                size={18}
+                tintColor={Colors.primary}
+              />
+              <Text style={styles.accountLineText}>
+                {user?.phone ?? "Nomor telepon belum tersedia"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.roleSection}>
+          <Text style={styles.sectionTitle}>Ganti mode</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.roleScroller}
+          >
+            {ROLES.map((role) => {
+              const available = Boolean(user?.roles.includes(role));
+              const selected = activeRole === role;
+              return (
+                <Pressable
+                  key={role}
+                  disabled={!available}
+                  onPress={() => {
+                    void switchRole(role);
+                  }}
+                  style={[
+                    styles.roleCard,
+                    selected && styles.roleCardSelected,
+                    !available && styles.roleCardDisabled,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.roleIcon,
+                      selected && styles.roleIconSelected,
+                    ]}
+                  >
+                    <SymbolView
+                      name={roleSymbol(role)}
+                      size={27}
+                      tintColor={
+                        selected
+                          ? "#FFFFFF"
+                          : available
+                            ? Colors.primary
+                            : "#A3A3A3"
+                      }
+                    />
+                  </View>
+                  <View style={styles.roleTextWrap}>
+                    <Text
+                      style={[
+                        styles.roleName,
+                        selected && styles.roleNameSelected,
+                      ]}
+                    >
+                      {ROLE_LABELS[role]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.roleStatus,
+                        selected && styles.roleStatusSelected,
+                      ]}
+                    >
+                      {selected
+                        ? "Mode aktif"
+                        : available
+                          ? "Ketuk untuk beralih"
+                          : "Belum tersedia"}
+                    </Text>
+                  </View>
+                  {selected ? (
+                    <View style={styles.activeBadge}>
+                      <Text style={styles.activeBadgeText}>Utama</Text>
+                    </View>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.heading}>Umum</Text>
+          <MenuRow
+            icon="badge"
+            title="Akses tersedia"
+            value={
+              user?.roles
+                .map((role) => (role === "admin" ? "Admin" : ROLE_LABELS[role]))
+                .join(", ") ?? "-"
+            }
+          />
+          <MenuRow
+            icon="notifications"
+            title="Notifikasi"
+            value={pushLabel}
+            onPress={
+              (pushStatus === "denied" || pushStatus === "error") && retryPush
+                ? () => {
+                    void retryPush();
+                  }
+                : undefined
+            }
+          />
+          {pushMessage ? (
+            <Text style={styles.message}>{pushMessage}</Text>
+          ) : null}
+          {pushStatus === "denied" ? (
+            <MenuRow
+              icon="settings"
+              title="Buka pengaturan aplikasi"
+              onPress={() => {
+                void Linking.openSettings();
+              }}
+            />
+          ) : null}
+          <MenuRow
+            icon="logout"
+            title="Keluar dari akun"
+            danger
+            onPress={() => {
+              void handleLogout();
+            }}
+          />
+          {loading ? <Text style={styles.message}>Sedang keluar…</Text> : null}
+          {error ? <Notice tone="danger">{error}</Notice> : null}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
-const styles = StyleSheet.create({ identity: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.primary }, avatar: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white }, avatarText: { color: Colors.primaryDark, fontSize: 28, fontWeight: '900' }, identityCopy: { flex: 1, gap: 4 }, name: { color: Colors.white, ...Typography.sectionTitle }, email: { color: '#D1FAE5', ...Typography.metadata }, roleBadge: { alignSelf: 'flex-start', marginTop: 4, borderRadius: Radius.pill, backgroundColor: 'rgba(255,255,255,.2)', paddingHorizontal: 10, paddingVertical: 4 }, roleText: { color: Colors.white, ...Typography.caption }, roles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }, roleOption: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface }, roleOptionActive: { borderColor: Colors.primary, backgroundColor: Colors.primary }, roleOptionText: { color: Colors.text, ...Typography.metadata, fontWeight: '700' }, roleOptionTextActive: { color: Colors.white }, setting: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md }, settingIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft }, settingCopy: { flex: 1 }, settingTitle: { color: Colors.text, ...Typography.cardTitle }, settingDetail: { color: Colors.muted, ...Typography.metadata }, dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.borderStrong }, dotActive: { backgroundColor: Colors.primary }, message: { color: Colors.muted, ...Typography.metadata } });
+
+function MenuRow({
+  icon,
+  title,
+  value,
+  onPress,
+  danger = false,
+}: {
+  icon: "badge" | "notifications" | "settings" | "logout";
+  title: string;
+  value?: string;
+  onPress?: () => void;
+  danger?: boolean;
+}) {
+  const content = (
+    <>
+      <View style={styles.menuIcon}>
+        <SymbolView
+          name={{
+            ios:
+              icon === "notifications"
+                ? "bell.fill"
+                : icon === "settings"
+                  ? "gearshape.fill"
+                  : icon === "logout"
+                    ? "rectangle.portrait.and.arrow.right"
+                    : "person.text.rectangle.fill",
+            android: icon,
+            web: icon,
+          }}
+          size={21}
+          tintColor={danger ? Colors.danger : "#222222"}
+        />
+      </View>
+      <Text style={[styles.menuTitle, danger && styles.danger]}>{title}</Text>
+      {value ? (
+        <Text numberOfLines={1} style={styles.menuValue}>
+          {value}
+        </Text>
+      ) : null}
+      {onPress ? (
+        <SymbolView
+          name={{
+            ios: "chevron.right",
+            android: "chevron_right",
+            web: "chevron_right",
+          }}
+          size={21}
+          tintColor="#222222"
+        />
+      ) : null}
+    </>
+  );
+  return onPress ? (
+    <Pressable onPress={onPress} style={styles.menuRow}>
+      {content}
+    </Pressable>
+  ) : (
+    <View style={styles.menuRow}>{content}</View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#FFFFFF" },
+  scroll: { paddingBottom: 24, backgroundColor: "#FFFFFF" },
+  hero: {
+    paddingHorizontal: 18,
+    paddingTop: 15,
+    paddingBottom: 30,
+    backgroundColor: "#EFFBFC",
+  },
+  back: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  identityCard: {
+    padding: 18,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+  identityRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  avatar: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2EAA9D",
+  },
+  identityCopy: { flex: 1, gap: 3 },
+  name: { color: "#171717", fontSize: 21, fontFamily: "Outfit_700Bold" },
+  email: { color: "#777777", fontSize: 13, fontFamily: "Outfit_400Regular" },
+  profilePill: {
+    paddingHorizontal: 17,
+    paddingVertical: 11,
+    borderRadius: 22,
+    backgroundColor: "#EFFBFA",
+  },
+  profilePillText: {
+    color: "#164E49",
+    fontSize: 15,
+    fontFamily: "Outfit_700Bold",
+  },
+  accountLine: {
+    minHeight: 43,
+    marginTop: 16,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+    borderWidth: 1,
+    borderColor: "#E4E4E4",
+    borderRadius: 22,
+  },
+  accountLineText: {
+    flex: 1,
+    color: "#292929",
+    fontSize: 14,
+    fontFamily: "Outfit_600SemiBold",
+  },
+  roleSection: { paddingVertical: 25, backgroundColor: "#FFFFFF" },
+  sectionTitle: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    color: "#171717",
+    fontSize: 20,
+    fontFamily: "Outfit_700Bold",
+  },
+  roleScroller: { paddingHorizontal: 18, gap: 12 },
+  roleCard: {
+    width: 205,
+    minHeight: 155,
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
+    backgroundColor: "#FFFFFF",
+  },
+  roleCardSelected: { borderColor: "#3F8F36", backgroundColor: "#327967" },
+  roleCardDisabled: { opacity: 0.55, backgroundColor: "#F7F7F7" },
+  roleIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primarySoft,
+  },
+  roleIconSelected: { backgroundColor: "rgba(255,255,255,.18)" },
+  roleTextWrap: { marginTop: 18, gap: 2 },
+  roleName: { color: "#171717", fontSize: 19, fontFamily: "Outfit_700Bold" },
+  roleNameSelected: { color: "#FFFFFF" },
+  roleStatus: {
+    color: "#747474",
+    fontSize: 13,
+    fontFamily: "Outfit_400Regular",
+  },
+  roleStatusSelected: { color: "#DDF8EE" },
+  activeBadge: {
+    position: "absolute",
+    right: 14,
+    top: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+  },
+  activeBadgeText: {
+    color: "#245D50",
+    fontSize: 12,
+    fontFamily: "Outfit_600SemiBold",
+  },
+  menuSection: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    gap: 3,
+    borderTopWidth: 10,
+    borderTopColor: "#F6F6F6",
+  },
+  heading: {
+    color: "#161616",
+    fontSize: 24,
+    fontFamily: "Outfit_700Bold",
+    marginBottom: 14,
+  },
+  menuRow: {
+    minHeight: 62,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  menuIcon: { width: 30, alignItems: "center" },
+  menuTitle: { color: "#202020", fontSize: 16, fontFamily: "Outfit_500Medium" },
+  menuValue: {
+    flex: 1,
+    color: "#666666",
+    fontSize: 13,
+    textAlign: "right",
+    fontFamily: "Outfit_400Regular",
+  },
+  danger: { color: Colors.danger },
+  message: { color: "#6B7280", fontSize: 13, fontFamily: "Outfit_400Regular" },
+});

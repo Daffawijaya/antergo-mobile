@@ -1,15 +1,147 @@
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ServiceIcon } from './service-icon';
-import { Card, PageHeader, Screen, StatusState } from './ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
-import { listChatConversations } from '@/lib/api/chat';
-import { chatKeys } from '@/lib/chat-query-keys';
-import { formatDateTime } from '@/lib/format';
-export function ChatListScreen({ role }: { role: 'customer' | 'driver' }) {
- const router = useRouter(); const query = useQuery({ queryKey: chatKeys.all, queryFn: listChatConversations, refetchInterval: 5_000 });
- return <Screen><PageHeader title="Chat" description="Percakapan untuk pesanan AnterGo." />{query.isLoading ? <StatusState type="loading" /> : query.isError ? <StatusState type="error" message="Percakapan belum dapat dimuat." /> : !query.data?.length ? <View style={styles.empty}><View style={styles.emptyIcon}><SymbolView name={{ ios: 'bubble.left.and.bubble.right.fill', android: 'chat_bubble', web: 'chat_bubble' }} size={30} tintColor={Colors.primary} /></View><Text style={styles.emptyTitle}>Belum ada percakapan</Text><Text style={styles.emptyBody}>Chat tersedia setelah driver menerima pesanan.</Text></View> : query.data.map((order) => { const person = role === 'customer' ? order.driver?.user : order.user; const last = order.chat_messages?.[0]; return <Pressable key={order.id} onPress={() => router.push({ pathname: role === 'customer' ? '/(customer)/chat/[id]' : '/(driver)/chat/[id]', params: { id: String(order.id) } })} style={({ pressed }) => pressed && styles.pressed}><Card><View style={styles.row}><ServiceIcon type={order.type} /><View style={styles.copy}><View style={styles.nameRow}><Text numberOfLines={1} style={styles.name}>{person?.name ?? (role === 'customer' ? 'Driver AnterGo' : 'Customer')}</Text><Text style={styles.time}>{last ? formatDateTime(last.created_at) : ''}</Text></View><Text style={styles.order}>{order.order_number}</Text><Text numberOfLines={1} style={styles.preview}>{last?.body ?? 'Mulai percakapan'}</Text></View>{order.unread_count > 0 ? <Text style={styles.unread}>{Math.min(order.unread_count, 99)}</Text> : <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={20} tintColor={Colors.subtle} />}</View></Card></Pressable>; })}</Screen>;
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { orderService, ServiceIcon } from "./service-icon";
+import { Card, PageHeader, Screen, StatusState } from "./ui";
+import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
+import { listChatConversations } from "@/lib/api/chat";
+import { chatKeys } from "@/lib/chat-query-keys";
+import { formatDateTime } from "@/lib/format";
+export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
+  const router = useRouter();
+  const query = useQuery({
+    queryKey: chatKeys.all,
+    queryFn: listChatConversations,
+    refetchInterval: 5_000,
+  });
+  return (
+    <Screen>
+      <PageHeader
+        title="Chat"
+        description="Percakapan untuk pesanan AnterGo."
+      />
+      {query.isLoading ? (
+        <StatusState type="loading" />
+      ) : query.isError ? (
+        <StatusState type="error" message="Percakapan belum dapat dimuat." />
+      ) : !query.data?.length ? (
+        <View style={styles.empty}>
+          <View style={styles.emptyIcon}>
+            <SymbolView
+              name={{
+                ios: "bubble.left.and.bubble.right.fill",
+                android: "chat_bubble",
+                web: "chat_bubble",
+              }}
+              size={30}
+              tintColor={Colors.primary}
+            />
+          </View>
+          <Text style={styles.emptyTitle}>Belum ada percakapan</Text>
+          <Text style={styles.emptyBody}>
+            Chat tersedia setelah driver menerima pesanan.
+          </Text>
+        </View>
+      ) : (
+        query.data.map((order) => {
+          const person = role === "customer" ? order.driver?.user : order.user;
+          const last = order.chat_messages?.[0];
+          return (
+            <Pressable
+              key={order.id}
+              onPress={() =>
+                router.push({
+                  pathname:
+                    role === "customer"
+                      ? "/(customer)/chat/[id]"
+                      : "/(driver)/chat/[id]",
+                  params: { id: String(order.id) },
+                })
+              }
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <Card>
+                <View style={styles.row}>
+                  <ServiceIcon type={orderService(order)} />
+                  <View style={styles.copy}>
+                    <View style={styles.nameRow}>
+                      <Text numberOfLines={1} style={styles.name}>
+                        {person?.name ??
+                          (role === "customer" ? "Driver AnterGo" : "Customer")}
+                      </Text>
+                      <Text style={styles.time}>
+                        {last ? formatDateTime(last.created_at) : ""}
+                      </Text>
+                    </View>
+                    <Text style={styles.order}>{order.order_number}</Text>
+                    <Text numberOfLines={1} style={styles.preview}>
+                      {last?.body ?? "Mulai percakapan"}
+                    </Text>
+                  </View>
+                  {order.unread_count > 0 ? (
+                    <Text style={styles.unread}>
+                      {Math.min(order.unread_count, 99)}
+                    </Text>
+                  ) : (
+                    <SymbolView
+                      name={{
+                        ios: "chevron.right",
+                        android: "chevron_right",
+                        web: "chevron_right",
+                      }}
+                      size={20}
+                      tintColor={Colors.subtle}
+                    />
+                  )}
+                </View>
+              </Card>
+            </Pressable>
+          );
+        })
+      )}
+    </Screen>
+  );
 }
-const styles = StyleSheet.create({ row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md }, copy: { flex: 1, gap: 2 }, nameRow: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.sm }, name: { flex: 1, color: Colors.text, ...Typography.cardTitle }, time: { color: Colors.subtle, ...Typography.caption }, order: { color: Colors.primaryDark, ...Typography.caption }, preview: { color: Colors.muted, ...Typography.metadata }, unread: { minWidth: 24, height: 24, overflow: 'hidden', borderRadius: Radius.pill, paddingHorizontal: 6, textAlign: 'center', textAlignVertical: 'center', color: Colors.white, backgroundColor: Colors.primary, ...Typography.caption }, empty: { minHeight: 350, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm }, emptyIcon: { width: 68, height: 68, borderRadius: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft }, emptyTitle: { color: Colors.text, ...Typography.sectionTitle }, emptyBody: { color: Colors.muted, ...Typography.body, textAlign: 'center' }, pressed: { opacity: .72 } });
+const styles = StyleSheet.create({
+  row: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  copy: { flex: 1, gap: 2 },
+  nameRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  name: { flex: 1, color: Colors.text, ...Typography.cardTitle },
+  time: { color: Colors.subtle, ...Typography.caption },
+  order: { color: Colors.primaryDark, ...Typography.caption },
+  preview: { color: Colors.muted, ...Typography.metadata },
+  unread: {
+    minWidth: 24,
+    height: 24,
+    overflow: "hidden",
+    borderRadius: Radius.pill,
+    paddingHorizontal: 6,
+    textAlign: "center",
+    textAlignVertical: "center",
+    color: Colors.white,
+    backgroundColor: Colors.primary,
+    ...Typography.caption,
+  },
+  empty: {
+    minHeight: 350,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+  },
+  emptyIcon: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primarySoft,
+  },
+  emptyTitle: { color: Colors.text, ...Typography.sectionTitle },
+  emptyBody: { color: Colors.muted, ...Typography.body, textAlign: "center" },
+  pressed: { opacity: 0.72 },
+});
