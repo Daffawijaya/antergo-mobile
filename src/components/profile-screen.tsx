@@ -1,6 +1,7 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Linking,
   Pressable,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { getDriverApplication } from "@/lib/api/resources";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePushNotificationStore } from "@/stores/push-notification-store";
 import type { AppRole } from "@/types/api";
@@ -48,11 +50,23 @@ export function ProfileScreen() {
   const activeRole = useAuthStore((state) => state.activeRole);
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
   const logout = useAuthStore((state) => state.logout);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
   const pushStatus = usePushNotificationStore((state) => state.status);
   const pushMessage = usePushNotificationStore((state) => state.message);
   const retryPush = usePushNotificationStore((state) => state.retry);
+  const { data: driverApplication, refetch: refetchDriverApplication } =
+    useQuery({
+      queryKey: ["driver-application"],
+      queryFn: getDriverApplication,
+    });
+  useFocusEffect(
+    useCallback(() => {
+      void refreshUser().catch(() => undefined);
+      void refetchDriverApplication();
+    }, [refreshUser, refetchDriverApplication]),
+  );
   const pushLabel =
     pushStatus === "registered"
       ? "Aktif"
@@ -65,8 +79,13 @@ export function ProfileScreen() {
             : "Memeriksa…";
 
   const switchRole = async (role: AppRole) => {
-    if (!user?.roles.includes(role)) return;
-    await setActiveRole(role);
+    if (user?.roles.includes(role)) {
+      await setActiveRole(role);
+      return;
+    }
+    if (role === "driver" && !driverApplication)
+      router.push("/(customer)/driver-register");
+    if (role === "merchant") router.push("/(customer)/merchant-register");
   };
   const handleLogout = async () => {
     setLoading(true);
@@ -87,21 +106,6 @@ export function ProfileScreen() {
         contentContainerStyle={styles.scroll}
       >
         <View style={styles.hero}>
-          <Pressable
-            accessibilityLabel="Kembali"
-            onPress={() => router.back()}
-            style={styles.back}
-          >
-            <SymbolView
-              name={{
-                ios: "chevron.left",
-                android: "arrow_back",
-                web: "arrow_back",
-              }}
-              size={28}
-              tintColor="#111111"
-            />
-          </Pressable>
           <View style={styles.identityCard}>
             <View style={styles.identityRow}>
               <View style={styles.avatar}>
@@ -142,25 +146,23 @@ export function ProfileScreen() {
 
         <View style={styles.roleSection}>
           <Text style={styles.sectionTitle}>Ganti mode</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.roleScroller}
-          >
+          <View style={styles.roleScroller}>
             {ROLES.map((role) => {
               const available = Boolean(user?.roles.includes(role));
               const selected = activeRole === role;
+              const pending =
+                role === "driver" && driverApplication?.status === "pending";
               return (
                 <Pressable
                   key={role}
-                  disabled={!available}
+                  disabled={pending}
                   onPress={() => {
                     void switchRole(role);
                   }}
                   style={[
                     styles.roleCard,
                     selected && styles.roleCardSelected,
-                    !available && styles.roleCardDisabled,
+                    (!available || pending) && styles.roleCardDisabled,
                   ]}
                 >
                   <View
@@ -203,15 +205,10 @@ export function ProfileScreen() {
                           : "Belum tersedia"}
                     </Text>
                   </View>
-                  {selected ? (
-                    <View style={styles.activeBadge}>
-                      <Text style={styles.activeBadgeText}>Utama</Text>
-                    </View>
-                  ) : null}
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         <View style={styles.menuSection}>
@@ -335,15 +332,8 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     backgroundColor: "#EFFBFC",
   },
-  back: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
   identityCard: {
-    padding: 18,
+    padding: 10,
     borderRadius: 22,
     backgroundColor: "#FFFFFF",
     shadowColor: "#0F172A",
@@ -400,11 +390,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Outfit_700Bold",
   },
-  roleScroller: { paddingHorizontal: 18, gap: 12 },
+  roleScroller: { flexDirection: "row", paddingHorizontal: 12, gap: 8 },
   roleCard: {
-    width: 205,
-    minHeight: 155,
-    padding: 18,
+    flex: 1,
+    minWidth: 0,
+    minHeight: 132,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#DDDDDD",
@@ -421,8 +414,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primarySoft,
   },
   roleIconSelected: { backgroundColor: "rgba(255,255,255,.18)" },
-  roleTextWrap: { marginTop: 18, gap: 2 },
-  roleName: { color: "#171717", fontSize: 19, fontFamily: "Outfit_700Bold" },
+  roleTextWrap: { marginTop: 8, gap: 2, alignItems: "center" },
+  roleName: { color: "#171717", fontSize: 15, fontFamily: "Outfit_700Bold" },
   roleNameSelected: { color: "#FFFFFF" },
   roleStatus: {
     color: "#747474",
@@ -430,20 +423,6 @@ const styles = StyleSheet.create({
     fontFamily: "Outfit_400Regular",
   },
   roleStatusSelected: { color: "#DDF8EE" },
-  activeBadge: {
-    position: "absolute",
-    right: 14,
-    top: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 15,
-    backgroundColor: "#FFFFFF",
-  },
-  activeBadgeText: {
-    color: "#245D50",
-    fontSize: 12,
-    fontFamily: "Outfit_600SemiBold",
-  },
   menuSection: {
     paddingHorizontal: 20,
     paddingTop: 28,

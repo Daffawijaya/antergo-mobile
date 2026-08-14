@@ -2,6 +2,7 @@ import type {
   Driver,
   LaravelPaginator,
   Merchant,
+  MerchantCategory,
   Order,
   Product,
 } from "@/types/api";
@@ -47,3 +48,38 @@ export const createMerchantProduct = async (input: {
 }) =>
   (await apiClient.post<{ product: Product }>("/merchant/products", input)).data
     .product;
+
+export const getDriverApplication = async () =>
+  (await apiClient.get<{ driver: Driver | null }>("/driver/application")).data
+    .driver;
+
+export const applyAsDriver = async (input: {
+  nik: string;
+  license_number: string;
+  vehicle_type: "motorcycle" | "car";
+  brand: string;
+  model?: string;
+  plate_number: string;
+  color?: string;
+}) =>
+  (await apiClient.post<{ driver: Driver }>("/driver/application", input)).data
+    .driver;
+
+export const listMerchantCategories = async () =>
+  (
+    await apiClient.get<{ categories: MerchantCategory[] }>(
+      "/merchant-categories",
+    )
+  ).data.categories;
+
+export const registerMerchant = async (input: {
+  category_id?: number;
+  name: string;
+  description?: string;
+  phone: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}) =>
+  (await apiClient.post<{ merchant: Merchant }>("/merchant", input)).data
+    .merchant;

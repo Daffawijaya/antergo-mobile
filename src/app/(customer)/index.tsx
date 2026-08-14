@@ -128,7 +128,7 @@ export default function CustomerHome() {
       <View style={styles.walletScroller}>
         <Pressable
           style={[styles.wallet, styles.balanceCard]}
-          onPress={() => router.push("/(customer)/payments")}
+          onPress={() => undefined}
         >
           <View>
             <Text style={styles.walletCaption}>Balance</Text>
@@ -140,7 +140,7 @@ export default function CustomerHome() {
         </Pressable>
         <Pressable
           style={[styles.wallet, styles.topupCard]}
-          onPress={() => router.push("/(customer)/payments")}
+          onPress={() => undefined}
         >
           <View>
             <Text style={styles.walletCaption}>Bayar sekaligus</Text>

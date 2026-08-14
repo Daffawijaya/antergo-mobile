@@ -85,6 +85,7 @@ export type Merchant = {
 export type OrderType = "ride" | "send" | "food";
 export type ServiceVariant = "bike" | "car" | "delivery" | "food" | "shopping";
 export type VehicleType = "motorcycle" | "car";
+export type MerchantCategory = { id: number; name: string; slug: string };
 export type OrderStatus =
   | "pending"
   | "searching_driver"

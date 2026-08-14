@@ -4,6 +4,8 @@ import { Colors } from "@/constants/colors";
 const hidden = [
   "payments",
   "search",
+  "driver-register",
+  "merchant-register",
   "location-picker",
   "ride/create",
   "ride/[id]",
