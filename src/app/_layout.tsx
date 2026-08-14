@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { PushNotificationManager } from '@/components/push-notification-manager';
 import { Colors } from '@/constants/colors';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/stores/auth-store';
@@ -28,7 +29,7 @@ function Router() {
 }
 
 export default function RootLayout() {
-  return <SafeAreaProvider><QueryClientProvider client={queryClient}><Router /></QueryClientProvider></SafeAreaProvider>;
+  return <SafeAreaProvider><QueryClientProvider client={queryClient}><PushNotificationManager /><Router /></QueryClientProvider></SafeAreaProvider>;
 }
 
 const styles = StyleSheet.create({ loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background } });

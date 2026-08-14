@@ -119,6 +119,26 @@ export type OrderItem = {
   product?: Product;
 };
 
+export type Payment = {
+  id: number;
+  order_id: number;
+  method: 'cash';
+  status: 'pending' | 'paid' | 'failed' | 'refunded';
+  amount: string;
+  transaction_id: string | null;
+  paid_at: string | null;
+};
+export type RatingTarget = 'driver' | 'merchant';
+export type Rating = {
+  id: number;
+  order_id: number;
+  user_id: number;
+  driver_id: number | null;
+  merchant_id: number | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
 export type Order = {
   id: number;
   order_number: string;
@@ -152,6 +172,8 @@ export type Order = {
   merchant?: Merchant | null;
   items?: OrderItem[];
   status_histories?: OrderStatusHistory[];
+  payment?: Payment | null;
+  rating?: Rating | null;
 };
 
 export type CreateRideInput = {
@@ -198,6 +220,31 @@ export type LaravelPaginator<T> = {
   total: number;
 };
 
+export type PushRoute =
+  | 'customer_ride_detail'
+  | 'customer_food_detail'
+  | 'driver_ride_detail'
+  | 'driver_food_detail'
+  | 'merchant_food_detail';
+
+export type PushNotificationData = {
+  type: string;
+  order_id: number;
+  order_type: OrderType;
+  route: PushRoute;
+};
+
+export type NotificationHistory = {
+  id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  message: string;
+  data: PushNotificationData;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
 export type ApiErrorPayload = {
   message?: string;
   errors?: Record<string, string[]>;

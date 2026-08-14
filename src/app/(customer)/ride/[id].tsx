@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { OrderStatusBadge } from '@/components/order-status-badge';
+import { PaymentSummary } from '@/components/payment-summary';
+import { RatingCard } from '@/components/rating-card';
 import { RideMap } from '../../../components/ride-map';
 import { Button, Card, FormField, KeyValue, PageHeader, Screen, StatusState } from '@/components/ui';
 import { Colors } from '@/constants/colors';
@@ -53,9 +55,9 @@ export default function RideDetailScreen() {
         <KeyValue label="Nomor order" value={query.data.order_number} />
         <KeyValue label="Jarak" value={query.data.distance ? `${query.data.distance} km` : '-'} />
         <KeyValue label="Total" value={formatRupiah(query.data.total_price)} />
-        <KeyValue label="Pembayaran" value={query.data.payment_method} />
-        <KeyValue label="Status pembayaran" value={query.data.payment_status} />
+
       </Card>
+      <PaymentSummary order={query.data} />
       <RideMap
         pickup={parseCoordinate(query.data.pickup_latitude, query.data.pickup_longitude)}
         destination={parseCoordinate(query.data.destination_latitude, query.data.destination_longitude)}
@@ -83,6 +85,7 @@ export default function RideDetailScreen() {
         <Text style={styles.sectionTitle}>Riwayat status</Text>
         {!query.data.status_histories?.length ? <Text style={styles.muted}>Belum ada riwayat status.</Text> : query.data.status_histories.map((history) => <View key={history.id} style={styles.history}><OrderStatusBadge status={history.status} /><Text style={styles.historyDate}>{formatDateTime(history.created_at)}</Text>{history.note ? <Text style={styles.muted}>{history.note}</Text> : null}</View>)}
       </Card>
+      <RatingCard order={query.data} queryKey={orderKeys.detail(orderId)} />
       {CANCELLABLE_STATUSES.has(query.data.status) ? <Card>
         <Text style={styles.sectionTitle}>Batalkan perjalanan</Text>
         <FormField label="Alasan (opsional)" placeholder="Maksimal 500 karakter" multiline numberOfLines={3} textAlignVertical="top" maxLength={500} value={reason} onChangeText={setReason} />

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import * as authApi from '@/lib/api/auth';
 import { queryClient } from '@/lib/query-client';
 import { stopDriverLocationTracking } from '@/lib/driver-location-service';
+import { clearStoredPushToken, unregisterStoredPushToken } from '@/lib/api/push-notifications';
 import {
   clearActiveRole,
   clearToken,
@@ -79,7 +80,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ activeRole: role });
   },
   logout: async () => {
-    try { await authApi.logout(); } finally {
+    try {
+      try { await unregisterStoredPushToken(); } catch { await clearStoredPushToken(); }
+      await authApi.logout();
+    } finally {
       await stopDriverLocationTracking();
       await Promise.all([clearToken(), clearActiveRole()]);
       queryClient.clear();

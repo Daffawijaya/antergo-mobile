@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { Linking } from 'react-native';
 
 import { getApiErrorMessage } from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth-store';
+import { usePushNotificationStore } from '@/stores/push-notification-store';
 import type { AppRole } from '@/types/api';
 import { Button, Card, KeyValue, PageHeader, Screen } from './ui';
 
@@ -18,6 +20,9 @@ export function ProfileScreen() {
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
+  const pushStatus = usePushNotificationStore((state) => state.status);
+  const pushMessage = usePushNotificationStore((state) => state.message);
+  const retryPush = usePushNotificationStore((state) => state.retry);
   const availableRoles = (['customer', 'driver', 'merchant'] as AppRole[])
     .filter((role) => user?.roles.includes(role));
 
@@ -47,7 +52,12 @@ export function ProfileScreen() {
         onPress={() => { void handleRoleChange(role); }}
       />)}
     </Card> : null}
-    {error ? <Card><KeyValue label="Error" value={error} /></Card> : null}
+    <Card>
+      <KeyValue label="Push notification" value={pushStatus === 'registered' ? 'Aktif' : pushStatus === 'denied' ? 'Permission diperlukan' : pushStatus === 'unavailable' ? 'Tidak tersedia' : pushStatus === 'error' ? 'Gagal' : 'Memeriksa…'} />
+      {pushMessage ? <KeyValue label="Info" value={pushMessage} /> : null}
+      {(pushStatus === 'denied' || pushStatus === 'error') && retryPush ? <Button title="Coba Aktifkan Notifikasi" variant="secondary" onPress={() => { void retryPush(); }} /> : null}
+      {pushStatus === 'denied' ? <Button title="Buka Pengaturan App" variant="secondary" onPress={() => { void Linking.openSettings(); }} /> : null}
+    </Card>    {error ? <Card><KeyValue label="Error" value={error} /></Card> : null}
     <Button variant="danger" title="Keluar" loading={loading} onPress={handleLogout} />
   </Screen>;
 }

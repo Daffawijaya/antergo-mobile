@@ -3,11 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { OrderStatusBadge } from '@/components/order-status-badge';
+import { PaymentSummary } from '@/components/payment-summary';
 import { RideMap } from '../../../components/ride-map';
 import { Button, Card, KeyValue, PageHeader, Screen, StatusState } from '@/components/ui';
 import { Colors } from '@/constants/colors';
 import { getDriverRideDetail, updateRideStatus } from '@/lib/api/driver-rides';
 import { getApiErrorMessage } from '@/lib/api/client';
+import { settleCashPayment } from '@/lib/api/payment-rating';
 import { driverKeys } from '@/lib/driver-query-keys';
 import { formatDateTime, formatRupiah } from '@/lib/format';
 import { parseCoordinate } from '@/lib/location';
@@ -44,6 +46,16 @@ export default function DriverRideDetailScreen() {
       ]);
     },
   });
+  const settle = useMutation({
+    mutationFn: () => settleCashPayment(orderId),
+    onSuccess: async (order) => {
+      client.setQueryData(driverKeys.detail(orderId), order);
+      await Promise.all([
+        client.invalidateQueries({ queryKey: driverKeys.detail(orderId) }),
+        client.invalidateQueries({ queryKey: ['driver', 'rides', 'history'] }),
+      ]);
+    },
+  });
   const next = detail.data ? TRANSITIONS[detail.data.status] : undefined;
 
   if (!validId) return <Screen><StatusState type="error" message="ID order tidak valid." action={<Button title="Kembali" variant="secondary" onPress={() => router.back()} />} /></Screen>;
@@ -56,9 +68,9 @@ export default function DriverRideDetailScreen() {
         <KeyValue label="Nomor order" value={detail.data.order_number} />
         <KeyValue label="Jarak" value={detail.data.distance ? `${detail.data.distance} km` : '-'} />
         <KeyValue label="Total perjalanan" value={formatRupiah(detail.data.total_price)} />
-        <KeyValue label="Pembayaran" value={detail.data.payment_method} />
-        <KeyValue label="Status pembayaran" value={detail.data.payment_status} />
+
       </Card>
+      <PaymentSummary order={detail.data} />
       <Card>
         <Text style={styles.sectionTitle}>Customer</Text>
         <KeyValue label="Nama" value={detail.data.user?.name ?? '-'} />
@@ -86,7 +98,7 @@ export default function DriverRideDetailScreen() {
         <Text style={styles.sectionTitle}>Riwayat status</Text>
         {!detail.data.status_histories?.length ? <Text style={styles.muted}>Belum ada riwayat status.</Text> : detail.data.status_histories.map((history) => <View key={history.id} style={styles.history}><OrderStatusBadge status={history.status} /><Text style={styles.date}>{formatDateTime(history.created_at)}</Text>{history.note ? <Text style={styles.body}>{history.note}</Text> : null}</View>)}
       </Card>
-      {detail.data.status === 'cancelled' ? <StatusState type="error" title="Ride dibatalkan customer" message={detail.data.cancelled_reason || 'Perjalanan ini tidak dapat dilanjutkan.'} /> : detail.data.status === 'completed' ? <Card><Text style={styles.sectionTitle}>Ride selesai</Text><Text style={styles.body}>Perjalanan telah selesai. Anda dapat kembali dan menerima order berikutnya.</Text><Button title="Kembali ke Order" onPress={() => router.replace('/(driver)/orders')} /></Card> : next ? <Card>
+      {detail.data.status === 'cancelled' ? <StatusState type="error" title="Ride dibatalkan customer" message={detail.data.cancelled_reason || 'Perjalanan ini tidak dapat dilanjutkan.'} /> : detail.data.status === 'completed' ? <Card><Text style={styles.sectionTitle}>Ride selesai</Text>{detail.data.payment_status === 'paid' ? <><Text style={styles.body}>Pembayaran tunai sudah diterima.</Text><Button title="Kembali ke Order" onPress={() => router.replace('/(driver)/orders')} /></> : <><Text style={styles.body}>Total diterima: {formatRupiah(detail.data.total_price)}</Text>{settle.isError ? <Text style={styles.error}>{getApiErrorMessage(settle.error)}</Text> : null}<Button title="Pembayaran Tunai Diterima" loading={settle.isPending} onPress={() => settle.mutate()} /></>}</Card> : next ? <Card>
         <Text style={styles.sectionTitle}>Aksi perjalanan</Text>
         {transition.isError ? <Text style={styles.error}>{getApiErrorMessage(transition.error)}</Text> : null}
         <Button title={next.label} loading={transition.isPending} onPress={() => transition.mutate({ status: next.status })} />

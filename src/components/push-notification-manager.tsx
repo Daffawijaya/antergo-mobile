@@ -1,0 +1,75 @@
+import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import { shouldRequestPushPermission, syncPushRegistration } from '@/lib/push-notifications';
+import { useAuthStore } from '@/stores/auth-store';
+import { usePushNotificationStore } from '@/stores/push-notification-store';
+import type { AppRole, PushNotificationData } from '@/types/api';
+
+const ROLE_BY_ROUTE: Record<PushNotificationData['route'], AppRole> = {
+  customer_ride_detail: 'customer',
+  customer_food_detail: 'customer',
+  driver_ride_detail: 'driver',
+  driver_food_detail: 'driver',
+  merchant_food_detail: 'merchant',
+};
+
+function isPushData(data: Record<string, unknown>): data is unknown & PushNotificationData {
+  return typeof data.type === 'string'
+    && typeof data.order_id === 'number'
+    && typeof data.order_type === 'string'
+    && typeof data.route === 'string'
+    && data.route in ROLE_BY_ROUTE;
+}
+
+async function openNotification(data: Record<string, unknown>) {
+  if (!isPushData(data)) return;
+  const auth = useAuthStore.getState();
+  const role = ROLE_BY_ROUTE[data.route];
+  if (!auth.user?.roles.includes(role)) return;
+  if (auth.activeRole !== role) await auth.setActiveRole(role);
+
+  const params = { id: String(data.order_id) };
+  setTimeout(() => {
+    switch (data.route) {
+      case 'customer_ride_detail': router.push({ pathname: '/(customer)/ride/[id]', params }); break;
+      case 'customer_food_detail': router.push({ pathname: '/(customer)/food/order/[id]', params }); break;
+      case 'driver_ride_detail': router.push({ pathname: '/(driver)/ride/[id]', params }); break;
+      case 'driver_food_detail': router.push({ pathname: '/(driver)/food/[id]', params }); break;
+      case 'merchant_food_detail': router.push({ pathname: '/(merchant)/orders/[id]', params }); break;
+    }
+  }, 50);
+}
+
+export function PushNotificationManager() {
+  const userId = useAuthStore((state) => state.user?.id);
+  const setRetry = usePushNotificationStore((state) => state.setRetry);
+
+  useEffect(() => {
+    if (!userId) return;
+    const retry = () => syncPushRegistration(true);
+    setRetry(retry);
+    void shouldRequestPushPermission().then((request) => syncPushRegistration(request));
+
+    if (Platform.OS === 'web') return () => setRetry(null);
+
+    const tokenSubscription = Notifications.addPushTokenListener(() => {
+      void syncPushRegistration(false);
+    });
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      void openNotification(response.notification.request.content.data ?? {});
+    });
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) void openNotification(response.notification.request.content.data ?? {});
+    });
+
+    return () => {
+      tokenSubscription.remove();
+      responseSubscription.remove();
+      setRetry(null);
+    };
+  }, [setRetry, userId]);
+
+  return null;
+}
