@@ -1,18 +1,31 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Colors } from '@/constants/colors';
+import { queryClient } from '@/lib/query-client';
+import { useAuthStore } from '@/stores/auth-store';
 
-SplashScreen.preventAutoHideAsync();
+function Router() {
+  const user = useAuthStore((state) => state.user);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const restoreSession = useAuthStore((state) => state.restoreSession);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+  useEffect(() => { void restoreSession(); }, [restoreSession]);
+  if (!isHydrated) return <View style={styles.loading}><ActivityIndicator size="large" color={Colors.primary} /></View>;
+
+  return <Stack screenOptions={{ headerShown: false }}>
+    <Stack.Protected guard={!user}><Stack.Screen name="(auth)" /></Stack.Protected>
+    <Stack.Protected guard={user?.role === 'customer'}><Stack.Screen name="(customer)" /></Stack.Protected>
+    <Stack.Protected guard={user?.role === 'driver'}><Stack.Screen name="(driver)" /></Stack.Protected>
+    <Stack.Protected guard={user?.role === 'merchant'}><Stack.Screen name="(merchant)" /></Stack.Protected>
+  </Stack>;
 }
+
+export default function RootLayout() {
+  return <SafeAreaProvider><QueryClientProvider client={queryClient}><Router /></QueryClientProvider></SafeAreaProvider>;
+}
+
+const styles = StyleSheet.create({ loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background } });
