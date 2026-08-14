@@ -13,7 +13,14 @@ import { formatRupiah } from '@/lib/format';
 import { setDriverTrackingMode, startDriverBackgroundTracking, stopDriverLocationTracking } from '@/lib/driver-location-service';
 import { BackgroundLocationPermissionError, LocationPermissionError, LocationUnavailableError, requestCurrentLocation, requestDriverTrackingPermissions } from '@/lib/location';
 import { useDriverLocationStore } from '@/stores/driver-location-store';
+import type { Order } from '@/types/api';
 
+function activeOrderPath(order: Order) {
+  if (order.type === 'food') return { pathname: '/(driver)/food/[id]' as const, params: { id: String(order.id) } };
+  if (order.type === 'send') return { pathname: '/(driver)/send/[id]' as const, params: { id: String(order.id) } };
+  return { pathname: '/(driver)/ride/[id]' as const, params: { id: String(order.id) } };
+}
+function activeOrderLabel(order: Order) { return order.type === 'food' ? 'Food delivery aktif' : order.type === 'send' ? 'Send aktif' : 'Ride aktif'; }
 export default function DriverHome() {
   const router = useRouter();
   const client = useQueryClient();
@@ -87,7 +94,7 @@ export default function DriverHome() {
         </View> : null}
       </Card>
       <Card><Text style={styles.sectionTitle}>Kendaraan</Text><KeyValue label="Kendaraan" value={profile.data.vehicle ? `${profile.data.vehicle.brand} ${profile.data.vehicle.model}` : 'Belum tersedia'} /><KeyValue label="Plat nomor" value={profile.data.vehicle?.plate_number ?? '-'} /><KeyValue label="Tipe" value={profile.data.vehicle?.type ?? '-'} /><KeyValue label="Warna" value={profile.data.vehicle?.color ?? '-'} /></Card>
-      <Card><Text style={styles.sectionTitle}>{activeRide.data?.type === 'food' ? 'Food delivery aktif' : 'Ride aktif'}</Text>{activeRide.isLoading ? <StatusState type="loading" /> : activeRide.isError ? <StatusState type="error" message={getApiErrorMessage(activeRide.error)} action={<Button title="Coba lagi" variant="secondary" onPress={() => activeRide.refetch()} />} /> : activeRide.data ? <><OrderStatusBadge status={activeRide.data.status} /><KeyValue label="Order" value={activeRide.data.order_number} /><KeyValue label="Jemput" value={activeRide.data.pickup_address ?? '-'} /><KeyValue label="Tujuan" value={activeRide.data.destination_address ?? '-'} /><KeyValue label="Total" value={formatRupiah(activeRide.data.total_price)} /><Button title="Buka Order Aktif" onPress={() => router.push({ pathname: activeRide.data!.type === 'food' ? '/(driver)/food/[id]' : '/(driver)/ride/[id]', params: { id: String(activeRide.data!.id) } })} /></> : <Text style={styles.muted}>Tidak ada order aktif.</Text>}</Card>
+      <Card><Text style={styles.sectionTitle}>{activeRide.data ? activeOrderLabel(activeRide.data) : 'Order aktif'}</Text>{activeRide.isLoading ? <StatusState type="loading" /> : activeRide.isError ? <StatusState type="error" message={getApiErrorMessage(activeRide.error)} action={<Button title="Coba lagi" variant="secondary" onPress={() => activeRide.refetch()} />} /> : activeRide.data ? <><OrderStatusBadge status={activeRide.data.status} /><KeyValue label="Order" value={activeRide.data.order_number} /><KeyValue label="Jemput" value={activeRide.data.pickup_address ?? '-'} /><KeyValue label="Tujuan" value={activeRide.data.destination_address ?? '-'} /><KeyValue label="Total" value={formatRupiah(activeRide.data.total_price)} /><Button title="Buka Order Aktif" onPress={() => router.push(activeOrderPath(activeRide.data!))} /></> : <Text style={styles.muted}>Tidak ada order aktif.</Text>}</Card>
     </> : null}
   </Screen>;
 }

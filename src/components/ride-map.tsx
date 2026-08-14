@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Marker, type MapPressEvent, type MarkerDragStartEndEvent } from 'react-native-maps';
 
+import { Colors, Elevation, Radius } from '@/constants/colors';
 import type { Coordinate } from '@/lib/location';
 
 type Props = {
@@ -29,10 +30,10 @@ export function RideMap({ pickup, destination, driver, onMapPress, onPickupChang
   const mapPress = (event: MapPressEvent) => onMapPress?.(event.nativeEvent.coordinate);
   const drag = (callback?: (coordinate: Coordinate) => void) => (event: MarkerDragStartEndEvent) => callback?.(event.nativeEvent.coordinate);
   return <View style={styles.frame}><MapView ref={ref} style={styles.map} initialRegion={JAKARTA} onPress={mapPress} showsUserLocation={showsUserLocation} showsMyLocationButton={showsUserLocation}>
-    {pickup ? <Marker coordinate={pickup} title="Pickup" pinColor="#13795B" draggable={!!onPickupChange} onDragEnd={drag(onPickupChange)} /> : null}
-    {destination ? <Marker coordinate={destination} title="Tujuan" pinColor="#B54708" draggable={!!onDestinationChange} onDragEnd={drag(onDestinationChange)} /> : null}
-    {driver ? <Marker coordinate={driver} title="Driver" pinColor="#208AEF" /> : null}
+    {pickup ? <Marker coordinate={pickup} title="Pickup" pinColor={Colors.primary} draggable={!!onPickupChange} onDragEnd={drag(onPickupChange)} /> : null}
+    {destination ? <Marker coordinate={destination} title="Tujuan" pinColor={Colors.text} draggable={!!onDestinationChange} onDragEnd={drag(onDestinationChange)} /> : null}
+    {driver ? <Marker coordinate={driver} title="Driver" pinColor={Colors.primaryDark} /> : null}
   </MapView></View>;
 }
 
-const styles = StyleSheet.create({ frame: { height: 320, borderRadius: 16, overflow: 'hidden' }, map: { flex: 1 } });
+const styles = StyleSheet.create({ frame: { height: 360, borderRadius: Radius.xl, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.border, ...Elevation.card }, map: { flex: 1 } });

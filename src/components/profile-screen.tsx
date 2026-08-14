@@ -1,63 +1,21 @@
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { Linking } from 'react-native';
-
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
 import { getApiErrorMessage } from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePushNotificationStore } from '@/stores/push-notification-store';
 import type { AppRole } from '@/types/api';
-import { Button, Card, KeyValue, PageHeader, Screen } from './ui';
-
-const ROLE_LABELS: Record<AppRole, string> = {
-  customer: 'Customer',
-  driver: 'Driver',
-  merchant: 'Merchant',
-};
-
+import { Button, Card, KeyValue, Notice, PageHeader, Screen, SectionHeader } from './ui';
+const ROLE_LABELS: Record<AppRole, string> = { customer: 'Customer', driver: 'Driver', merchant: 'Merchant' };
 export function ProfileScreen() {
-  const user = useAuthStore((state) => state.user);
-  const activeRole = useAuthStore((state) => state.activeRole);
-  const setActiveRole = useAuthStore((state) => state.setActiveRole);
-  const logout = useAuthStore((state) => state.logout);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>();
-  const pushStatus = usePushNotificationStore((state) => state.status);
-  const pushMessage = usePushNotificationStore((state) => state.message);
-  const retryPush = usePushNotificationStore((state) => state.retry);
-  const availableRoles = (['customer', 'driver', 'merchant'] as AppRole[])
-    .filter((role) => user?.roles.includes(role));
-
-  const handleRoleChange = async (role: AppRole) => {
-    await setActiveRole(role);
-  };
-
-  const handleLogout = async () => {
-    setLoading(true); setError(undefined);
-    try { await logout(); } catch (cause) { setError(getApiErrorMessage(cause)); } finally { setLoading(false); }
-  };
-
-  return <Screen>
-    <PageHeader eyebrow="Akun" title={user?.name ?? 'Profil'} description="Informasi akun dari Laravel API." />
-    <Card>
-      <KeyValue label="Email" value={user?.email ?? '-'} />
-      <KeyValue label="Telepon" value={user?.phone ?? '-'} />
-      <KeyValue label="Roles" value={user?.roles.join(', ') ?? '-'} />
-    </Card>
-    {availableRoles.length > 1 ? <Card>
-      <KeyValue label="Mode aktif" value={activeRole ? ROLE_LABELS[activeRole] : '-'} />
-      {availableRoles.map((role) => <Button
-        key={role}
-        variant={activeRole === role ? 'primary' : 'secondary'}
-        title={ROLE_LABELS[role]}
-        disabled={activeRole === role}
-        onPress={() => { void handleRoleChange(role); }}
-      />)}
-    </Card> : null}
-    <Card>
-      <KeyValue label="Push notification" value={pushStatus === 'registered' ? 'Aktif' : pushStatus === 'denied' ? 'Permission diperlukan' : pushStatus === 'unavailable' ? 'Tidak tersedia' : pushStatus === 'error' ? 'Gagal' : 'Memeriksa…'} />
-      {pushMessage ? <KeyValue label="Info" value={pushMessage} /> : null}
-      {(pushStatus === 'denied' || pushStatus === 'error') && retryPush ? <Button title="Coba Aktifkan Notifikasi" variant="secondary" onPress={() => { void retryPush(); }} /> : null}
-      {pushStatus === 'denied' ? <Button title="Buka Pengaturan App" variant="secondary" onPress={() => { void Linking.openSettings(); }} /> : null}
-    </Card>    {error ? <Card><KeyValue label="Error" value={error} /></Card> : null}
-    <Button variant="danger" title="Keluar" loading={loading} onPress={handleLogout} />
-  </Screen>;
+  const user = useAuthStore((state) => state.user); const activeRole = useAuthStore((state) => state.activeRole); const setActiveRole = useAuthStore((state) => state.setActiveRole); const logout = useAuthStore((state) => state.logout);
+  const [loading, setLoading] = useState(false); const [error, setError] = useState<string>();
+  const pushStatus = usePushNotificationStore((state) => state.status); const pushMessage = usePushNotificationStore((state) => state.message); const retryPush = usePushNotificationStore((state) => state.retry);
+  const availableRoles = (['customer', 'driver', 'merchant'] as AppRole[]).filter((role) => user?.roles.includes(role));
+  const handleLogout = async () => { setLoading(true); setError(undefined); try { await logout(); } catch (cause) { setError(getApiErrorMessage(cause)); } finally { setLoading(false); } };
+  const pushLabel = pushStatus === 'registered' ? 'Aktif' : pushStatus === 'denied' ? 'Izin diperlukan' : pushStatus === 'unavailable' ? 'Tidak tersedia' : pushStatus === 'error' ? 'Gagal' : 'Memeriksa…';
+  const initial = user?.name?.trim().charAt(0).toUpperCase() || 'A';
+  return <Screen><PageHeader eyebrow="AKUN" title="Profil" description="Kelola identitas, mode kerja, dan notifikasi." /><View style={styles.identity}><View style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></View><View style={styles.identityCopy}><Text style={styles.name}>{user?.name ?? 'Pengguna AnterGo'}</Text><Text style={styles.email}>{user?.email ?? '-'}</Text><View style={styles.roleBadge}><Text style={styles.roleText}>{activeRole ? ROLE_LABELS[activeRole] : 'Akun'}</Text></View></View></View><SectionHeader title="Informasi akun" /><Card muted><KeyValue label="Nomor telepon" value={user?.phone ?? '-'} /><KeyValue label="Akses tersedia" value={user?.roles.map((role) => role === 'admin' ? 'Admin' : ROLE_LABELS[role]).join(', ') ?? '-'} /></Card>{availableRoles.length > 1 ? <><SectionHeader title="Ganti mode" /><View style={styles.roles}>{availableRoles.map((role) => <Pressable key={role} onPress={() => { void setActiveRole(role); }} style={[styles.roleOption, activeRole === role && styles.roleOptionActive]}><SymbolView name={role === 'customer' ? { ios: 'person.fill', android: 'person', web: 'person' } : role === 'driver' ? { ios: 'motorcycle.fill', android: 'two_wheeler', web: 'two_wheeler' } : { ios: 'storefront.fill', android: 'storefront', web: 'storefront' }} size={20} tintColor={activeRole === role ? Colors.white : Colors.primary} /><Text style={[styles.roleOptionText, activeRole === role && styles.roleOptionTextActive]}>{ROLE_LABELS[role]}</Text></Pressable>)}</View></> : null}<SectionHeader title="Notifikasi" /><Card><View style={styles.setting}><View style={styles.settingIcon}><SymbolView name={{ ios: 'bell.fill', android: 'notifications', web: 'notifications' }} size={22} tintColor={Colors.primary} /></View><View style={styles.settingCopy}><Text style={styles.settingTitle}>Push notification</Text><Text style={styles.settingDetail}>{pushLabel}</Text></View><View style={[styles.dot, pushStatus === 'registered' && styles.dotActive]} /></View>{pushMessage ? <Text style={styles.message}>{pushMessage}</Text> : null}{(pushStatus === 'denied' || pushStatus === 'error') && retryPush ? <Button compact title="Coba aktifkan" variant="secondary" onPress={() => { void retryPush(); }} /> : null}{pushStatus === 'denied' ? <Button compact title="Buka pengaturan aplikasi" variant="secondary" onPress={() => { void Linking.openSettings(); }} /> : null}</Card>{error ? <Notice tone="danger">{error}</Notice> : null}<Button variant="danger" title="Keluar dari akun" loading={loading} onPress={handleLogout} /></Screen>;
 }
+const styles = StyleSheet.create({ identity: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, padding: Spacing.xl, borderRadius: Radius.xl, backgroundColor: Colors.primary }, avatar: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white }, avatarText: { color: Colors.primaryDark, fontSize: 28, fontWeight: '900' }, identityCopy: { flex: 1, gap: 4 }, name: { color: Colors.white, ...Typography.sectionTitle }, email: { color: '#D1FAE5', ...Typography.metadata }, roleBadge: { alignSelf: 'flex-start', marginTop: 4, borderRadius: Radius.pill, backgroundColor: 'rgba(255,255,255,.2)', paddingHorizontal: 10, paddingVertical: 4 }, roleText: { color: Colors.white, ...Typography.caption }, roles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }, roleOption: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface }, roleOptionActive: { borderColor: Colors.primary, backgroundColor: Colors.primary }, roleOptionText: { color: Colors.text, ...Typography.metadata, fontWeight: '700' }, roleOptionTextActive: { color: Colors.white }, setting: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md }, settingIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft }, settingCopy: { flex: 1 }, settingTitle: { color: Colors.text, ...Typography.cardTitle }, settingDetail: { color: Colors.muted, ...Typography.metadata }, dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.borderStrong }, dotActive: { backgroundColor: Colors.primary }, message: { color: Colors.muted, ...Typography.metadata } });

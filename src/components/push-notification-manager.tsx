@@ -10,8 +10,12 @@ import type { AppRole, PushNotificationData } from '@/types/api';
 const ROLE_BY_ROUTE: Record<PushNotificationData['route'], AppRole> = {
   customer_ride_detail: 'customer',
   customer_food_detail: 'customer',
+  customer_send_detail: 'customer',
   driver_ride_detail: 'driver',
   driver_food_detail: 'driver',
+  driver_send_detail: 'driver',
+  customer_chat: 'customer',
+  driver_chat: 'driver',
   merchant_food_detail: 'merchant',
 };
 
@@ -35,8 +39,12 @@ async function openNotification(data: Record<string, unknown>) {
     switch (data.route) {
       case 'customer_ride_detail': router.push({ pathname: '/(customer)/ride/[id]', params }); break;
       case 'customer_food_detail': router.push({ pathname: '/(customer)/food/order/[id]', params }); break;
+      case 'customer_send_detail': router.push({ pathname: '/(customer)/send/[id]', params }); break;
       case 'driver_ride_detail': router.push({ pathname: '/(driver)/ride/[id]', params }); break;
       case 'driver_food_detail': router.push({ pathname: '/(driver)/food/[id]', params }); break;
+      case 'driver_send_detail': router.push({ pathname: '/(driver)/send/[id]', params }); break;
+      case 'customer_chat': router.push({ pathname: '/(customer)/chat/[id]', params }); break;
+      case 'driver_chat': router.push({ pathname: '/(driver)/chat/[id]', params }); break;
       case 'merchant_food_detail': router.push({ pathname: '/(merchant)/orders/[id]', params }); break;
     }
   }, 50);

@@ -2,40 +2,18 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-
 import { OrderStatusBadge } from '@/components/order-status-badge';
-import { Button, Card, KeyValue, PageHeader, Screen, StatusState } from '@/components/ui';
-import { Colors } from '@/constants/colors';
+import { ServiceIcon } from '@/components/service-icon';
+import { Button, Card, PageHeader, Screen, StatusState } from '@/components/ui';
+import { Colors, Spacing, Typography } from '@/constants/colors';
 import { listCustomerOrders } from '@/lib/api/rides';
 import { getApiErrorMessage } from '@/lib/api/client';
 import { formatDateTime, formatRupiah } from '@/lib/format';
 import { orderKeys } from '@/lib/query-keys';
-
+import type { Order } from '@/types/api';
+function orderPath(order: Order) { if (order.type === 'food') return { pathname: '/(customer)/food/order/[id]' as const, params: { id: String(order.id) } }; if (order.type === 'send') return { pathname: '/(customer)/send/[id]' as const, params: { id: String(order.id) } }; return { pathname: '/(customer)/ride/[id]' as const, params: { id: String(order.id) } }; }
 export default function CustomerOrders() {
-  const router = useRouter();
-  const [page, setPage] = useState(1);
-  const query = useQuery({ queryKey: [...orderKeys.all, page], queryFn: () => listCustomerOrders(page), placeholderData: keepPreviousData });
-  return <Screen>
-    <PageHeader eyebrow="Customer" title="Riwayat pesanan" description="Pesanan terbaru Anda dari Laravel API." />
-    {query.isLoading ? <StatusState type="loading" /> : query.isError ? <StatusState type="error" message={getApiErrorMessage(query.error)} action={<Button title="Coba lagi" variant="secondary" onPress={() => query.refetch()} />} /> : !query.data?.data.length ? <StatusState type="empty" message="Belum ada pesanan. Buat Ride pertama dari Home." /> : <>
-      {query.data.data.map((order) => <Pressable key={order.id} disabled={order.type === 'send'} onPress={() => router.push({ pathname: order.type === 'food' ? '/(customer)/food/order/[id]' : '/(customer)/ride/[id]', params: { id: String(order.id) } })} style={({ pressed }) => pressed && styles.pressed}>
-        <Card>
-          <View style={styles.heading}><Text style={styles.orderNumber}>{order.order_number}</Text><OrderStatusBadge status={order.status} /></View>
-          <KeyValue label="Tipe" value={order.type === 'food' ? '🍜 Food' : order.type === 'ride' ? '🏍️ Ride' : '📦 Send'} />
-          <KeyValue label="Jemput" value={order.pickup_address ?? '-'} />
-          <KeyValue label="Tujuan" value={order.destination_address ?? '-'} />
-          <KeyValue label="Total" value={formatRupiah(order.total_price)} />
-          <KeyValue label="Tanggal" value={formatDateTime(order.created_at)} />
-          <Text style={styles.hint}>{order.type === 'send' ? 'Detail Send belum tersedia' : 'Tap untuk melihat detail'}</Text>
-        </Card>
-      </Pressable>)}
-      {query.data.last_page > 1 ? <View style={styles.pagination}>
-        <View style={styles.pageButton}><Button title="Sebelumnya" variant="secondary" disabled={page <= 1 || query.isFetching} onPress={() => setPage((value) => value - 1)} /></View>
-        <Text style={styles.pageLabel}>{page} / {query.data.last_page}</Text>
-        <View style={styles.pageButton}><Button title="Berikutnya" variant="secondary" disabled={page >= query.data.last_page || query.isFetching} onPress={() => setPage((value) => value + 1)} /></View>
-      </View> : null}
-    </>}
-  </Screen>;
+  const router = useRouter(); const [page, setPage] = useState(1); const query = useQuery({ queryKey: [...orderKeys.all, page], queryFn: () => listCustomerOrders(page), placeholderData: keepPreviousData });
+  return <Screen><PageHeader eyebrow="AKTIVITAS" title="Pesanan saya" description="Pantau pesanan aktif dan riwayat layananmu." />{query.isLoading ? <StatusState type="loading" /> : query.isError ? <StatusState type="error" message={getApiErrorMessage(query.error)} action={<Button title="Coba lagi" variant="secondary" onPress={() => query.refetch()} />} /> : !query.data?.data.length ? <StatusState type="empty" title="Belum ada pesanan" message="Ride, Food, dan Send yang kamu buat akan tampil di sini." /> : <>{query.data.data.map((order) => <Pressable key={order.id} onPress={() => router.push(orderPath(order))} style={({ pressed }) => pressed && styles.pressed}><Card><View style={styles.top}><ServiceIcon type={order.type} /><View style={styles.copy}><Text style={styles.type}>{order.type === 'food' ? 'Pesanan Food' : order.type === 'send' ? 'Pengiriman Send' : 'Perjalanan Ride'}</Text><Text style={styles.number}>{order.order_number}</Text></View><OrderStatusBadge status={order.status} /></View><View style={styles.divider} /><Text numberOfLines={2} style={styles.address}>{order.destination_address ?? order.pickup_address ?? 'Detail alamat tersedia pada pesanan'}</Text><View style={styles.bottom}><View><Text style={styles.meta}>{formatDateTime(order.created_at)}</Text><Text style={styles.total}>{formatRupiah(order.total_price)}</Text></View><Text style={styles.detail}>Lihat detail ›</Text></View></Card></Pressable>)}{query.data.last_page > 1 ? <View style={styles.pagination}><View style={styles.pageButton}><Button compact title="Sebelumnya" variant="secondary" disabled={page <= 1 || query.isFetching} onPress={() => setPage((value) => value - 1)} /></View><Text style={styles.pageLabel}>{page} / {query.data.last_page}</Text><View style={styles.pageButton}><Button compact title="Berikutnya" variant="secondary" disabled={page >= query.data.last_page || query.isFetching} onPress={() => setPage((value) => value + 1)} /></View></View> : null}</>}</Screen>;
 }
-
-const styles = StyleSheet.create({ heading: { gap: 10 }, orderNumber: { color: Colors.text, fontWeight: '800', fontSize: 17 }, hint: { color: Colors.primary, fontWeight: '700', fontSize: 13 }, pressed: { opacity: .7 }, pagination: { flexDirection: 'row', alignItems: 'center', gap: 10 }, pageButton: { flex: 1 }, pageLabel: { color: Colors.muted, fontWeight: '700' } });
+const styles = StyleSheet.create({ top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md }, copy: { flex: 1, gap: 2 }, type: { color: Colors.text, ...Typography.cardTitle }, number: { color: Colors.muted, ...Typography.caption }, divider: { height: 1, backgroundColor: Colors.border }, address: { color: Colors.muted, ...Typography.body }, bottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: Spacing.md }, meta: { color: Colors.subtle, ...Typography.caption }, total: { color: Colors.text, ...Typography.cardTitle }, detail: { color: Colors.primaryDark, ...Typography.caption }, pressed: { opacity: .72 }, pagination: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }, pageButton: { flex: 1 }, pageLabel: { color: Colors.muted, ...Typography.caption } });

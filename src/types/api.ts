@@ -98,6 +98,7 @@ export type OrderStatus =
 
 export type DriverRideStatusUpdate = 'driver_arrived' | 'in_progress' | 'completed';
 export type DriverFoodStatusUpdate = 'picked_up' | 'delivering' | 'completed';
+export type DriverSendStatusUpdate = 'driver_arrived' | 'picked_up' | 'delivering' | 'completed';
 
 export type OrderStatusHistory = {
   id: number;
@@ -139,6 +140,13 @@ export type Rating = {
   comment: string | null;
   created_at: string;
 };
+export type SendDetails = {
+  item_name: string | null;
+  item_description: string | null;
+  recipient_name: string | null;
+  recipient_phone: string | null;
+};
+
 export type Order = {
   id: number;
   order_number: string;
@@ -174,8 +182,28 @@ export type Order = {
   status_histories?: OrderStatusHistory[];
   payment?: Payment | null;
   rating?: Rating | null;
+  send_details?: SendDetails | null;
 };
 
+export type CreateSendInput = {
+  pickup_address: string;
+  pickup_latitude: number;
+  pickup_longitude: number;
+  destination_address: string;
+  destination_latitude: number;
+  destination_longitude: number;
+  item_name: string;
+  item_description?: string | null;
+  recipient_name: string;
+  recipient_phone: string;
+  notes?: string | null;
+  payment_method: 'cash';
+};
+export type CreateSendResponse = {
+  message: string;
+  order: Order;
+  fare: { base_fare: number; price_per_km: number; distance_km: number; total: number };
+};
 export type CreateRideInput = {
   pickup_address: string;
   pickup_latitude: number;
@@ -223,8 +251,12 @@ export type LaravelPaginator<T> = {
 export type PushRoute =
   | 'customer_ride_detail'
   | 'customer_food_detail'
+  | 'customer_send_detail'
   | 'driver_ride_detail'
   | 'driver_food_detail'
+  | 'driver_send_detail'
+  | 'customer_chat'
+  | 'driver_chat'
   | 'merchant_food_detail';
 
 export type PushNotificationData = {
@@ -248,4 +280,19 @@ export type NotificationHistory = {
 export type ApiErrorPayload = {
   message?: string;
   errors?: Record<string, string[]>;
+};
+
+export type ChatMessage = {
+  id: number;
+  order_id: number;
+  sender_id: number;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+  sender: Pick<User, 'id' | 'name' | 'avatar'>;
+};
+export type ChatConversation = Order & {
+  unread_count: number;
+  chat_messages: ChatMessage[];
 };

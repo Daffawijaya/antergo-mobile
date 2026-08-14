@@ -1,29 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
-
-import { Colors } from '@/constants/colors';
+import { Colors, Radius, Typography } from '@/constants/colors';
 import type { OrderStatus } from '@/types/api';
-
-const LABELS: Record<OrderStatus, string> = {
-  pending: 'Menunggu konfirmasi',
-  searching_driver: 'Mencari driver',
-  driver_assigned: 'Driver ditemukan',
-  driver_arrived: 'Driver telah tiba',
-  merchant_confirmed: 'Dikonfirmasi merchant',
-  preparing: 'Sedang disiapkan',
-  ready_for_pickup: 'Siap diambil',
-  picked_up: 'Sudah diambil',
-  in_progress: 'Perjalanan berlangsung',
-  delivering: 'Sedang diantar',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
-};
-
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  const terminal = status === 'completed' || status === 'cancelled';
-  return <Text style={[styles.badge, terminal && styles.terminal]}>{LABELS[status]}</Text>;
-}
-
-const styles = StyleSheet.create({
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 11, paddingVertical: 6, borderRadius: 99, overflow: 'hidden', backgroundColor: Colors.primarySoft, color: Colors.primary, fontWeight: '800', fontSize: 13 },
-  terminal: { backgroundColor: '#EEF1F0', color: Colors.muted },
-});
+const LABELS: Record<OrderStatus, string> = { pending: 'Menunggu', searching_driver: 'Mencari driver', driver_assigned: 'Driver ditemukan', driver_arrived: 'Driver tiba', merchant_confirmed: 'Dikonfirmasi', preparing: 'Disiapkan', ready_for_pickup: 'Siap diambil', picked_up: 'Diambil', in_progress: 'Dalam perjalanan', delivering: 'Diantar', completed: 'Selesai', cancelled: 'Dibatalkan' };
+export function OrderStatusBadge({ status }: { status: OrderStatus }) { const cancelled = status === 'cancelled'; const completed = status === 'completed'; return <Text style={[styles.badge, completed && styles.completed, cancelled && styles.cancelled]}>{LABELS[status]}</Text>; }
+const styles = StyleSheet.create({ badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.pill, overflow: 'hidden', backgroundColor: Colors.primarySoft, color: Colors.primaryDark, ...Typography.caption }, completed: { backgroundColor: Colors.successSoft, color: Colors.success }, cancelled: { backgroundColor: Colors.dangerSoft, color: Colors.danger } });

@@ -12,7 +12,7 @@ export function RatingCard({ order, queryKey }: { order: Order; queryKey: readon
   const client = useQueryClient();
   const [score, setScore] = useState(0);
   const [comment, setComment] = useState('');
-  const defaultTarget: RatingTarget = order.type === 'ride' ? 'driver' : 'merchant';
+  const defaultTarget: RatingTarget = order.type === 'food' ? 'merchant' : 'driver';
   const [target, setTarget] = useState<RatingTarget>(defaultTarget);
   const mutation = useMutation({
     mutationFn: () => submitOrderRating(order.id, { target, rating: score, comment: comment.trim() || null }),
