@@ -262,6 +262,13 @@ export function ProfileScreen() {
               }
             />
           ) : null}
+          {activeRole === "driver" ? (
+            <SettingsRow
+              icon="directions_car"
+              title="Kendaraan Saya"
+              onPress={() => router.push("/(driver)/vehicles" as never)}
+            />
+          ) : null}
           {!user?.roles.includes("merchant") ? (
             <SettingsRow
               icon="storefront"
@@ -301,7 +308,7 @@ function SettingsRow({
   onPress,
   danger = false,
 }: {
-  icon: "badge" | "settings" | "logout" | "two_wheeler" | "storefront";
+  icon: "badge" | "settings" | "logout" | "two_wheeler" | "storefront" | "directions_car";
   title: string;
   value?: string;
   onPress?: () => void;
@@ -322,7 +329,9 @@ function SettingsRow({
                     ? "rectangle.portrait.and.arrow.right"
                     : icon === "two_wheeler"
                       ? "motorcycle.fill"
-                      : "storefront.fill",
+                      : icon === "directions_car"
+                        ? "car.fill"
+                        : "storefront.fill",
             android: icon === "badge" ? "notifications" : icon,
             web: icon,
           }}

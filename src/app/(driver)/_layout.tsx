@@ -3,7 +3,7 @@ import { SymbolView } from "expo-symbols";
 import { DriverLocationTracker } from "@/components/driver-location-tracker";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
-const hidden = ["ride/[id]", "food/[id]", "send/[id]", "chat/[id]"];
+const hidden = ["ride/[id]", "food/[id]", "send/[id]", "chat/[id]", "vehicles"];
 export default function DriverLayout() {
   const { colors } = useAppTheme();
   return (

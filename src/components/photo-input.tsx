@@ -1,0 +1,11 @@
+import * as ImagePicker from "expo-image-picker";
+import { useState } from "react";
+import { Alert, Image, Pressable, Text, View } from "react-native";
+import { Button } from "@/components/ui";
+import { optimizePhoto, type OptimizedPhoto, type PhotoKind } from "@/lib/image-upload";
+export function PhotoInput({label,helper,kind,value,onChange,document=false}:{label:string;helper:string;kind:PhotoKind;value?:OptimizedPhoto;onChange:(v:OptimizedPhoto)=>void;document?:boolean}){
+ const [busy,setBusy]=useState(false);
+ const launch=async(source:"camera"|"gallery")=>{try{setBusy(true);if(source==="camera"){const p=await ImagePicker.requestCameraPermissionsAsync();if(!p.granted){Alert.alert("Izin kamera diperlukan","Aktifkan izin kamera untuk mengambil foto.");return;}}const result=source==="camera"?await ImagePicker.launchCameraAsync({mediaTypes:["images"],cameraType:ImagePicker.CameraType.back,quality:1}):await ImagePicker.launchImageLibraryAsync({mediaTypes:["images"],quality:1});if(!result.canceled)onChange(await optimizePhoto(result.assets[0],kind));}catch(e){Alert.alert("Foto gagal diproses",e instanceof Error?e.message:"Coba lagi.");}finally{setBusy(false);}};
+ const choose=()=>Alert.alert(label,"Pilih sumber foto",[{text:"Ambil Foto",onPress:()=>void launch("camera")},{text:"Pilih Galeri",onPress:()=>void launch("gallery")},{text:"Batal",style:"cancel"}]);
+ return <View className="gap-2 border-b border-border pb-5"><Text className="font-medium text-base text-foreground">{label} <Text className="text-red-500">*</Text></Text><Text className="text-sm leading-5 text-muted">{helper}</Text><Pressable onPress={choose} className={`overflow-hidden rounded-2xl border border-border bg-surface-muted ${document?"aspect-[1.58]":"aspect-[4/3]"}`}>{value?<Image source={{uri:value.uri}} className="h-full w-full" resizeMode="cover"/>:<View className="flex-1 items-center justify-center"><Text className="font-medium text-muted">Belum ada foto</Text></View>}</Pressable><View className="flex-row gap-2"><View className="flex-1"><Button compact title={busy?"Memproses…":"Ambil Foto"} disabled={busy} onPress={()=>void launch("camera")}/></View><View className="flex-1"><Button compact variant="secondary" title="Pilih Galeri" disabled={busy} onPress={()=>void launch("gallery")}/></View></View></View>;
+}

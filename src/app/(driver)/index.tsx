@@ -254,6 +254,11 @@ export default function DriverHome() {
           </Card>
           <Card>
             <Text style={styles.sectionTitle}>Kendaraan</Text>
+            <Button
+              title="Kelola Kendaraan Saya"
+              variant="secondary"
+              onPress={() => router.push("/(driver)/vehicles")}
+            />
             <KeyValue
               label="Kendaraan"
               value={

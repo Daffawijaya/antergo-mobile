@@ -1,85 +1,18 @@
-import type {
-  Driver,
-  LaravelPaginator,
-  Merchant,
-  MerchantCategory,
-  Order,
-  Product,
-} from "@/types/api";
+import type { Driver, LaravelPaginator, Merchant, MerchantCategory, Order, Product, Vehicle, VehicleType } from "@/types/api";
+import { appendPhoto, type OptimizedPhoto } from "@/lib/image-upload";
 import { apiClient } from "./client";
-
-export const getDriverProfile = async () =>
-  (await apiClient.get<{ driver: Driver }>("/driver/profile")).data.driver;
-
-export const setDriverOnline = async (online: boolean) =>
-  (
-    await apiClient.post<{ driver: Driver }>(
-      `/driver/${online ? "online" : "offline"}`,
-    )
-  ).data.driver;
-
-export const getMerchantProfile = async () =>
-  (await apiClient.get<{ merchant: Merchant }>("/merchant/me")).data.merchant;
-
-export const setMerchantOpen = async (open: boolean) =>
-  (
-    await apiClient.post<{ merchant: Merchant }>(
-      `/merchant/${open ? "open" : "close"}`,
-    )
-  ).data.merchant;
-
-export const getCustomerOrders = async () =>
-  (await apiClient.get<LaravelPaginator<Order>>("/orders")).data;
-
-export const getDriverOrders = async () => ({
-  data: (await apiClient.get<{ orders: Order[] }>("/driver/orders/available"))
-    .data.orders,
-});
-
-export const getMerchantOrders = async () =>
-  (await apiClient.get<LaravelPaginator<Order>>("/merchant/orders")).data;
-
-export const createMerchantProduct = async (input: {
-  name: string;
-  description?: string | null;
-  price: number;
-  stock: number;
-  product_type: "food" | "goods";
-}) =>
-  (await apiClient.post<{ product: Product }>("/merchant/products", input)).data
-    .product;
-
-export const getDriverApplication = async () =>
-  (await apiClient.get<{ driver: Driver | null }>("/driver/application")).data
-    .driver;
-
-export const applyAsDriver = async (input: {
-  nik: string;
-  license_number: string;
-  vehicle_type: "motorcycle" | "car";
-  brand: string;
-  model?: string;
-  plate_number: string;
-  color?: string;
-}) =>
-  (await apiClient.post<{ driver: Driver }>("/driver/application", input)).data
-    .driver;
-
-export const listMerchantCategories = async () =>
-  (
-    await apiClient.get<{ categories: MerchantCategory[] }>(
-      "/merchant-categories",
-    )
-  ).data.categories;
-
-export const registerMerchant = async (input: {
-  category_id?: number;
-  name: string;
-  description?: string;
-  phone: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-}) =>
-  (await apiClient.post<{ merchant: Merchant }>("/merchant", input)).data
-    .merchant;
+export const getDriverProfile=async()=> (await apiClient.get<{driver:Driver}>("/driver/profile")).data.driver;
+export const setDriverOnline=async(online:boolean)=>(await apiClient.post<{driver:Driver}>(`/driver/${online?"online":"offline"}`)).data.driver;
+export const getMerchantProfile=async()=> (await apiClient.get<{merchant:Merchant}>("/merchant/me")).data.merchant;
+export const setMerchantOpen=async(open:boolean)=>(await apiClient.post<{merchant:Merchant}>(`/merchant/${open?"open":"close"}`)).data.merchant;
+export const getCustomerOrders=async()=>(await apiClient.get<LaravelPaginator<Order>>("/orders")).data;
+export const getDriverOrders=async()=>({data:(await apiClient.get<{orders:Order[]}>("/driver/orders/available")).data.orders});
+export const getMerchantOrders=async()=>(await apiClient.get<LaravelPaginator<Order>>("/merchant/orders")).data;
+export async function createMerchantProduct(input:{name:string;description?:string|null;price:number;stock:number;product_type:"food"|"goods";image:OptimizedPhoto}){const f=new FormData();f.append("name",input.name);f.append("description",input.description??"");f.append("price",String(input.price));f.append("stock",String(input.stock));f.append("product_type",input.product_type);await appendPhoto(f,"image",input.image);return(await apiClient.post<{product:Product}>("/merchant/products",f,{headers:{"Content-Type":"multipart/form-data"}})).data.product;}
+export const getDriverApplication=async()=>(await apiClient.get<{driver:Driver|null}>("/driver/application")).data.driver;
+export type VehicleDraft={type:VehicleType;brand:string;model:string;plate_number:string;color:string;image:OptimizedPhoto};
+export async function applyAsDriver(input:{nik:string;avatar:OptimizedPhoto;ktp:OptimizedPhoto;sim_a?:OptimizedPhoto;sim_c?:OptimizedPhoto;vehicles:VehicleDraft[]}){const f=new FormData();f.append("nik",input.nik);await appendPhoto(f,"avatar",input.avatar);await appendPhoto(f,"ktp",input.ktp);if(input.sim_a)await appendPhoto(f,"sim_a",input.sim_a);if(input.sim_c)await appendPhoto(f,"sim_c",input.sim_c);for(const [i,v] of input.vehicles.entries()){f.append(`vehicles[${i}][type]`,v.type);f.append(`vehicles[${i}][brand]`,v.brand);f.append(`vehicles[${i}][model]`,v.model);f.append(`vehicles[${i}][plate_number]`,v.plate_number);f.append(`vehicles[${i}][color]`,v.color);await appendPhoto(f,`vehicle_images[${i}]`,v.image);}return(await apiClient.post<{driver:Driver}>("/driver/application",f,{headers:{"Content-Type":"multipart/form-data"}})).data.driver;}
+export async function addDriverVehicle(input:VehicleDraft&{sim?:OptimizedPhoto}){const f=new FormData();for(const k of ["type","brand","model","plate_number","color"] as const)f.append(k,input[k]);await appendPhoto(f,"image",input.image);if(input.sim)await appendPhoto(f,"sim",input.sim);return(await apiClient.post<{vehicle:Vehicle;driver:Driver}>("/driver/vehicles",f,{headers:{"Content-Type":"multipart/form-data"}})).data;}
+export const selectActiveVehicle=async(id:number)=>(await apiClient.post<{driver:Driver}>(`/driver/vehicles/${id}/active`)).data.driver;
+export const listMerchantCategories=async()=>(await apiClient.get<{categories:MerchantCategory[]}>("/merchant-categories")).data.categories;
+export async function registerMerchant(input:{category_id:number;name:string;description?:string;phone:string;address:string;latitude:number;longitude:number;image:OptimizedPhoto}){const f=new FormData();for(const [k,v] of Object.entries(input)){if(k!=="image"&&v!==undefined)f.append(k,String(v));}await appendPhoto(f,"image",input.image);return(await apiClient.post<{merchant:Merchant}>("/merchant",f,{headers:{"Content-Type":"multipart/form-data"}})).data.merchant;}

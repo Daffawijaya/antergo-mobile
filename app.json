@@ -27,6 +27,7 @@
     },
     "plugins": [
       "expo-router",
+      ["expo-image-picker", {"photosPermission": "Izinkan AnterGo memilih foto yang Anda pilih untuk profil, toko, produk, dan dokumen.", "cameraPermission": "Izinkan AnterGo menggunakan kamera untuk mengambil foto dan dokumen.", "microphonePermission": false}],
       [
         "expo-splash-screen",
         {

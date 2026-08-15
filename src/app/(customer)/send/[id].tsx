@@ -139,15 +139,15 @@ export default function CustomerSendDetail() {
               <KeyValue label="Nama" value={order.driver.user.name} />
               <KeyValue label="Telepon" value={order.driver.user.phone} />
               <KeyValue label="Rating" value={order.driver.rating} />
-              {order.driver.vehicle ? (
+              {(order.vehicle_snapshot ?? order.driver.vehicle) ? (
                 <>
                   <KeyValue
                     label="Kendaraan"
-                    value={`${order.driver.vehicle.brand} ${order.driver.vehicle.model}`}
+                    value={`${(order.vehicle_snapshot ?? order.driver.vehicle)!.brand} ${(order.vehicle_snapshot ?? order.driver.vehicle)!.model}`}
                   />
                   <KeyValue
                     label="Plat"
-                    value={order.driver.vehicle.plate_number}
+                    value={(order.vehicle_snapshot ?? order.driver.vehicle)!.plate_number}
                   />
                 </>
               ) : null}

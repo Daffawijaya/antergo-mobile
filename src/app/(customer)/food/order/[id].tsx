@@ -142,8 +142,8 @@ export default function FoodOrderDetailScreen() {
                 <KeyValue
                   label="Kendaraan"
                   value={
-                    query.data.driver.vehicle
-                      ? `${query.data.driver.vehicle.brand} ${query.data.driver.vehicle.model} · ${query.data.driver.vehicle.plate_number}`
+                    (query.data.vehicle_snapshot ?? query.data.driver.vehicle)
+                      ? `${(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.brand} ${(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.model} · ${(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.plate_number}`
                       : "-"
                   }
                 />

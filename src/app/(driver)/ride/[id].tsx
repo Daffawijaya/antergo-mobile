@@ -178,15 +178,15 @@ export default function DriverRideDetailScreen() {
               <Text style={styles.sectionTitle}>Kendaraan</Text>
               <KeyValue
                 label="Kendaraan"
-                value={`${detail.data.driver.vehicle.brand} ${detail.data.driver.vehicle.model}`}
+                value={`${(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).brand} ${(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).model}`}
               />
               <KeyValue
                 label="Plat nomor"
-                value={detail.data.driver.vehicle.plate_number}
+                value={(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).plate_number}
               />
               <KeyValue
                 label="Warna"
-                value={detail.data.driver.vehicle.color}
+                value={(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).color}
               />
             </Card>
           ) : null}

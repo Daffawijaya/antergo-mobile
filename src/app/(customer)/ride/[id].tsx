@@ -149,19 +149,19 @@ export default function RideDetailScreen() {
               <KeyValue label="Nama" value={query.data.driver.user.name} />
               <KeyValue label="Telepon" value={query.data.driver.user.phone} />
               <KeyValue label="Rating" value={query.data.driver.rating} />
-              {query.data.driver.vehicle ? (
+              {(query.data.vehicle_snapshot ?? query.data.driver.vehicle) ? (
                 <>
                   <KeyValue
                     label="Kendaraan"
-                    value={`${query.data.driver.vehicle.brand} ${query.data.driver.vehicle.model}`}
+                    value={`${(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.brand} ${(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.model}`}
                   />
                   <KeyValue
                     label="Plat nomor"
-                    value={query.data.driver.vehicle.plate_number}
+                    value={(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.plate_number}
                   />
                   <KeyValue
                     label="Warna"
-                    value={query.data.driver.vehicle.color}
+                    value={(query.data.vehicle_snapshot ?? query.data.driver.vehicle)!.color}
                   />
                 </>
               ) : (

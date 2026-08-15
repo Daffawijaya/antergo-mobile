@@ -19,12 +19,14 @@ export type MeResponse = { user: User };
 export type Vehicle = {
   id: number;
   driver_id: number;
-  type: string;
+  type: "motorcycle" | "car";
   brand: string;
   model: string;
   plate_number: string;
   color: string;
+  image_uploaded: boolean;
 };
+export type DriverDocumentStatus = { type: "ktp" | "sim_a" | "sim_c"; uploaded: boolean };
 
 export type DriverLocation = {
   id: number;
@@ -44,7 +46,11 @@ export type Driver = {
   rating: string;
   total_completed_orders: number;
   user: User;
+  active_vehicle_id?: number | null;
   vehicle: Vehicle | null;
+  vehicles?: Vehicle[];
+  documents?: DriverDocumentStatus[];
+  document_profile_complete?: boolean;
   location?: DriverLocation | null;
 };
 
@@ -159,6 +165,8 @@ export type Order = {
   user_id: number;
   driver_id: number | null;
   merchant_id: number | null;
+  vehicle_id?: number | null;
+  vehicle_snapshot?: Pick<Vehicle, "id" | "type" | "brand" | "model" | "plate_number" | "color"> | null;
   type: OrderType;
   service_variant?: ServiceVariant | null;
   vehicle_type?: VehicleType | null;
