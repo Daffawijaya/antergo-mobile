@@ -1,3 +1,4 @@
+import { useMemo as useThemeMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
@@ -22,6 +23,7 @@ import { driverKeys } from "@/lib/driver-query-keys";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { parseCoordinate } from "@/lib/location";
 import type { DriverSendStatusUpdate, OrderStatus } from "@/types/api";
+import { useAppTheme } from "@/stores/theme-store";
 
 const actions: Partial<
   Record<OrderStatus, { title: string; status: DriverSendStatusUpdate }>
@@ -35,6 +37,7 @@ const actions: Partial<
   delivering: { title: "Barang Sudah Diterima", status: "completed" },
 };
 export default function DriverSendDetail() {
+  const { styles } = useScreenStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const orderId = Number(id);
   const router = useRouter();
@@ -222,14 +225,18 @@ export default function DriverSendDetail() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  title: { color: Colors.text, fontSize: 18, fontWeight: "800" },
-  muted: { color: Colors.muted, lineHeight: 20 },
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  title: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  muted: { color: colors.muted, lineHeight: 20 },
   history: {
     gap: 6,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
   error: { color: Colors.danger },
 });

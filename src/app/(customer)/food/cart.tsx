@@ -1,3 +1,4 @@
+import { useMemo as useThemeMemo } from "react";
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import {
@@ -8,11 +9,12 @@ import {
   Screen,
   StatusState,
 } from "@/components/ui";
-import { Colors } from "@/constants/colors";
 import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
+import { useAppTheme } from "@/stores/theme-store";
 
 export default function CartScreen() {
+  const { styles } = useScreenStyles();
   const router = useRouter();
   const merchant = useCartStore((s) => s.merchant);
   const items = useCartStore((s) => s.items);
@@ -109,15 +111,19 @@ export default function CartScreen() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  title: { color: Colors.text, fontWeight: "800", fontSize: 17 },
-  muted: { color: Colors.muted, lineHeight: 20 },
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  title: { color: colors.text, fontWeight: "800", fontSize: 17 },
+  muted: { color: colors.muted, lineHeight: 20 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   flex: { flex: 1 },
   quantity: {
     minWidth: 32,
     textAlign: "center",
-    color: Colors.text,
+    color: colors.text,
     fontWeight: "800",
     fontSize: 18,
   },

@@ -1,3 +1,4 @@
+import { useMemo as useThemeMemo , useState } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -5,7 +6,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
@@ -26,6 +26,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { driverKeys } from "@/lib/driver-query-keys";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import type { Order } from "@/types/api";
+import { useAppTheme } from "@/stores/theme-store";
 type Segment = "available" | "active" | "history";
 function orderPath(order: Order) {
   if (order.type === "food")
@@ -59,6 +60,7 @@ function OrderCard({
   loading?: boolean;
   disabled?: boolean;
 }) {
+  const { styles } = useScreenStyles();
   return (
     <Card>
       <View style={styles.cardTop}>
@@ -86,6 +88,7 @@ function OrderCard({
   );
 }
 export default function DriverOrders() {
+  const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
   const [page, setPage] = useState(1);
@@ -275,13 +278,17 @@ export default function DriverOrders() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   segments: {
     flexDirection: "row",
     gap: 4,
     padding: 4,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.surfaceMuted,
+    backgroundColor: colors.surfaceMuted,
   },
   segment: {
     flex: 1,
@@ -290,9 +297,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: Radius.md,
   },
-  segmentActive: { backgroundColor: Colors.surface },
+  segmentActive: { backgroundColor: colors.surface },
   segmentText: {
-    color: Colors.muted,
+    color: colors.muted,
     ...Typography.metadata,
     fontWeight: "700",
   },
@@ -303,15 +310,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
   },
-  route: { color: Colors.text, ...Typography.body, fontWeight: "700" },
+  route: { color: colors.text, ...Typography.body, fontWeight: "700" },
   cardBottom: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
     gap: Spacing.md,
   },
-  meta: { color: Colors.muted, ...Typography.caption },
-  price: { color: Colors.text, ...Typography.cardTitle },
+  meta: { color: colors.muted, ...Typography.caption },
+  price: { color: colors.text, ...Typography.cardTitle },
   error: { color: Colors.danger, ...Typography.body },
   pressed: { opacity: 0.72 },
   pagination: {

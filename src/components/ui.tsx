@@ -3,39 +3,62 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
+  type StyleProp,
   type TextInputProps,
   type ViewStyle,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SymbolView } from "expo-symbols";
+import { Colors } from "@/constants/colors";
+import { useAppTheme } from "@/stores/theme-store";
 
-import {
-  Colors,
-  Elevation,
-  Radius,
-  Spacing,
-  Typography,
-} from "@/constants/colors";
+const buttonClasses = {
+  primary: "bg-brand",
+  secondary: "border border-border bg-surface",
+  danger:
+    "border border-danger bg-surface-muted",
+} as const;
+const buttonTextClasses = {
+  primary: "text-white",
+  secondary: "text-foreground",
+  danger: "text-danger",
+} as const;
 
 export function Screen({
   children,
   scroll = true,
   contentStyle,
-}: PropsWithChildren<{ scroll?: boolean; contentStyle?: ViewStyle }>) {
+  className = "",
+  padded = true,
+  scrollBottomPadding = true,
+}: PropsWithChildren<{
+  scroll?: boolean;
+  contentStyle?: StyleProp<ViewStyle>;
+  className?: string;
+  padded?: boolean;
+  scrollBottomPadding?: boolean;
+}>) {
   const content = (
-    <View style={[styles.content, contentStyle]}>{children}</View>
+    <View
+      className={`flex-1 gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
+      style={contentStyle}
+    >
+      {children}
+    </View>
   );
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={["top", "left", "right"]}
+    >
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scroll}
+          contentContainerClassName={scrollBottomPadding ? "grow pb-4" : "grow"}
         >
           {content}
         </ScrollView>
@@ -58,12 +81,20 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <View style={styles.headerRow}>
-      <View style={styles.header}>
-        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={styles.title}>{title}</Text>
+    <View className="flex-row items-start gap-3">
+      <View className="flex-1 gap-1 py-1">
+        {eyebrow ? (
+          <Text className="font-extrabold text-xs uppercase tracking-wider text-brand">
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text className="font-extrabold text-[22px] leading-7 text-foreground">
+          {title}
+        </Text>
         {description ? (
-          <Text style={styles.description}>{description}</Text>
+          <Text className="font-sans text-[15px] leading-[22px] text-muted">
+            {description}
+          </Text>
         ) : null}
       </View>
       {action}
@@ -79,8 +110,10 @@ export function SectionHeader({
   action?: ReactNode;
 }) {
   return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+    <View className="flex-row items-center justify-between gap-3">
+      <Text className="font-extrabold text-lg leading-6 text-foreground">
+        {title}
+      </Text>
       {action}
     </View>
   );
@@ -90,9 +123,21 @@ export function Card({
   children,
   muted = false,
   style,
-}: PropsWithChildren<{ muted?: boolean; style?: ViewStyle }>) {
+  className = "",
+  padded = true,
+  scrollBottomPadding = true,
+}: PropsWithChildren<{
+  muted?: boolean;
+  style?: StyleProp<ViewStyle>;
+  className?: string;
+  padded?: boolean;
+  scrollBottomPadding?: boolean;
+}>) {
   return (
-    <View style={[styles.card, muted && styles.cardMuted, style]}>
+    <View
+      className={`${muted ? "bg-surface-muted" : "border border-border bg-surface elevation-sm"} gap-3 rounded-[18px] p-4 ${className}`}
+      style={style}
+    >
       {children}
     </View>
   );
@@ -106,20 +151,21 @@ export function FormField({
   ...props
 }: TextInputProps & { label: string; error?: string }) {
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+    <View className="gap-2">
+      <Text className="font-bold text-[13px] leading-[18px] text-foreground">
+        {label}
+      </Text>
       <TextInput
-        placeholderTextColor={Colors.subtle}
+        placeholderTextColor="#9CA3AF"
         multiline={multiline}
-        style={[
-          styles.input,
-          multiline && styles.multiline,
-          error && styles.inputError,
-          style,
-        ]}
+        className={`min-h-12 rounded-[14px] border bg-surface px-[15px] font-sans text-base text-foreground ${multiline ? "min-h-[92px] pt-3.5" : ""} ${error ? "border-danger bg-surface-muted" : "border-border"}`}
+        style={style}
+        textAlignVertical={multiline ? "top" : "center"}
         {...props}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text className="font-medium text-[13px] text-danger">{error}</Text>
+      ) : null}
     </View>
   );
 }
@@ -145,13 +191,7 @@ export function Button({
       accessibilityRole="button"
       disabled={inactive}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        compact && styles.buttonCompact,
-        styles[`${variant}Button`],
-        inactive && styles.disabled,
-        pressed && styles.pressed,
-      ]}
+      className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center rounded-[14px] active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""}`}
     >
       {loading ? (
         <ActivityIndicator
@@ -165,11 +205,7 @@ export function Button({
         />
       ) : (
         <Text
-          style={[
-            styles.buttonText,
-            variant === "secondary" && styles.secondaryButtonText,
-            variant === "danger" && styles.dangerText,
-          ]}
+          className={`font-extrabold text-[15px] leading-5 ${buttonTextClasses[variant]}`}
         >
           {title}
         </Text>
@@ -178,18 +214,25 @@ export function Button({
   );
 }
 
-export function BackButton({ onPress }: { onPress: () => void }) {
+export function BackButton({
+  onPress,
+  floating = false,
+}: {
+  onPress: () => void;
+  floating?: boolean;
+}) {
+  const { colors } = useAppTheme();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Kembali"
       onPress={onPress}
-      style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
+      className={`h-10 w-10 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface elevation-md" : "bg-transparent"}`}
     >
       <SymbolView
         name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
-        size={20}
-        tintColor={Colors.text}
+        size={22}
+        tintColor={colors.text}
       />
     </Pressable>
   );
@@ -207,12 +250,12 @@ export function StatusState({
   action?: ReactNode;
 }) {
   return (
-    <View style={styles.state}>
+    <View className="min-h-[220px] items-center justify-center gap-2 p-6">
       {type === "loading" ? (
         <ActivityIndicator color={Colors.primary} size="large" />
       ) : (
         <View
-          style={[styles.stateIcon, type === "error" && styles.stateIconError]}
+          className={`mb-2 h-[58px] w-[58px] items-center justify-center rounded-full ${type === "error" ? "bg-surface-muted" : "bg-surface-muted"}`}
         >
           {type === "error" ? (
             <SymbolView
@@ -233,7 +276,7 @@ export function StatusState({
           )}
         </View>
       )}
-      <Text style={styles.stateTitle}>
+      <Text className="text-center font-bold text-base text-foreground">
         {title ??
           (type === "loading"
             ? "Memuat…"
@@ -241,8 +284,12 @@ export function StatusState({
               ? "Belum ada data"
               : "Terjadi kesalahan")}
       </Text>
-      {message ? <Text style={styles.stateMessage}>{message}</Text> : null}
-      {action ? <View style={styles.stateAction}>{action}</View> : null}
+      {message ? (
+        <Text className="text-center font-sans text-[15px] leading-[22px] text-muted">
+          {message}
+        </Text>
+      ) : null}
+      {action ? <View className="mt-3 min-w-40">{action}</View> : null}
     </View>
   );
 }
@@ -255,192 +302,46 @@ export function KeyValue({
   value: string | number;
 }) {
   return (
-    <View style={styles.keyValue}>
-      <Text style={styles.keyLabel}>{label}</Text>
-      <Text style={styles.keyValueText}>{value}</Text>
-    </View>
-  );
-}
-
-export function Notice({
-  children,
-  tone = "info",
-}: PropsWithChildren<{ tone?: "info" | "warning" | "danger" | "success" }>) {
-  return (
-    <View style={[styles.notice, styles[`${tone}Notice`]]}>
-      <Text style={[styles.noticeText, styles[`${tone}NoticeText`]]}>
-        {children}
+    <View className="flex-row items-start justify-between gap-4 py-0.5">
+      <Text className="font-medium text-[13px] leading-[18px] text-muted">
+        {label}
+      </Text>
+      <Text className="shrink text-right font-bold text-[13px] leading-[18px] text-foreground">
+        {value}
       </Text>
     </View>
   );
 }
 
-export const uiStyles = StyleSheet.create({
-  sectionTitle: { color: Colors.text, ...Typography.sectionTitle },
-  row: { flexDirection: "row", gap: Spacing.md },
-  gap: { gap: Spacing.md },
-  muted: { color: Colors.muted, ...Typography.body },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: Colors.primarySoft,
-    color: Colors.primaryDark,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: Radius.pill,
-    ...Typography.caption,
-  },
-});
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flexGrow: 1, paddingBottom: 24 },
-  content: {
-    flex: 1,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.md,
-    gap: Spacing.xl,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: Spacing.md,
-  },
-  header: { flex: 1, gap: Spacing.xs, paddingVertical: Spacing.sm },
-  eyebrow: {
-    color: Colors.primaryDark,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-  },
-  title: { color: Colors.text, ...Typography.pageTitle },
-  description: { color: Colors.muted, ...Typography.body },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.md,
-  },
-  sectionTitle: { color: Colors.text, ...Typography.sectionTitle },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    ...Elevation.card,
-  },
-  cardMuted: {
-    backgroundColor: Colors.surfaceMuted,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  field: { gap: 7 },
-  label: { color: Colors.text, ...Typography.metadata, fontWeight: "700" },
-  input: {
-    minHeight: 52,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    paddingHorizontal: 15,
-    color: Colors.text,
-    fontSize: 16,
-  },
-  multiline: { minHeight: 92, paddingTop: 14, textAlignVertical: "top" },
-  inputError: {
-    borderColor: Colors.danger,
-    backgroundColor: Colors.dangerSoft,
-  },
-  errorText: { color: Colors.danger, ...Typography.metadata },
-  button: {
-    minHeight: 52,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonCompact: { minHeight: 40, paddingHorizontal: 14 },
-  primaryButton: { backgroundColor: Colors.primary },
-  secondaryButton: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.borderStrong,
-  },
-  dangerButton: {
-    backgroundColor: Colors.dangerSoft,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-  buttonText: { color: Colors.white, ...Typography.button },
-  secondaryButtonText: { color: Colors.text },
-  dangerText: { color: Colors.danger },
-  disabled: { opacity: 0.48 },
-  pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    ...Elevation.card,
-  },
-  state: {
-    minHeight: 220,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: Spacing.xxl,
-    gap: Spacing.sm,
-  },
-  stateIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: Colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.sm,
-  },
-  stateIconError: { backgroundColor: Colors.dangerSoft },
-  stateTitle: {
-    color: Colors.text,
-    ...Typography.cardTitle,
-    textAlign: "center",
-  },
-  stateMessage: {
-    color: Colors.muted,
-    ...Typography.body,
-    textAlign: "center",
-  },
-  stateAction: { minWidth: 160, marginTop: Spacing.md },
-  keyValue: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: Spacing.lg,
-    paddingVertical: 2,
-  },
-  keyLabel: { color: Colors.muted, ...Typography.metadata },
-  keyValueText: {
-    color: Colors.text,
-    ...Typography.metadata,
-    fontWeight: "700",
-    flexShrink: 1,
-    textAlign: "right",
-  },
-  notice: { borderRadius: Radius.md, padding: Spacing.md },
-  noticeText: { ...Typography.metadata },
-  infoNotice: { backgroundColor: Colors.infoSoft },
-  infoNoticeText: { color: Colors.info },
-  warningNotice: { backgroundColor: Colors.warningSoft },
-  warningNoticeText: { color: Colors.warning },
-  dangerNotice: { backgroundColor: Colors.dangerSoft },
-  dangerNoticeText: { color: Colors.danger },
-  successNotice: { backgroundColor: Colors.successSoft },
-  successNoticeText: { color: Colors.success },
-});
+const noticeClasses = {
+  info: "bg-surface-muted text-blue-500",
+  warning:
+    "bg-surface-muted text-amber-500",
+  danger: "bg-surface-muted text-red-500",
+  success:
+    "bg-surface-muted text-emerald-500",
+} as const;
+export function Notice({
+  children,
+  tone = "info",
+}: PropsWithChildren<{ tone?: keyof typeof noticeClasses }>) {
+  return (
+    <View
+      className={`rounded-[14px] p-3 ${noticeClasses[tone]
+        .split(" ")
+        .filter((item) => item.startsWith("bg-") || item.startsWith("dark:bg-"))
+        .join(" ")}`}
+    >
+      <Text
+        className={`font-medium text-[13px] leading-[18px] ${noticeClasses[tone]
+          .split(" ")
+          .filter(
+            (item) => item.startsWith("text-") || item.startsWith("dark:text-"),
+          )
+          .join(" ")}`}
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}

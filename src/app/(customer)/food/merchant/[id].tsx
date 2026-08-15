@@ -1,30 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Image, StyleSheet, Text } from "react-native";
-import {
-  Button,
-  Card,
-  KeyValue,
-  PageHeader,
-  Screen,
-  StatusState,
-} from "@/components/ui";
+import { SymbolView } from "expo-symbols";
+import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { CustomerPageHeader } from "@/components/customer-page";
+import { Button, Notice, Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
-import { getMerchantDetail } from "@/lib/api/food";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { getMerchantDetail } from "@/lib/api/food";
 import { foodKeys } from "@/lib/food-query-keys";
 import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
+import { useAppTheme } from "@/stores/theme-store";
 import type { Product } from "@/types/api";
 
 export default function MerchantDetailScreen() {
-  const { id, service: serviceParam } = useLocalSearchParams<{
+  const {
+    id,
+    service: rawService,
+    returnTo,
+  } = useLocalSearchParams<{
     id: string;
     service?: string;
+    returnTo?: string;
   }>();
-  const service = serviceParam === "shopping" ? "shopping" : "food";
+  const service = rawService === "shopping" ? "shopping" : "food";
   const merchantId = Number(id);
   const router = useRouter();
+  const { colors } = useAppTheme();
   const cartMerchant = useCartStore((s) => s.merchant);
   const items = useCartStore((s) => s.items);
   const addItem = useCartStore((s) => s.addItem);
@@ -32,7 +34,7 @@ export default function MerchantDetailScreen() {
   const query = useQuery({
     queryKey: [...foodKeys.merchant(merchantId), service],
     queryFn: () => getMerchantDetail(merchantId, service),
-    enabled: Number.isInteger(merchantId) && merchantId > 0,
+    enabled: merchantId > 0,
   });
   const add = (product: Product) => {
     const merchant = query.data;
@@ -41,10 +43,10 @@ export default function MerchantDetailScreen() {
       cartMerchant &&
       (cartMerchant.id !== merchant.id ||
         items[0]?.product.product_type !== product.product_type)
-    )
+    ) {
       Alert.alert(
         "Ganti merchant?",
-        "Cart hanya dapat berisi satu jenis layanan dari satu merchant. Cart lama akan dikosongkan.",
+        "Cart lama akan dikosongkan karena satu pesanan hanya dapat berasal dari satu merchant.",
         [
           { text: "Batal", style: "cancel" },
           {
@@ -54,29 +56,40 @@ export default function MerchantDetailScreen() {
           },
         ],
       );
-    else addItem(merchant, product);
+    } else addItem(merchant, product);
   };
   return (
-    <Screen>
-      <Button
-        title="Kembali"
-        variant="secondary"
-        onPress={() => router.back()}
-      />
-      <PageHeader
-        eyebrow={service === "shopping" ? "SHOPPING" : "FOOD"}
-        title={query.data?.name ?? "Detail merchant"}
+    <Screen contentStyle={styles.screen}>
+      <CustomerPageHeader
+        title={query.data?.name ?? "Detail produk"}
+        subtitle={service === "shopping" ? "Shopping" : "Food"}
+        onBack={() =>
+          returnTo ? router.replace(returnTo as never) : router.back()
+        }
       />
       {items.length ? (
-        <Button
-          title={`Lihat Cart (${items.reduce((n, item) => n + item.quantity, 0)})`}
+        <Pressable
+          style={styles.cart}
           onPress={() =>
             router.push({
               pathname: "/(customer)/food/cart",
               params: { service },
             })
           }
-        />
+        >
+          <SymbolView
+            name={{
+              ios: "cart.fill",
+              android: "shopping_cart",
+              web: "shopping_cart",
+            }}
+            size={20}
+            tintColor="#FFFFFF"
+          />
+          <Text style={styles.cartText}>
+            Lihat Cart ({items.reduce((n, item) => n + item.quantity, 0)})
+          </Text>
+        </Pressable>
       ) : null}
       {query.isLoading ? (
         <StatusState type="loading" />
@@ -94,61 +107,186 @@ export default function MerchantDetailScreen() {
         />
       ) : query.data ? (
         <>
-          <Card>
+          <View
+            style={[
+              styles.merchantCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
             {query.data.logo ? (
               <Image source={{ uri: query.data.logo }} style={styles.logo} />
-            ) : null}
-            <KeyValue
-              label="Kategori"
-              value={query.data.category?.name ?? "-"}
-            />
-            <KeyValue
-              label="Status"
-              value={
-                query.data.is_open && query.data.is_active ? "Buka" : "Tutup"
-              }
-            />
-            <Text style={styles.muted}>
-              {query.data.description || "Tidak ada deskripsi."}
-            </Text>
-            <Text style={styles.muted}>{query.data.address}</Text>
-          </Card>
-          <Text style={styles.heading}>Produk</Text>
+            ) : (
+              <View style={styles.logoFallback}>
+                <SymbolView
+                  name={{
+                    ios: "storefront.fill",
+                    android: "storefront",
+                    web: "storefront",
+                  }}
+                  size={30}
+                  tintColor={Colors.primaryDark}
+                />
+              </View>
+            )}
+            <View style={styles.merchantCopy}>
+              <Text style={[styles.merchantName, { color: colors.text }]}>
+                {query.data.name}
+              </Text>
+              <Text
+                numberOfLines={2}
+                style={[styles.muted, { color: colors.muted }]}
+              >
+                {query.data.address ||
+                  query.data.description ||
+                  "Merchant AnterGo"}
+              </Text>
+              <Text
+                style={
+                  query.data.is_open && query.data.is_active
+                    ? styles.open
+                    : styles.closed
+                }
+              >
+                {query.data.is_open && query.data.is_active ? "Buka" : "Tutup"}
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.heading, { color: colors.text }]}>
+            Menu tersedia
+          </Text>
           {!(query.data.products ?? []).length ? (
             <StatusState type="empty" message="Belum ada produk tersedia." />
           ) : (
             (query.data.products ?? []).map((product) => (
-              <Card key={product.id}>
+              <View
+                key={product.id}
+                style={[
+                  styles.product,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
                 {product.image ? (
                   <Image source={{ uri: product.image }} style={styles.image} />
-                ) : null}
-                <Text style={styles.title}>{product.name}</Text>
-                <Text style={styles.muted}>
-                  {product.description || "Tidak ada deskripsi."}
-                </Text>
-                <KeyValue label="Harga" value={formatRupiah(product.price)} />
-                <KeyValue label="Stok" value={product.stock} />
-                <Button
-                  title={product.stock > 0 ? "Tambah ke Cart" : "Stok habis"}
-                  disabled={
-                    product.stock <= 0 ||
-                    !query.data!.is_open ||
-                    !query.data!.is_active
-                  }
-                  onPress={() => add(product)}
-                />
-              </Card>
+                ) : (
+                  <View style={styles.imageFallback}>
+                    <Text style={styles.emoji}>
+                      {product.product_type === "goods" ? "🛍️" : "🍜"}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.productCopy}>
+                  <Text
+                    numberOfLines={2}
+                    style={[styles.productName, { color: colors.text }]}
+                  >
+                    {product.name}
+                  </Text>
+                  {product.description ? (
+                    <Text
+                      numberOfLines={2}
+                      style={[styles.muted, { color: colors.muted }]}
+                    >
+                      {product.description}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.price}>
+                    {formatRupiah(product.price)}
+                  </Text>
+                  <Text
+                    style={[styles.stock, product.stock <= 0 && styles.closed]}
+                  >
+                    {product.stock > 0 ? `Stok ${product.stock}` : "Stok habis"}
+                  </Text>
+                  <Button
+                    compact
+                    title={product.stock > 0 ? "Tambah" : "Stok habis"}
+                    disabled={
+                      product.stock <= 0 ||
+                      !query.data!.is_open ||
+                      !query.data!.is_active
+                    }
+                    onPress={() => add(product)}
+                  />
+                </View>
+              </View>
             ))
           )}
         </>
-      ) : null}
+      ) : (
+        <Notice>Data merchant tidak ditemukan.</Notice>
+      )}
     </Screen>
   );
 }
+
 const styles = StyleSheet.create({
-  logo: { width: 72, height: 72, borderRadius: 14 },
-  image: { width: "100%", height: 150, borderRadius: 12 },
-  heading: { color: Colors.text, fontWeight: "800", fontSize: 20 },
-  title: { color: Colors.text, fontWeight: "800", fontSize: 17 },
-  muted: { color: Colors.muted, lineHeight: 20 },
+  screen: { paddingTop: 8, gap: 12 },
+  cart: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryDark,
+  },
+  cartText: { color: "#FFFFFF", fontFamily: "Outfit_700Bold" },
+  merchantCard: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  logo: { width: 72, height: 72, borderRadius: 16 },
+  logoFallback: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primarySoft,
+  },
+  merchantCopy: { flex: 1, gap: 3, justifyContent: "center" },
+  merchantName: { fontSize: 19, fontFamily: "Outfit_700Bold" },
+  muted: { fontSize: 13, lineHeight: 18, fontFamily: "Outfit_400Regular" },
+  open: {
+    color: Colors.primaryDark,
+    fontSize: 12,
+    fontFamily: "Outfit_700Bold",
+  },
+  closed: { color: Colors.danger },
+  heading: { fontSize: 21, fontFamily: "Outfit_700Bold", marginTop: 3 },
+  product: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 11,
+    borderRadius: 17,
+    borderWidth: 1,
+  },
+  image: { width: 108, height: 108, borderRadius: 14 },
+  imageFallback: {
+    width: 108,
+    height: 108,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primarySoft,
+  },
+  emoji: { fontSize: 43 },
+  productCopy: { flex: 1, gap: 3 },
+  productName: { fontSize: 17, lineHeight: 21, fontFamily: "Outfit_700Bold" },
+  price: {
+    color: Colors.primaryDark,
+    fontSize: 16,
+    fontFamily: "Outfit_700Bold",
+  },
+  stock: {
+    color: Colors.primaryDark,
+    fontSize: 12,
+    fontFamily: "Outfit_600SemiBold",
+  },
 });

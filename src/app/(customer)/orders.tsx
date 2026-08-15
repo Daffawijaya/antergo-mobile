@@ -1,20 +1,25 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CustomerChip, CustomerPageHeader } from "@/components/customer-page";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   orderService,
   serviceLabel,
   ServiceIcon,
 } from "@/components/service-icon";
-import { Button, Card, PageHeader, Screen, StatusState } from "@/components/ui";
-import { Colors, Spacing, Typography } from "@/constants/colors";
+import { Button, Screen, StatusState } from "@/components/ui";
+import { Colors } from "@/constants/colors";
 import { listCustomerOrders } from "@/lib/api/rides";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { orderKeys } from "@/lib/query-keys";
+import { useAppTheme } from "@/stores/theme-store";
 import type { Order } from "@/types/api";
+
+type Filter = "all" | "active" | "history";
+const terminal = new Set(["completed", "cancelled", "rejected"]);
 function orderPath(order: Order) {
   if (order.type === "food")
     return {
@@ -31,21 +36,52 @@ function orderPath(order: Order) {
     params: { id: String(order.id) },
   };
 }
+
 export default function CustomerOrders() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState<Filter>("all");
   const query = useQuery({
     queryKey: [...orderKeys.all, page],
     queryFn: () => listCustomerOrders(page),
     placeholderData: keepPreviousData,
   });
+  const orders = useMemo(
+    () =>
+      (query.data?.data ?? []).filter(
+        (order) =>
+          filter === "all" ||
+          (filter === "active"
+            ? !terminal.has(order.status)
+            : terminal.has(order.status)),
+      ),
+    [query.data?.data, filter],
+  );
   return (
-    <Screen>
-      <PageHeader
-        eyebrow="AKTIVITAS"
-        title="Pesanan saya"
-        description="Pantau pesanan aktif dan riwayat layananmu."
+    <Screen contentStyle={styles.screen}>
+      <CustomerPageHeader
+        title="Activities"
+        subtitle="Pesanan dan perjalananmu"
       />
+      <View style={styles.filters}>
+        <CustomerChip
+          label="Semua"
+          selected={filter === "all"}
+          onPress={() => setFilter("all")}
+        />
+        <CustomerChip
+          label="Aktif"
+          selected={filter === "active"}
+          onPress={() => setFilter("active")}
+        />
+        <CustomerChip
+          label="Riwayat"
+          selected={filter === "history"}
+          onPress={() => setFilter("history")}
+        />
+      </View>
       {query.isLoading ? (
         <StatusState type="loading" />
       ) : query.isError ? (
@@ -60,99 +96,115 @@ export default function CustomerOrders() {
             />
           }
         />
-      ) : !query.data?.data.length ? (
+      ) : !orders.length ? (
         <StatusState
           type="empty"
-          title="Belum ada pesanan"
-          message="Bike, Car, Delivery, Food, dan Shopping yang kamu buat akan tampil di sini."
+          title="Belum ada aktivitas"
+          message={
+            filter === "active"
+              ? "Tidak ada pesanan yang sedang berjalan."
+              : "Pesanan Bike, Car, Delivery, Food, dan Shopping akan tampil di sini."
+          }
         />
       ) : (
-        <>
-          {query.data.data.map((order) => (
+        <View style={styles.list}>
+          {orders.map((order) => (
             <Pressable
               key={order.id}
               onPress={() => router.push(orderPath(order))}
-              style={({ pressed }) => pressed && styles.pressed}
+              style={({ pressed }) => [
+                styles.orderRow,
+                pressed && styles.pressed,
+              ]}
             >
-              <Card>
-                <View style={styles.top}>
-                  <ServiceIcon type={orderService(order)} />
-                  <View style={styles.copy}>
-                    <Text style={styles.type}>
-                      {serviceLabel(orderService(order))}
-                    </Text>
-                    <Text style={styles.number}>{order.order_number}</Text>
-                  </View>
-                  <OrderStatusBadge status={order.status} />
+              <ServiceIcon type={orderService(order)} size={50} />
+              <View style={styles.copy}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.type}>
+                    {serviceLabel(orderService(order))}
+                  </Text>
+                  <Text style={styles.total}>
+                    {formatRupiah(order.total_price)}
+                  </Text>
                 </View>
-                <View style={styles.divider} />
-                <Text numberOfLines={2} style={styles.address}>
+                <Text style={styles.number}>{order.order_number}</Text>
+                <Text numberOfLines={1} style={styles.address}>
                   {order.destination_address ??
                     order.pickup_address ??
-                    "Detail alamat tersedia pada pesanan"}
+                    "Detail pesanan"}
                 </Text>
-                <View style={styles.bottom}>
-                  <View>
-                    <Text style={styles.meta}>
-                      {formatDateTime(order.created_at)}
-                    </Text>
-                    <Text style={styles.total}>
-                      {formatRupiah(order.total_price)}
-                    </Text>
-                  </View>
-                  <Text style={styles.detail}>Lihat detail ›</Text>
+                <View style={styles.metaRow}>
+                  <OrderStatusBadge status={order.status} />
+                  <Text style={styles.date}>
+                    {formatDateTime(order.created_at)}
+                  </Text>
                 </View>
-              </Card>
+              </View>
             </Pressable>
           ))}
-          {query.data.last_page > 1 ? (
-            <View style={styles.pagination}>
-              <View style={styles.pageButton}>
-                <Button
-                  compact
-                  title="Sebelumnya"
-                  variant="secondary"
-                  disabled={page <= 1 || query.isFetching}
-                  onPress={() => setPage((value) => value - 1)}
-                />
-              </View>
-              <Text style={styles.pageLabel}>
-                {page} / {query.data.last_page}
-              </Text>
-              <View style={styles.pageButton}>
-                <Button
-                  compact
-                  title="Berikutnya"
-                  variant="secondary"
-                  disabled={page >= query.data.last_page || query.isFetching}
-                  onPress={() => setPage((value) => value + 1)}
-                />
-              </View>
-            </View>
-          ) : null}
-        </>
+        </View>
       )}
+      {query.data && query.data.last_page > 1 ? (
+        <View style={styles.pagination}>
+          <View style={styles.flex}>
+            <Button
+              compact
+              title="Sebelumnya"
+              variant="secondary"
+              disabled={page <= 1 || query.isFetching}
+              onPress={() => setPage((v) => v - 1)}
+            />
+          </View>
+          <Text style={styles.page}>
+            {page}/{query.data.last_page}
+          </Text>
+          <View style={styles.flex}>
+            <Button
+              compact
+              title="Berikutnya"
+              variant="secondary"
+              disabled={page >= query.data.last_page || query.isFetching}
+              onPress={() => setPage((v) => v + 1)}
+            />
+          </View>
+        </View>
+      ) : null}
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  top: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  copy: { flex: 1, gap: 2 },
-  type: { color: Colors.text, ...Typography.cardTitle },
-  number: { color: Colors.muted, ...Typography.caption },
-  divider: { height: 1, backgroundColor: Colors.border },
-  address: { color: Colors.muted, ...Typography.body },
-  bottom: {
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  screen: { backgroundColor: colors.background, gap: 12 },
+  filters: { flexDirection: "row", gap: 7 },
+  list: { borderTopWidth: 1, borderTopColor: colors.border },
+  orderRow: {
+    minHeight: 108,
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    gap: Spacing.md,
+    alignItems: "flex-start",
+    gap: 13,
+    paddingVertical: 11,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  meta: { color: Colors.subtle, ...Typography.caption },
-  total: { color: Colors.text, ...Typography.cardTitle },
-  detail: { color: Colors.primaryDark, ...Typography.caption },
-  pressed: { opacity: 0.72 },
-  pagination: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  pageButton: { flex: 1 },
-  pageLabel: { color: Colors.muted, ...Typography.caption },
+  copy: { flex: 1, gap: 3 },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  type: { color: colors.text, fontSize: 18, fontFamily: "Outfit_700Bold" },
+  total: {
+    color: Colors.primaryDark,
+    fontSize: 15,
+    fontFamily: "Outfit_700Bold",
+  },
+  number: { color: colors.muted, fontSize: 12, fontFamily: "Outfit_500Medium" },
+  address: { color: colors.muted, fontSize: 14, fontFamily: "Outfit_400Regular" },
+  metaRow: {
+    marginTop: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  date: { color: colors.muted, fontSize: 11, fontFamily: "Outfit_400Regular" },
+  pressed: { opacity: 0.65 },
+  pagination: { flexDirection: "row", alignItems: "center", gap: 10 },
+  flex: { flex: 1 },
+  page: { color: colors.muted, fontFamily: "Outfit_500Medium" },
 });

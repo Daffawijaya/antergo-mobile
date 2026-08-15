@@ -1,16 +1,22 @@
 import * as Location from "expo-location";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Button, FormField, Notice, PageHeader, Screen } from "@/components/ui";
+import { CustomerPageHeader, CustomerPanel } from "@/components/customer-page";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { listMerchantCategories, registerMerchant } from "@/lib/api/resources";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAppTheme } from "@/stores/theme-store";
 
 export default function MerchantRegisterScreen() {
   const router = useRouter();
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
+  const { colors } = useAppTheme();
+  const goBack = () =>
+    returnTo ? router.replace(returnTo as never) : router.back();
   const refreshUser = useAuthStore((state) => state.refreshUser);
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
   const user = useAuthStore((state) => state.user);
@@ -61,88 +67,87 @@ export default function MerchantRegisterScreen() {
     latitude === undefined ||
     longitude === undefined;
   return (
-    <Screen>
-      <Button
-        title="Kembali"
-        variant="secondary"
-        onPress={() => router.back()}
-      />
-      <PageHeader
-        eyebrow="PENDAFTARAN"
+    <Screen contentStyle={styles.screen}>
+      <CustomerPageHeader
         title="Daftar Merchant"
-        description="Daftarkan toko agar dapat mengelola produk dan pesanan."
+        subtitle="Daftarkan toko dan mulai menerima pesanan"
+        onBack={goBack}
       />
-      {categories.data?.length ? (
-        <>
-          <Text style={styles.label}>Kategori toko (opsional)</Text>
-          <View style={styles.categories}>
-            {categories.data.map((category) => (
-              <Pressable
-                key={category.id}
-                onPress={() => setCategoryId(category.id)}
-                style={[
-                  styles.category,
-                  categoryId === category.id && styles.categoryActive,
-                ]}
-              >
-                <Text
+      <CustomerPanel title="Informasi toko">
+        {categories.data?.length ? (
+          <>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Kategori toko (opsional)
+            </Text>
+            <View style={styles.categories}>
+              {categories.data.map((category) => (
+                <Pressable
+                  key={category.id}
+                  onPress={() => setCategoryId(category.id)}
                   style={[
-                    styles.categoryText,
-                    categoryId === category.id && styles.categoryTextActive,
+                    styles.category,
+                    categoryId === category.id && styles.categoryActive,
                   ]}
                 >
-                  {category.name}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </>
-      ) : null}
-      <FormField
-        label="Nama toko"
-        value={name}
-        onChangeText={setName}
-        placeholder="Nama merchant"
-      />
-      <FormField
-        label="Deskripsi (opsional)"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        placeholder="Ceritakan tentang toko"
-      />
-      <FormField
-        label="Nomor telepon toko"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-      />
-      <FormField
-        label="Alamat toko"
-        value={address}
-        onChangeText={setAddress}
-        multiline
-        placeholder="Alamat lengkap"
-      />
-      <View style={styles.location}>
-        <View style={styles.locationCopy}>
-          <Text style={styles.locationTitle}>Lokasi toko</Text>
-          <Text style={styles.locationText}>
-            {latitude !== undefined
-              ? `${latitude.toFixed(6)}, ${longitude?.toFixed(6)}`
-              : "Belum ditentukan"}
-          </Text>
-        </View>
-        <Button
-          compact
-          title={locating ? "Mencari…" : "Gunakan GPS"}
-          variant="secondary"
-          disabled={locating}
-          onPress={() => {
-            void locateStore();
-          }}
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      categoryId === category.id && styles.categoryTextActive,
+                    ]}
+                  >
+                    {category.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        ) : null}
+        <FormField
+          label="Nama toko"
+          value={name}
+          onChangeText={setName}
+          placeholder="Nama merchant"
         />
-      </View>
+        <FormField
+          label="Deskripsi (opsional)"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          placeholder="Ceritakan tentang toko"
+        />
+        <FormField
+          label="Nomor telepon toko"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+        />
+        <FormField
+          label="Alamat toko"
+          value={address}
+          onChangeText={setAddress}
+          multiline
+          placeholder="Alamat lengkap"
+        />
+        <View style={styles.location}>
+          <View style={styles.locationCopy}>
+            <Text style={styles.locationTitle}>Lokasi toko</Text>
+            <Text style={styles.locationText}>
+              {latitude !== undefined
+                ? `${latitude.toFixed(6)}, ${longitude?.toFixed(6)}`
+                : "Belum ditentukan"}
+            </Text>
+          </View>
+          <Button
+            compact
+            title={locating ? "Mencari…" : "Gunakan GPS"}
+            variant="secondary"
+            disabled={locating}
+            onPress={() => {
+              void locateStore();
+            }}
+          />
+        </View>
+      </CustomerPanel>
       {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
       {mutation.isError ? (
         <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
@@ -172,6 +177,7 @@ export default function MerchantRegisterScreen() {
   );
 }
 const styles = StyleSheet.create({
+  screen: { paddingTop: 7, gap: 12 },
   label: { color: Colors.text, fontSize: 13, fontFamily: "Outfit_700Bold" },
   categories: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   category: {

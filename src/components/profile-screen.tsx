@@ -1,22 +1,20 @@
-import { useFocusEffect, useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
-import { SymbolView } from "expo-symbols";
-import { useCallback, useState } from "react";
-import {
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getDriverApplication } from "@/lib/api/resources";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePushNotificationStore } from "@/stores/push-notification-store";
+import {
+  useAppTheme,
+  useThemeStore,
+  type ThemeMode,
+} from "@/stores/theme-store";
 import type { AppRole } from "@/types/api";
+import { useQuery } from "@tanstack/react-query";
+import { useFocusEffect, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { useCallback, useState } from "react";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -24,7 +22,6 @@ const ROLE_LABELS: Record<AppRole, string> = {
   driver: "Driver",
   merchant: "Merchant",
 };
-const ROLES: AppRole[] = ["customer", "driver", "merchant"];
 const roleSymbol = (role: AppRole) =>
   role === "customer"
     ? {
@@ -46,6 +43,8 @@ const roleSymbol = (role: AppRole) =>
 
 export function ProfileScreen() {
   const router = useRouter();
+  const { mode, colors } = useAppTheme();
+  const setThemeMode = useThemeStore((state) => state.setMode);
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
@@ -56,16 +55,18 @@ export function ProfileScreen() {
   const pushStatus = usePushNotificationStore((state) => state.status);
   const pushMessage = usePushNotificationStore((state) => state.message);
   const retryPush = usePushNotificationStore((state) => state.retry);
-  const { data: driverApplication, refetch: refetchDriverApplication } =
-    useQuery({
-      queryKey: ["driver-application"],
-      queryFn: getDriverApplication,
-    });
+  const { data: driverApplication, refetch } = useQuery({
+    queryKey: ["driver-application"],
+    queryFn: getDriverApplication,
+  });
   useFocusEffect(
     useCallback(() => {
       void refreshUser().catch(() => undefined);
-      void refetchDriverApplication();
-    }, [refreshUser, refetchDriverApplication]),
+      void refetch();
+    }, [refreshUser, refetch]),
+  );
+  const ownedRoles = (["customer", "driver", "merchant"] as AppRole[]).filter(
+    (role) => user?.roles.includes(role),
   );
   const pushLabel =
     pushStatus === "registered"
@@ -77,16 +78,6 @@ export function ProfileScreen() {
           : pushStatus === "error"
             ? "Gagal"
             : "Memeriksa…";
-
-  const switchRole = async (role: AppRole) => {
-    if (user?.roles.includes(role)) {
-      await setActiveRole(role);
-      return;
-    }
-    if (role === "driver" && !driverApplication)
-      router.push("/(customer)/driver-register");
-    if (role === "merchant") router.push("/(customer)/merchant-register");
-  };
   const handleLogout = async () => {
     setLoading(true);
     setError(undefined);
@@ -100,204 +91,255 @@ export function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={["top", "left", "right"]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerClassName="pb-6"
       >
-        <View style={styles.hero}>
-          <View style={styles.identityCard}>
-            <View style={styles.identityRow}>
-              <View style={styles.avatar}>
+        <View className="bg-surface-muted px-4 pb-7 pt-3">
+          <Pressable
+            onPress={() => router.push("/(customer)/account-detail" as never)}
+            className="rounded-3xl bg-surface p-4 elevation-md active:opacity-90"
+          >
+            <View className="flex-row items-center gap-3">
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
                 <SymbolView
                   name={{
                     ios: "person.fill",
                     android: "person",
                     web: "person",
                   }}
-                  size={42}
+                  size={40}
                   tintColor="#FFFFFF"
                 />
               </View>
-              <View style={styles.identityCopy}>
-                <Text numberOfLines={1} style={styles.name}>
+              <View className="min-w-0 flex-1">
+                <Text
+                  numberOfLines={1}
+                  className="font-bold text-xl text-foreground"
+                >
                   {user?.name ?? "Pengguna AnterGo"}
                 </Text>
-                <Text numberOfLines={1} style={styles.email}>
+                <Text
+                  numberOfLines={1}
+                  className="font-sans text-sm text-muted"
+                >
                   {user?.email ?? "-"}
                 </Text>
               </View>
-              <View style={styles.profilePill}>
-                <Text style={styles.profilePillText}>Profil</Text>
+              <View className="rounded-full bg-surface-muted px-4 py-2">
+                <Text className="font-bold text-brand">Profil</Text>
               </View>
             </View>
-            <View style={styles.accountLine}>
+            <View className="mt-4 flex-row items-center gap-2 rounded-full border border-border px-3 py-2.5">
               <SymbolView
                 name={{ ios: "phone.fill", android: "phone", web: "phone" }}
-                size={18}
+                size={17}
                 tintColor={Colors.primary}
               />
-              <Text style={styles.accountLineText}>
-                {user?.phone ?? "Nomor telepon belum tersedia"}
+              <Text
+                numberOfLines={1}
+                className="flex-1 font-semibold text-sm text-foreground"
+              >
+                {user?.phone || "Nomor telepon belum tersedia"}
               </Text>
+              <SymbolView
+                name={{
+                  ios: "chevron.right",
+                  android: "chevron_right",
+                  web: "chevron_right",
+                }}
+                size={18}
+                tintColor={colors.muted}
+              />
             </View>
-          </View>
+          </Pressable>
         </View>
 
-        <View style={styles.roleSection}>
-          <Text style={styles.sectionTitle}>Ganti mode</Text>
-          <View style={styles.roleScroller}>
-            {ROLES.map((role) => {
-              const available = Boolean(user?.roles.includes(role));
-              const selected = activeRole === role;
-              const pending =
-                role === "driver" && driverApplication?.status === "pending";
-              return (
-                <Pressable
-                  key={role}
-                  disabled={pending}
-                  onPress={() => {
-                    void switchRole(role);
-                  }}
-                  style={[
-                    styles.roleCard,
-                    selected && styles.roleCardSelected,
-                    (!available || pending) && styles.roleCardDisabled,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.roleIcon,
-                      selected && styles.roleIconSelected,
-                    ]}
+        {ownedRoles.length > 1 ? (
+          <View className="border-b-[10px] border-surface-muted bg-background px-4 py-5">
+            <Text className="mb-3 font-bold text-lg text-foreground">
+              Akun AnterGo
+            </Text>
+            <View className="flex-row gap-2">
+              {ownedRoles.map((role) => {
+                const selected = role === activeRole;
+                return (
+                  <Pressable
+                    key={role}
+                    onPress={() => void setActiveRole(role)}
+                    className={`flex-1 items-center rounded-2xl border px-2 py-3 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
                   >
                     <SymbolView
                       name={roleSymbol(role)}
-                      size={27}
-                      tintColor={
-                        selected
-                          ? "#FFFFFF"
-                          : available
-                            ? Colors.primary
-                            : "#A3A3A3"
-                      }
+                      size={24}
+                      tintColor={selected ? "#FFFFFF" : colors.text}
                     />
-                  </View>
-                  <View style={styles.roleTextWrap}>
                     <Text
-                      style={[
-                        styles.roleName,
-                        selected && styles.roleNameSelected,
-                      ]}
+                      className={`mt-1 font-semibold text-sm ${selected ? "text-white" : "text-foreground"}`}
                     >
                       {ROLE_LABELS[role]}
                     </Text>
-                    <Text
-                      style={[
-                        styles.roleStatus,
-                        selected && styles.roleStatusSelected,
-                      ]}
-                    >
-                      {selected
-                        ? "Mode aktif"
-                        : available
-                          ? "Ketuk untuk beralih"
-                          : "Belum tersedia"}
-                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        <View className="border-b-[10px] border-surface-muted px-4 py-5">
+          <View className="flex-row gap-3">
+            {(["light", "dark"] as ThemeMode[]).map((item) => {
+              const selected = mode === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => void setThemeMode(item)}
+                  className={`flex-1 flex-row items-center gap-3 rounded-2xl border p-4 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
+                >
+                  <View
+                    className={`h-10 w-10 items-center justify-center rounded-full ${selected ? "bg-white/20" : "bg-surface-muted"}`}
+                  >
+                    <SymbolView
+                      name={{
+                        ios: item === "light" ? "sun.max.fill" : "moon.fill",
+                        android: item === "light" ? "light_mode" : "dark_mode",
+                        web: item === "light" ? "light_mode" : "dark_mode",
+                      }}
+                      size={22}
+                      tintColor={selected ? "#FFFFFF" : colors.text}
+                    />
                   </View>
+                  <Text
+                    className={`font-bold ${selected ? "text-white" : "text-foreground"}`}
+                  >
+                    {item === "light" ? "Light" : "Dark"}
+                  </Text>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        <View style={styles.menuSection}>
-          <Text style={styles.heading}>Umum</Text>
-          <MenuRow
+        <View className="px-4 py-5">
+          <Text className="mb-2 font-bold text-xl text-foreground">Umum</Text>
+          <SettingsRow
             icon="badge"
-            title="Akses tersedia"
-            value={
-              user?.roles
-                .map((role) => (role === "admin" ? "Admin" : ROLE_LABELS[role]))
-                .join(", ") ?? "-"
-            }
-          />
-          <MenuRow
-            icon="notifications"
             title="Notifikasi"
             value={pushLabel}
             onPress={
               (pushStatus === "denied" || pushStatus === "error") && retryPush
-                ? () => {
-                    void retryPush();
-                  }
+                ? () => void retryPush()
                 : undefined
             }
           />
-          {pushMessage ? (
-            <Text style={styles.message}>{pushMessage}</Text>
-          ) : null}
           {pushStatus === "denied" ? (
-            <MenuRow
+            <SettingsRow
               icon="settings"
               title="Buka pengaturan aplikasi"
-              onPress={() => {
-                void Linking.openSettings();
-              }}
+              onPress={() => void Linking.openSettings()}
             />
           ) : null}
-          <MenuRow
+          {!user?.roles.includes("driver") ? (
+            <SettingsRow
+              icon="two_wheeler"
+              title={
+                driverApplication?.status === "pending"
+                  ? "Pendaftaran driver diproses"
+                  : "Daftar sebagai driver"
+              }
+              onPress={
+                driverApplication?.status === "pending"
+                  ? undefined
+                  : () =>
+                      router.push({
+                        pathname: "/(customer)/driver-register",
+                        params: { returnTo: "/(customer)/profile" },
+                      })
+              }
+            />
+          ) : null}
+          {!user?.roles.includes("merchant") ? (
+            <SettingsRow
+              icon="storefront"
+              title="Daftar sebagai merchant"
+              onPress={() =>
+                router.push({
+                  pathname: "/(customer)/merchant-register",
+                  params: { returnTo: "/(customer)/profile" },
+                })
+              }
+            />
+          ) : null}
+          <SettingsRow
             icon="logout"
-            title="Keluar dari akun"
+            title={loading ? "Sedang keluar…" : "Keluar dari akun"}
             danger
-            onPress={() => {
-              void handleLogout();
-            }}
+            onPress={() => void handleLogout()}
           />
-          {loading ? <Text style={styles.message}>Sedang keluar…</Text> : null}
-          {error ? <Notice tone="danger">{error}</Notice> : null}
+          {pushMessage ? (
+            <Text className="mt-2 text-sm text-muted">{pushMessage}</Text>
+          ) : null}
+          {error ? (
+            <View className="mt-3">
+              <Notice tone="danger">{error}</Notice>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function MenuRow({
+function SettingsRow({
   icon,
   title,
   value,
   onPress,
   danger = false,
 }: {
-  icon: "badge" | "notifications" | "settings" | "logout";
+  icon: "badge" | "settings" | "logout" | "two_wheeler" | "storefront";
   title: string;
   value?: string;
   onPress?: () => void;
   danger?: boolean;
 }) {
+  const { colors } = useAppTheme();
   const content = (
     <>
-      <View style={styles.menuIcon}>
+      <View className="w-8 items-center">
         <SymbolView
           name={{
             ios:
-              icon === "notifications"
+              icon === "badge"
                 ? "bell.fill"
                 : icon === "settings"
                   ? "gearshape.fill"
                   : icon === "logout"
                     ? "rectangle.portrait.and.arrow.right"
-                    : "person.text.rectangle.fill",
-            android: icon,
+                    : icon === "two_wheeler"
+                      ? "motorcycle.fill"
+                      : "storefront.fill",
+            android: icon === "badge" ? "notifications" : icon,
             web: icon,
           }}
           size={21}
-          tintColor={danger ? Colors.danger : "#222222"}
+          tintColor={danger ? Colors.danger : colors.text}
         />
       </View>
-      <Text style={[styles.menuTitle, danger && styles.danger]}>{title}</Text>
+      <Text
+        className={`flex-1 font-medium text-base ${danger ? "text-danger" : "text-foreground"}`}
+      >
+        {title}
+      </Text>
       {value ? (
-        <Text numberOfLines={1} style={styles.menuValue}>
+        <Text
+          numberOfLines={1}
+          className="max-w-32 text-right text-sm text-muted"
+        >
           {value}
         </Text>
       ) : null}
@@ -308,149 +350,22 @@ function MenuRow({
             android: "chevron_right",
             web: "chevron_right",
           }}
-          size={21}
-          tintColor="#222222"
+          size={20}
+          tintColor={colors.muted}
         />
       ) : null}
     </>
   );
   return onPress ? (
-    <Pressable onPress={onPress} style={styles.menuRow}>
+    <Pressable
+      onPress={onPress}
+      className={`min-h-14 flex-row items-center gap-2 border-b border-border ${danger ? "mt-2 rounded-2xl border-b-0" : ""}`}
+    >
       {content}
     </Pressable>
   ) : (
-    <View style={styles.menuRow}>{content}</View>
+    <View className="min-h-14 flex-row items-center gap-2 border-b border-border">
+      {content}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
-  scroll: { paddingBottom: 24, backgroundColor: "#FFFFFF" },
-  hero: {
-    paddingHorizontal: 18,
-    paddingTop: 15,
-    paddingBottom: 30,
-    backgroundColor: "#EFFBFC",
-  },
-  identityCard: {
-    padding: 10,
-    borderRadius: 22,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-  identityRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  avatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#2EAA9D",
-  },
-  identityCopy: { flex: 1, gap: 3 },
-  name: { color: "#171717", fontSize: 21, fontFamily: "Outfit_700Bold" },
-  email: { color: "#777777", fontSize: 13, fontFamily: "Outfit_400Regular" },
-  profilePill: {
-    paddingHorizontal: 17,
-    paddingVertical: 11,
-    borderRadius: 22,
-    backgroundColor: "#EFFBFA",
-  },
-  profilePillText: {
-    color: "#164E49",
-    fontSize: 15,
-    fontFamily: "Outfit_700Bold",
-  },
-  accountLine: {
-    minHeight: 43,
-    marginTop: 16,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 9,
-    borderWidth: 1,
-    borderColor: "#E4E4E4",
-    borderRadius: 22,
-  },
-  accountLineText: {
-    flex: 1,
-    color: "#292929",
-    fontSize: 14,
-    fontFamily: "Outfit_600SemiBold",
-  },
-  roleSection: { paddingVertical: 25, backgroundColor: "#FFFFFF" },
-  sectionTitle: {
-    paddingHorizontal: 20,
-    marginBottom: 15,
-    color: "#171717",
-    fontSize: 20,
-    fontFamily: "Outfit_700Bold",
-  },
-  roleScroller: { flexDirection: "row", paddingHorizontal: 12, gap: 8 },
-  roleCard: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 132,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#DDDDDD",
-    backgroundColor: "#FFFFFF",
-  },
-  roleCardSelected: { borderColor: "#3F8F36", backgroundColor: "#327967" },
-  roleCardDisabled: { opacity: 0.55, backgroundColor: "#F7F7F7" },
-  roleIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.primarySoft,
-  },
-  roleIconSelected: { backgroundColor: "rgba(255,255,255,.18)" },
-  roleTextWrap: { marginTop: 8, gap: 2, alignItems: "center" },
-  roleName: { color: "#171717", fontSize: 15, fontFamily: "Outfit_700Bold" },
-  roleNameSelected: { color: "#FFFFFF" },
-  roleStatus: {
-    color: "#747474",
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-  },
-  roleStatusSelected: { color: "#DDF8EE" },
-  menuSection: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    gap: 3,
-    borderTopWidth: 10,
-    borderTopColor: "#F6F6F6",
-  },
-  heading: {
-    color: "#161616",
-    fontSize: 24,
-    fontFamily: "Outfit_700Bold",
-    marginBottom: 14,
-  },
-  menuRow: {
-    minHeight: 62,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  menuIcon: { width: 30, alignItems: "center" },
-  menuTitle: { color: "#202020", fontSize: 16, fontFamily: "Outfit_500Medium" },
-  menuValue: {
-    flex: 1,
-    color: "#666666",
-    fontSize: 13,
-    textAlign: "right",
-    fontFamily: "Outfit_400Regular",
-  },
-  danger: { color: Colors.danger },
-  message: { color: "#6B7280", fontSize: 13, fontFamily: "Outfit_400Regular" },
-});

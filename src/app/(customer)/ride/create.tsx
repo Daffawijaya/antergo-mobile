@@ -4,18 +4,10 @@ import { isAxiosError } from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect } from "react";
-import { StyleSheet, Text } from "react-native";
-import { LocationField } from "@/components/location-field";
-import {
-  BackButton,
-  Button,
-  Card,
-  FormField,
-  Notice,
-  PageHeader,
-  Screen,
-} from "@/components/ui";
-import { Colors, Spacing, Typography } from "@/constants/colors";
+import { Text, View } from "react-native";
+import { LocationRouteCard } from "@/components/location-field";
+import { CustomerPageHeader } from "@/components/customer-page";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { createRide } from "@/lib/api/rides";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { orderKeys } from "@/lib/query-keys";
@@ -119,8 +111,11 @@ export default function CreateRideScreen() {
   );
   const openPicker = (purpose: "ride-pickup" | "ride-destination") =>
     router.push({
-      pathname: "/(customer)/location-picker",
-      params: { purpose },
+      pathname: "/(customer)/location-search" as never,
+      params: {
+        purpose,
+        returnTo: `/(customer)/ride/create?service=${service}`,
+      },
     });
   const locationError =
     errors.pickup_address?.message ||
@@ -128,49 +123,50 @@ export default function CreateRideScreen() {
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
   return (
-    <Screen>
-      <PageHeader
-        eyebrow={serviceLabel.toUpperCase()}
+    <Screen className="gap-3 bg-background">
+      <CustomerPageHeader
         title={`Pesan ${serviceLabel}`}
-        description="Pilih lokasi jemput dan tujuan perjalananmu."
-        action={<BackButton onPress={() => router.back()} />}
+        subtitle="Pilih lokasi jemput dan tujuan perjalananmu"
+        onBack={() => router.back()}
       />
-      <Card>
-        <LocationField
-          label="Lokasi jemput"
-          value={pickup?.address}
-          placeholder="Pilih lokasi jemput"
-          onPress={() => openPicker("ride-pickup")}
-        />
-        <LocationField
-          label="Tujuan"
-          value={destination?.address}
-          placeholder="Mau ke mana?"
-          onPress={() => openPicker("ride-destination")}
-        />
-      </Card>
-      <Controller
-        control={control}
-        name="notes"
-        render={({ field }) => (
-          <FormField
-            label="Catatan untuk driver (opsional)"
-            placeholder="Contoh: tunggu di depan lobi"
-            multiline
-            numberOfLines={3}
-            returnKeyType="done"
-            value={field.value}
-            onBlur={field.onBlur}
-            onChangeText={field.onChange}
-            error={errors.notes?.message}
-          />
-        )}
+      <LocationRouteCard
+        pickup={{
+          label: "Lokasi jemput",
+          value: pickup?.address,
+          placeholder: "Pilih lokasi jemput",
+          onPress: () => openPicker("ride-pickup"),
+        }}
+        destination={{
+          label: "Tujuan",
+          value: destination?.address,
+          placeholder: "Mau ke mana?",
+          onPress: () => openPicker("ride-destination"),
+        }}
       />
+      <View className="gap-3">
+        <Controller
+          control={control}
+          name="notes"
+          render={({ field }) => (
+            <FormField
+              label="Catatan untuk driver (opsional)"
+              placeholder="Contoh: tunggu di depan lobi"
+              multiline
+              numberOfLines={3}
+              returnKeyType="done"
+              value={field.value}
+              onBlur={field.onBlur}
+              onChangeText={field.onChange}
+              error={errors.notes?.message}
+            />
+          )}
+        />
+      </View>
       {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
       {mutation.isError ? (
         <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
       ) : null}
-      <Text style={styles.helper}>
+      <Text className="mt-auto pt-2 text-center text-[13px] text-muted">
         Harga dihitung otomatis berdasarkan jarak perjalanan.
       </Text>
       <Button
@@ -181,12 +177,3 @@ export default function CreateRideScreen() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  helper: {
-    color: Colors.muted,
-    ...Typography.metadata,
-    textAlign: "center",
-    marginTop: "auto",
-    paddingTop: Spacing.xl,
-  },
-});

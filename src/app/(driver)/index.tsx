@@ -1,6 +1,6 @@
+import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { AppState, StyleSheet, Text, View } from "react-native";
 
 import { OrderStatusBadge } from "@/components/order-status-badge";
@@ -37,6 +37,7 @@ import {
 } from "@/lib/location";
 import { useDriverLocationStore } from "@/stores/driver-location-store";
 import type { Order } from "@/types/api";
+import { useAppTheme } from "@/stores/theme-store";
 
 function activeOrderPath(order: Order) {
   if (order.type === "food")
@@ -58,6 +59,7 @@ function activeOrderLabel(order: Order) {
   return `${serviceLabel(orderService(order))} aktif`;
 }
 export default function DriverHome() {
+  const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
   const [showPermissionExplanation, setShowPermissionExplanation] =
@@ -321,9 +323,13 @@ export default function DriverHome() {
   );
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: { color: Colors.text, fontSize: 18, fontWeight: "800" },
-  muted: { color: Colors.muted, lineHeight: 20 },
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  muted: { color: colors.muted, lineHeight: 20 },
   warning: { color: Colors.warning, lineHeight: 20 },
   location: { color: Colors.primary, lineHeight: 20 },
   error: { color: Colors.danger, lineHeight: 20 },

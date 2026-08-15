@@ -1,0 +1,45 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+@import "nativewind/theme";
+
+@theme {
+  --color-brand: #10b981;
+  --color-brand-pressed: #059669;
+  --color-danger: #dc2626;
+  --font-sans: "Outfit_400Regular";
+  --font-medium: "Outfit_500Medium";
+  --font-semibold: "Outfit_600SemiBold";
+  --font-bold: "Outfit_700Bold";
+  --font-extrabold: "Outfit_800ExtraBold";
+}
+
+@layer base {
+  :root {
+    --app-background: #ffffff;
+    --app-surface: #ffffff;
+    --app-surface-muted: #f5f5f5;
+    --app-foreground: #171717;
+    --app-muted: #737373;
+    --app-border: #e5e5e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --app-background: #121313;
+      --app-surface: #1b1b1b;
+      --app-surface-muted: #242525;
+      --app-foreground: #f5f5f5;
+      --app-muted: #a3a3a3;
+      --app-border: #343535;
+    }
+  }
+}
+
+@theme inline {
+  --color-background: var(--app-background);
+  --color-surface: var(--app-surface);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-foreground: var(--app-foreground);
+  --color-muted: var(--app-muted);
+  --color-border: var(--app-border);
+}

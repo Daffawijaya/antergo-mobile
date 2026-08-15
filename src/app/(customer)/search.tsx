@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -17,12 +17,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
 import { listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
+import { useAppTheme } from "@/stores/theme-store";
 
 type Filter = "all" | "food" | "shopping" | "ride";
 const HISTORY_KEY = "antergo_search_history";
 
 export default function SearchScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -83,15 +86,18 @@ export default function SearchScreen() {
                 web: "arrow_back",
               }}
               size={28}
-              tintColor="#151515"
+              tintColor={colors.text}
             />
           </Pressable>
           <Pressable
             style={styles.locationCopy}
             onPress={() =>
               router.push({
-                pathname: "/(customer)/location-picker",
-                params: { purpose: "ride-pickup" },
+                pathname: "/(customer)/location-search" as never,
+                params: {
+                  purpose: "ride-pickup",
+                  returnTo: "/(customer)/search",
+                },
               })
             }
           >
@@ -107,7 +113,7 @@ export default function SearchScreen() {
               web: "keyboard_arrow_down",
             }}
             size={22}
-            tintColor="#222222"
+            tintColor={colors.text}
           />
         </View>
 
@@ -115,7 +121,7 @@ export default function SearchScreen() {
           <SymbolView
             name={{ ios: "magnifyingglass", android: "search", web: "search" }}
             size={25}
-            tintColor="#666666"
+            tintColor={colors.muted}
           />
           <TextInput
             autoFocus
@@ -141,7 +147,7 @@ export default function SearchScreen() {
                   web: "cancel",
                 }}
                 size={21}
-                tintColor="#9A9A9A"
+                tintColor={colors.muted}
               />
             </Pressable>
           ) : null}
@@ -201,7 +207,7 @@ export default function SearchScreen() {
                   web: "chevron_right",
                 }}
                 size={21}
-                tintColor="#222222"
+                tintColor={colors.text}
               />
             </Pressable>
             <Pressable
@@ -225,7 +231,7 @@ export default function SearchScreen() {
                   web: "chevron_right",
                 }}
                 size={21}
-                tintColor="#222222"
+                tintColor={colors.text}
               />
             </Pressable>
           </View>
@@ -277,7 +283,7 @@ export default function SearchScreen() {
                       web: "chevron_right",
                     }}
                     size={21}
-                    tintColor="#222222"
+                    tintColor={colors.text}
                   />
                 </Pressable>
               ))
@@ -303,7 +309,7 @@ export default function SearchScreen() {
                         web: "history",
                       }}
                       size={19}
-                      tintColor="#737373"
+                      tintColor={colors.muted}
                     />
                     <Text style={styles.historyText}>{term}</Text>
                   </Pressable>
@@ -332,6 +338,8 @@ function FilterChip({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -350,7 +358,7 @@ function FilterChip({
             web: icon,
           }}
           size={19}
-          tintColor={selected ? "#FFFFFF" : "#174F49"}
+          tintColor={selected ? "#FFFFFF" : Colors.primaryDark}
         />
       ) : null}
       <Text style={[styles.filterText, selected && styles.filterTextSelected]}>
@@ -360,8 +368,8 @@ function FilterChip({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
   scroll: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 30 },
   locationRow: {
     minHeight: 72,
@@ -377,12 +385,12 @@ const styles = StyleSheet.create({
   },
   locationCopy: { flex: 1 },
   locationLabel: {
-    color: "#333333",
+    color: colors.text,
     fontSize: 13,
     fontFamily: "Outfit_400Regular",
   },
   locationValue: {
-    color: "#171717",
+    color: colors.text,
     fontSize: 19,
     fontFamily: "Outfit_700Bold",
   },
@@ -394,11 +402,11 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     borderRadius: 17,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: colors.surfaceMuted,
   },
   input: {
     flex: 1,
-    color: "#171717",
+    color: colors.text,
     fontSize: 17,
     fontFamily: "Outfit_400Regular",
   },
@@ -421,8 +429,8 @@ const styles = StyleSheet.create({
   filterTextSelected: { color: "#FFFFFF" },
   section: { paddingTop: 5 },
   heading: {
-    color: "#171717",
-    fontSize: 24,
+    color: colors.text,
+    fontSize: 20,
     fontFamily: "Outfit_700Bold",
     marginBottom: 20,
   },
@@ -434,10 +442,10 @@ const styles = StyleSheet.create({
     gap: 7,
     paddingHorizontal: 16,
     borderRadius: 22,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: colors.surfaceMuted,
   },
   historyText: {
-    color: "#333333",
+    color: colors.text,
     fontSize: 15,
     fontFamily: "Outfit_400Regular",
   },
@@ -447,7 +455,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 13,
     borderBottomWidth: 1,
-    borderBottomColor: "#ECECEC",
+    borderBottomColor: colors.border,
   },
   image: { width: 58, height: 58, borderRadius: 12 },
   imageFallback: {
@@ -461,12 +469,12 @@ const styles = StyleSheet.create({
   fallbackEmoji: { fontSize: 28 },
   resultCopy: { flex: 1, gap: 2 },
   resultTitle: {
-    color: "#171717",
+    color: colors.text,
     fontSize: 17,
     fontFamily: "Outfit_600SemiBold",
   },
   resultMeta: {
-    color: "#737373",
+    color: colors.muted,
     fontSize: 13,
     fontFamily: "Outfit_400Regular",
   },
@@ -476,7 +484,7 @@ const styles = StyleSheet.create({
     fontFamily: "Outfit_700Bold",
   },
   empty: {
-    color: "#737373",
+    color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
     fontFamily: "Outfit_400Regular",
@@ -487,7 +495,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#ECECEC",
+    borderBottomColor: colors.border,
   },
   rideEmoji: { width: 58, fontSize: 38, textAlign: "center" },
 });

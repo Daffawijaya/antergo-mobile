@@ -1,5 +1,5 @@
+import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import {
   Button,
@@ -15,7 +15,9 @@ import {
 import { Colors, Spacing, Typography } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { createMerchantProduct, getMerchantProfile } from "@/lib/api/resources";
+import { useAppTheme } from "@/stores/theme-store";
 export default function MerchantProducts() {
+  const { styles } = useScreenStyles();
   const client = useQueryClient();
   const query = useQuery({
     queryKey: ["merchant", "profile"],
@@ -169,17 +171,21 @@ export default function MerchantProducts() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   row: { flexDirection: "row", gap: Spacing.sm },
   flex: { flex: 1 },
-  label: { color: Colors.text, ...Typography.metadata, fontWeight: "700" },
+  label: { color: colors.text, ...Typography.metadata, fontWeight: "700" },
   heading: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.md,
   },
-  title: { flex: 1, color: Colors.text, ...Typography.cardTitle },
+  title: { flex: 1, color: colors.text, ...Typography.cardTitle },
   badge: {
     color: Colors.primaryDark,
     backgroundColor: Colors.primarySoft,

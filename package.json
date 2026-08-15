@@ -4,33 +4,35 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo-google-fonts/outfit": "^0.4.3",
-    "@expo/ui": "~57.0.10",
+    "@expo/ui": "~57.0.11",
     "@hookform/resolvers": "^5.8.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.101.4",
     "axios": "^1.19.0",
-    "expo": "~57.0.12",
-    "expo-constants": "~57.0.10",
-    "expo-dev-client": "~57.0.11",
+    "expo": "~57.0.13",
+    "expo-constants": "~57.0.11",
+    "expo-dev-client": "~57.0.12",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.1",
     "expo-glass-effect": "~57.0.1",
-    "expo-image": "~57.0.2",
-    "expo-linking": "~57.0.5",
-    "expo-location": "~57.0.9",
-    "expo-notifications": "~57.0.10",
-    "expo-router": "~57.0.12",
+    "expo-image": "~57.0.3",
+    "expo-linking": "~57.0.6",
+    "expo-location": "~57.0.10",
+    "expo-notifications": "~57.0.11",
+    "expo-router": "~57.0.13",
     "expo-secure-store": "~57.0.1",
     "expo-splash-screen": "~57.0.6",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.2",
     "expo-system-ui": "~57.0.2",
-    "expo-task-manager": "~57.0.9",
+    "expo-task-manager": "~57.0.10",
     "expo-web-browser": "~57.0.2",
+    "nativewind": "^5.0.0-preview.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.85.0",
     "react-native": "0.86.2",
+    "react-native-css": "^3.0.7",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-maps": "1.27.2",
     "react-native-reanimated": "4.5.1",
@@ -42,9 +44,12 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.1",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -56,5 +61,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "lightningcss": "1.30.1"
+  }
 }

@@ -6,26 +6,24 @@ import {
   Image,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BackButton, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
-import { listNearbyProducts } from "@/lib/api/food";
+import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
+import { useAppTheme } from "@/stores/theme-store";
 
 type Sort = "latest" | "price-low" | "price-high";
-
-export default function ProductCatalogScreen() {
+export default function CommerceCatalogScreen() {
   const router = useRouter();
-  const { service: serviceParam } = useLocalSearchParams<{
-    service?: string;
-  }>();
-  const service = serviceParam === "shopping" ? "shopping" : "food";
-  const productType = service === "shopping" ? "goods" : "food";
+  const { colors } = useAppTheme();
+  const { service: rawService } = useLocalSearchParams<{ service?: string }>();
+  const service = rawService === "shopping" ? "shopping" : "food";
   const destination = useLocationPickerStore(
     (state) => state.selections["food-destination"],
   );
@@ -33,12 +31,28 @@ export default function ProductCatalogScreen() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<Sort>("latest");
   const [page, setPage] = useState(1);
-  const products = useQuery({
-    queryKey: ["catalog", service, search, page],
-    queryFn: () => listNearbyProducts(page, search, productType),
+  const merchants = useQuery({
+    queryKey: ["merchants", "food", page],
+    queryFn: () => listMerchants(page, "food"),
     placeholderData: keepPreviousData,
+    enabled: service === "food",
   });
-  const sorted = useMemo(() => {
+  const products = useQuery({
+    queryKey: ["catalog", "shopping", search, page],
+    queryFn: () => listNearbyProducts(page, search, "goods"),
+    placeholderData: keepPreviousData,
+    enabled: service === "shopping",
+  });
+  const merchantList = useMemo(() => {
+    const term = search.toLowerCase();
+    return (merchants.data?.data ?? []).filter(
+      (merchant) =>
+        !term ||
+        merchant.name.toLowerCase().includes(term) ||
+        merchant.category?.name.toLowerCase().includes(term),
+    );
+  }, [merchants.data?.data, search]);
+  const productList = useMemo(() => {
     const data = [...(products.data?.data ?? [])];
     if (sort === "price-low")
       data.sort((a, b) => Number(a.price) - Number(b.price));
@@ -46,46 +60,50 @@ export default function ProductCatalogScreen() {
       data.sort((a, b) => Number(b.price) - Number(a.price));
     return data;
   }, [products.data?.data, sort]);
-  const submitSearch = () => {
+  const activeQuery = service === "food" ? merchants : products;
+  const paginator = service === "food" ? merchants.data : products.data;
+  const submit = () => {
     setSearch(query.trim());
     setPage(1);
   };
-  const openProduct = (merchantId: number) =>
+  const openMerchant = (id: number) =>
     router.push({
       pathname: "/(customer)/food/merchant/[id]",
-      params: { id: String(merchantId), service },
+      params: {
+        id: String(id),
+        service,
+        returnTo: `/(customer)/food?service=${service}`,
+      },
     });
-
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={["top", "left", "right"]}
+    >
       <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerClassName="px-4 pb-8 pt-2"
       >
-        <View style={styles.locationRow}>
-          <Pressable style={styles.back} onPress={() => router.back()}>
-            <SymbolView
-              name={{
-                ios: "chevron.left",
-                android: "arrow_back",
-                web: "arrow_back",
-              }}
-              size={29}
-              tintColor="#151515"
-            />
-          </Pressable>
+        <View className="flex-row items-center gap-2">
+          <BackButton onPress={() => router.replace("/(customer)" as never)} />
           <Pressable
-            style={styles.locationCopy}
+            className="flex-1"
             onPress={() =>
               router.push({
-                pathname: "/(customer)/location-picker",
-                params: { purpose: "food-destination" },
+                pathname: "/(customer)/location-search" as never,
+                params: {
+                  purpose: "food-destination",
+                  returnTo: `/(customer)/food?service=${service}`,
+                },
               })
             }
           >
-            <Text style={styles.locationLabel}>Antar sekarang</Text>
-            <Text numberOfLines={1} style={styles.locationValue}>
+            <Text className="text-xs text-muted">Antar sekarang</Text>
+            <Text
+              numberOfLines={1}
+              className="font-bold text-lg text-foreground"
+            >
               {destination?.address ?? "Pilih alamat pengantaran"}
             </Text>
           </Pressable>
@@ -95,29 +113,26 @@ export default function ProductCatalogScreen() {
               android: "keyboard_arrow_down",
               web: "keyboard_arrow_down",
             }}
-            size={24}
-            tintColor="#161616"
+            size={20}
+            tintColor={colors.text}
           />
         </View>
-
-        <View style={styles.searchBox}>
+        <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4">
           <SymbolView
             name={{ ios: "magnifyingglass", android: "search", web: "search" }}
-            size={27}
-            tintColor="#8A8A8A"
+            size={23}
+            tintColor={colors.muted}
           />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            onSubmitEditing={submitSearch}
+            onSubmitEditing={submit}
             returnKeyType="search"
             placeholder={
-              service === "shopping"
-                ? "Cari produk apa nih?"
-                : "Kamu pesan apa nih?"
+              service === "food" ? "Cari UMKM atau makanan" : "Cari produk"
             }
-            placeholderTextColor="#9C9C9C"
-            style={styles.searchInput}
+            placeholderTextColor={colors.muted}
+            className="min-h-12 flex-1 text-base text-foreground"
           />
           {query ? (
             <Pressable
@@ -133,152 +148,176 @@ export default function ProductCatalogScreen() {
                   android: "cancel",
                   web: "cancel",
                 }}
-                size={21}
-                tintColor="#999999"
+                size={20}
+                tintColor={colors.muted}
               />
             </Pressable>
           ) : null}
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filters}
-        >
-          <Pressable
-            style={styles.filterIcon}
-            onPress={() => setSort("latest")}
+        {service === "shopping" ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="gap-2 py-3"
           >
-            <SymbolView
-              name={{
-                ios: "slider.horizontal.3",
-                android: "tune",
-                web: "tune",
-              }}
-              size={23}
-              tintColor="#3F3F3F"
+            <Filter
+              label="Terbaru"
+              selected={sort === "latest"}
+              onPress={() => setSort("latest")}
             />
-          </Pressable>
-          <Filter
-            label="Terbaru"
-            icon="swap_vert"
-            selected={sort === "latest"}
-            onPress={() => setSort("latest")}
-          />
-          <Filter
-            label="Harga terendah"
-            selected={sort === "price-low"}
-            onPress={() => setSort("price-low")}
-          />
-          <Filter
-            label="Harga tertinggi"
-            selected={sort === "price-high"}
-            onPress={() => setSort("price-high")}
-          />
-        </ScrollView>
-
-        <Text style={styles.heading}>
-          {service === "shopping" ? "Produk untuk kamu" : "Makanan & minuman"}
-        </Text>
-        {products.isLoading ? (
-          <Text style={styles.state}>Memuat produk…</Text>
-        ) : products.isError ? (
-          <View style={styles.stateCard}>
-            <Text style={styles.stateTitle}>Produk gagal dimuat</Text>
-            <Pressable onPress={() => products.refetch()}>
-              <Text style={styles.retry}>Coba lagi</Text>
-            </Pressable>
-          </View>
-        ) : !sorted.length ? (
-          <View style={styles.stateCard}>
-            <Text style={styles.stateTitle}>
-              {search
-                ? `Tidak ada hasil untuk “${search}”`
-                : "Belum ada produk tersedia"}
-            </Text>
-            <Text style={styles.state}>
-              Produk merchant akan muncul di halaman ini.
-            </Text>
-          </View>
+            <Filter
+              label="Harga terendah"
+              selected={sort === "price-low"}
+              onPress={() => setSort("price-low")}
+            />
+            <Filter
+              label="Harga tertinggi"
+              selected={sort === "price-high"}
+              onPress={() => setSort("price-high")}
+            />
+          </ScrollView>
         ) : (
-          <View style={styles.list}>
-            {sorted.map((product) => (
+          <View className="h-4" />
+        )}
+        <Text className="mb-2 font-bold text-xl text-foreground">
+          {service === "food" ? "UMKM makanan & minuman" : "Produk untuk kamu"}
+        </Text>
+        {activeQuery.isLoading ? (
+          <StatusState type="loading" />
+        ) : activeQuery.isError ? (
+          <StatusState type="error" message="Data gagal dimuat." />
+        ) : service === "food" ? (
+          !merchantList.length ? (
+            <StatusState
+              type="empty"
+              message={
+                search
+                  ? `Tidak ada UMKM untuk “${search}”.`
+                  : "Belum ada UMKM tersedia."
+              }
+            />
+          ) : (
+            <View>
+              {merchantList.map((merchant) => (
+                <Pressable
+                  key={merchant.id}
+                  onPress={() => openMerchant(merchant.id)}
+                  className="flex-row gap-3 border-b border-border py-3 active:opacity-75"
+                >
+                  {merchant.logo ? (
+                    <Image
+                      source={{ uri: merchant.logo }}
+                      className="h-24 w-24 rounded-2xl"
+                    />
+                  ) : (
+                    <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
+                      <SymbolView
+                        name={{
+                          ios: "storefront.fill",
+                          android: "storefront",
+                          web: "storefront",
+                        }}
+                        size={34}
+                        tintColor={Colors.primary}
+                      />
+                    </View>
+                  )}
+                  <View className="flex-1 justify-center gap-1">
+                    <Text
+                      numberOfLines={2}
+                      className="font-bold text-lg text-foreground"
+                    >
+                      {merchant.name}
+                    </Text>
+                    <Text numberOfLines={1} className="text-sm text-muted">
+                      {merchant.category?.name ?? "Makanan & Minuman"}
+                    </Text>
+                    <Text
+                      numberOfLines={2}
+                      className="text-sm leading-5 text-muted"
+                    >
+                      {merchant.address}
+                    </Text>
+                    <Text
+                      className={`font-semibold text-xs ${merchant.is_open && merchant.is_active ? "text-brand" : "text-danger"}`}
+                    >
+                      {merchant.is_open && merchant.is_active
+                        ? "Buka"
+                        : "Tutup"}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )
+        ) : !productList.length ? (
+          <StatusState
+            type="empty"
+            message={
+              search
+                ? `Tidak ada produk untuk “${search}”.`
+                : "Belum ada produk tersedia."
+            }
+          />
+        ) : (
+          <View>
+            {productList.map((product) => (
               <Pressable
                 key={product.id}
-                style={styles.productRow}
-                onPress={() => openProduct(product.merchant_id)}
+                onPress={() => openMerchant(product.merchant_id)}
+                className="flex-row gap-3 border-b border-border py-3 active:opacity-75"
               >
                 {product.image ? (
                   <Image
                     source={{ uri: product.image }}
-                    style={styles.productImage}
+                    className="h-24 w-24 rounded-2xl"
                   />
                 ) : (
-                  <View style={styles.productFallback}>
-                    <Text style={styles.fallbackEmoji}>
-                      {product.product_type === "goods" ? "🛍️" : "🍜"}
-                    </Text>
+                  <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
+                    <Text className="text-4xl">🛍️</Text>
                   </View>
                 )}
-                <View style={styles.productCopy}>
-                  <Text numberOfLines={2} style={styles.productName}>
+                <View className="flex-1 gap-1">
+                  <Text
+                    numberOfLines={2}
+                    className="font-bold text-lg text-foreground"
+                  >
                     {product.name}
                   </Text>
-                  <Text numberOfLines={1} style={styles.merchant}>
+                  <Text numberOfLines={1} className="text-sm text-muted">
                     {product.merchant?.name ?? "UMKM AnterGo"}
                   </Text>
-                  {product.description ? (
-                    <Text numberOfLines={1} style={styles.description}>
-                      {product.description}
-                    </Text>
-                  ) : null}
-                  <Text style={styles.price}>
+                  <Text className="font-bold text-base text-brand">
                     {formatRupiah(product.price)}
                   </Text>
                   <Text
-                    style={[
-                      styles.stock,
-                      product.stock <= 0 && styles.stockEmpty,
-                    ]}
+                    className={`text-xs font-semibold ${product.stock > 0 ? "text-brand" : "text-danger"}`}
                   >
                     {product.stock > 0 ? `Stok ${product.stock}` : "Stok habis"}
                   </Text>
                 </View>
-                <SymbolView
-                  name={{
-                    ios: "ellipsis",
-                    android: "more_vert",
-                    web: "more_vert",
-                  }}
-                  size={23}
-                  tintColor="#858585"
-                />
               </Pressable>
             ))}
           </View>
         )}
-
-        {products.data && products.data.last_page > 1 ? (
-          <View style={styles.pagination}>
+        {paginator && paginator.last_page > 1 ? (
+          <View className="mt-4 flex-row items-center justify-between">
             <Pressable
               disabled={page <= 1}
               onPress={() => setPage((value) => value - 1)}
-              style={[styles.pageButton, page <= 1 && styles.disabled]}
+              className={`rounded-xl bg-emerald-50 px-4 py-2.5 dark:bg-emerald-950/40 ${page <= 1 ? "opacity-40" : ""}`}
             >
-              <Text style={styles.pageText}>Sebelumnya</Text>
+              <Text className="font-semibold text-brand">Sebelumnya</Text>
             </Pressable>
-            <Text style={styles.pageNumber}>
-              {page}/{products.data.last_page}
+            <Text className="text-sm text-muted">
+              {page}/{paginator.last_page}
             </Text>
             <Pressable
-              disabled={page >= products.data.last_page}
+              disabled={page >= paginator.last_page}
               onPress={() => setPage((value) => value + 1)}
-              style={[
-                styles.pageButton,
-                page >= products.data.last_page && styles.disabled,
-              ]}
+              className={`rounded-xl bg-emerald-50 px-4 py-2.5 dark:bg-emerald-950/40 ${page >= paginator.last_page ? "opacity-40" : ""}`}
             >
-              <Text style={styles.pageText}>Berikutnya</Text>
+              <Text className="font-semibold text-brand">Berikutnya</Text>
             </Pressable>
           </View>
         ) : null}
@@ -286,195 +325,25 @@ export default function ProductCatalogScreen() {
     </SafeAreaView>
   );
 }
-
 function Filter({
   label,
-  icon,
   selected,
   onPress,
 }: {
   label: string;
-  icon?: "swap_vert";
   selected: boolean;
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.filter, selected && styles.filterSelected]}
+      className={`min-h-9 justify-center rounded-full border px-4 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
     >
-      {icon ? (
-        <SymbolView
-          name={{ ios: "arrow.up.arrow.down", android: icon, web: icon }}
-          size={20}
-          tintColor={selected ? "#FFFFFF" : "#404040"}
-        />
-      ) : null}
-      <Text style={[styles.filterText, selected && styles.filterTextSelected]}>
+      <Text
+        className={`font-semibold text-sm ${selected ? "text-white" : "text-foreground"}`}
+      >
         {label}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
-  scroll: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 30 },
-  locationRow: {
-    minHeight: 84,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  back: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  locationCopy: { flex: 1 },
-  locationLabel: {
-    color: "#303030",
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-  },
-  locationValue: {
-    color: "#161616",
-    fontSize: 21,
-    fontFamily: "Outfit_700Bold",
-  },
-  searchBox: {
-    height: 64,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 17,
-    borderRadius: 14,
-    backgroundColor: "#F3F3F3",
-  },
-  searchInput: {
-    flex: 1,
-    color: "#171717",
-    fontSize: 18,
-    fontFamily: "Outfit_400Regular",
-  },
-  filters: { gap: 10, paddingVertical: 24 },
-  filterIcon: {
-    width: 54,
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#CFCFCF",
-    backgroundColor: "#FFFFFF",
-  },
-  filter: {
-    minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 18,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#CFCFCF",
-    backgroundColor: "#FFFFFF",
-  },
-  filterSelected: { borderColor: "#174F49", backgroundColor: "#174F49" },
-  filterText: {
-    color: "#383838",
-    fontSize: 15,
-    fontFamily: "Outfit_500Medium",
-  },
-  filterTextSelected: { color: "#FFFFFF" },
-  heading: {
-    color: "#171717",
-    fontSize: 25,
-    fontFamily: "Outfit_700Bold",
-    marginBottom: 14,
-  },
-  list: { gap: 0 },
-  productRow: {
-    minHeight: 156,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 14,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8E8E8",
-  },
-  productImage: {
-    width: 118,
-    height: 118,
-    borderRadius: 17,
-    resizeMode: "cover",
-  },
-  productFallback: {
-    width: 118,
-    height: 118,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.primarySoft,
-  },
-  fallbackEmoji: { fontSize: 48 },
-  productCopy: { flex: 1, minWidth: 0, gap: 3 },
-  productName: {
-    color: "#171717",
-    fontSize: 19,
-    lineHeight: 23,
-    fontFamily: "Outfit_700Bold",
-  },
-  merchant: { color: "#4D4D4D", fontSize: 14, fontFamily: "Outfit_500Medium" },
-  description: {
-    color: "#777777",
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
-  },
-  price: {
-    color: "#F27B35",
-    fontSize: 17,
-    fontFamily: "Outfit_700Bold",
-    marginTop: 3,
-  },
-  stock: {
-    color: Colors.primaryDark,
-    fontSize: 12,
-    fontFamily: "Outfit_600SemiBold",
-  },
-  stockEmpty: { color: Colors.danger },
-  stateCard: { paddingVertical: 40, alignItems: "center", gap: 8 },
-  stateTitle: {
-    color: "#222222",
-    fontSize: 17,
-    fontFamily: "Outfit_600SemiBold",
-    textAlign: "center",
-  },
-  state: {
-    color: "#777777",
-    fontSize: 14,
-    fontFamily: "Outfit_400Regular",
-    textAlign: "center",
-  },
-  retry: { color: Colors.primaryDark, fontFamily: "Outfit_700Bold" },
-  pagination: {
-    minHeight: 70,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  pageButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-  },
-  pageText: {
-    color: Colors.primaryDark,
-    fontSize: 13,
-    fontFamily: "Outfit_600SemiBold",
-  },
-  pageNumber: { color: "#555555", fontFamily: "Outfit_500Medium" },
-  disabled: { opacity: 0.4 },
-});

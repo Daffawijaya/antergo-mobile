@@ -1,6 +1,7 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-export type PushStatus = 'idle' | 'requesting' | 'registered' | 'denied' | 'unavailable' | 'error';
+export type PushStatus =
+  "idle" | "requesting" | "registered" | "denied" | "unavailable" | "error";
 type Store = {
   status: PushStatus;
   message: string | null;
@@ -9,7 +10,7 @@ type Store = {
   setRetry: (retry: (() => Promise<void>) | null) => void;
 };
 export const usePushNotificationStore = create<Store>((set) => ({
-  status: 'idle',
+  status: "idle",
   message: null,
   retry: null,
   setPushState: (status, message = null) => set({ status, message }),

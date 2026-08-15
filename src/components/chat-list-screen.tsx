@@ -1,30 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CustomerPageHeader } from "./customer-page";
 import { orderService, ServiceIcon } from "./service-icon";
-import { Card, PageHeader, Screen, StatusState } from "./ui";
-import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
+import { Screen } from "./ui";
+import { Colors } from "@/constants/colors";
 import { listChatConversations } from "@/lib/api/chat";
 import { chatKeys } from "@/lib/chat-query-keys";
 import { formatDateTime } from "@/lib/format";
+import { useAppTheme } from "@/stores/theme-store";
 export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const query = useQuery({
     queryKey: chatKeys.all,
     queryFn: listChatConversations,
     refetchInterval: 5_000,
   });
   return (
-    <Screen>
-      <PageHeader
-        title="Chat"
-        description="Percakapan untuk pesanan AnterGo."
+    <Screen contentStyle={styles.screen}>
+      <CustomerPageHeader
+        title="Inbox"
+        subtitle="Pesan terkait order AnterGo"
       />
       {query.isLoading ? (
-        <StatusState type="loading" />
+        <Text style={styles.state}>Memuat pesan…</Text>
       ) : query.isError ? (
-        <StatusState type="error" message="Percakapan belum dapat dimuat." />
+        <Text style={styles.state}>Percakapan belum dapat dimuat.</Text>
       ) : !query.data?.length ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
@@ -38,110 +43,128 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
               tintColor={Colors.primary}
             />
           </View>
-          <Text style={styles.emptyTitle}>Belum ada percakapan</Text>
-          <Text style={styles.emptyBody}>
+          <Text style={styles.emptyTitle}>Belum ada pesan</Text>
+          <Text style={styles.state}>
             Chat tersedia setelah driver menerima pesanan.
           </Text>
         </View>
       ) : (
-        query.data.map((order) => {
-          const person = role === "customer" ? order.driver?.user : order.user;
-          const last = order.chat_messages?.[0];
-          return (
-            <Pressable
-              key={order.id}
-              onPress={() =>
-                router.push({
-                  pathname:
-                    role === "customer"
-                      ? "/(customer)/chat/[id]"
-                      : "/(driver)/chat/[id]",
-                  params: { id: String(order.id) },
-                })
-              }
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <Card>
-                <View style={styles.row}>
-                  <ServiceIcon type={orderService(order)} />
-                  <View style={styles.copy}>
-                    <View style={styles.nameRow}>
-                      <Text numberOfLines={1} style={styles.name}>
-                        {person?.name ??
-                          (role === "customer" ? "Driver AnterGo" : "Customer")}
-                      </Text>
-                      <Text style={styles.time}>
-                        {last ? formatDateTime(last.created_at) : ""}
-                      </Text>
-                    </View>
-                    <Text style={styles.order}>{order.order_number}</Text>
-                    <Text numberOfLines={1} style={styles.preview}>
-                      {last?.body ?? "Mulai percakapan"}
+        <View style={styles.list}>
+          {query.data.map((order) => {
+            const person =
+              role === "customer" ? order.driver?.user : order.user;
+            const last = order.chat_messages?.[0];
+            return (
+              <Pressable
+                key={order.id}
+                onPress={() =>
+                  router.push({
+                    pathname:
+                      role === "customer"
+                        ? "/(customer)/chat/[id]"
+                        : "/(driver)/chat/[id]",
+                    params: { id: String(order.id) },
+                  })
+                }
+                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+              >
+                <ServiceIcon type={orderService(order)} size={52} />
+                <View style={styles.copy}>
+                  <View style={styles.nameRow}>
+                    <Text numberOfLines={1} style={styles.name}>
+                      {person?.name ??
+                        (role === "customer" ? "Driver AnterGo" : "Customer")}
+                    </Text>
+                    <Text style={styles.time}>
+                      {last ? formatDateTime(last.created_at) : ""}
                     </Text>
                   </View>
-                  {order.unread_count > 0 ? (
-                    <Text style={styles.unread}>
+                  <Text style={styles.order}>{order.order_number}</Text>
+                  <Text numberOfLines={1} style={styles.preview}>
+                    {last?.body ?? "Mulai percakapan"}
+                  </Text>
+                </View>
+                {order.unread_count > 0 ? (
+                  <View style={styles.unread}>
+                    <Text style={styles.unreadText}>
                       {Math.min(order.unread_count, 99)}
                     </Text>
-                  ) : (
-                    <SymbolView
-                      name={{
-                        ios: "chevron.right",
-                        android: "chevron_right",
-                        web: "chevron_right",
-                      }}
-                      size={20}
-                      tintColor={Colors.subtle}
-                    />
-                  )}
-                </View>
-              </Card>
-            </Pressable>
-          );
-        })
+                  </View>
+                ) : (
+                  <SymbolView
+                    name={{
+                      ios: "chevron.right",
+                      android: "chevron_right",
+                      web: "chevron_right",
+                    }}
+                    size={20}
+                    tintColor="#A0A0A0"
+                  />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
       )}
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  copy: { flex: 1, gap: 2 },
-  nameRow: {
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  screen: { backgroundColor: colors.background, gap: 12 },
+  list: { borderTopWidth: 1, borderTopColor: colors.border },
+  row: {
+    minHeight: 78,
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
+    alignItems: "center",
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  name: { flex: 1, color: Colors.text, ...Typography.cardTitle },
-  time: { color: Colors.subtle, ...Typography.caption },
-  order: { color: Colors.primaryDark, ...Typography.caption },
-  preview: { color: Colors.muted, ...Typography.metadata },
+  copy: { flex: 1, gap: 2 },
+  nameRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  name: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 17,
+    fontFamily: "Outfit_700Bold",
+  },
+  time: { color: colors.muted, fontSize: 10, fontFamily: "Outfit_400Regular" },
+  order: {
+    color: Colors.primaryDark,
+    fontSize: 11,
+    fontFamily: "Outfit_600SemiBold",
+  },
+  preview: { color: colors.muted, fontSize: 14, fontFamily: "Outfit_400Regular" },
   unread: {
-    minWidth: 24,
-    height: 24,
-    overflow: "hidden",
-    borderRadius: Radius.pill,
+    minWidth: 23,
+    height: 23,
     paddingHorizontal: 6,
-    textAlign: "center",
-    textAlignVertical: "center",
-    color: Colors.white,
-    backgroundColor: Colors.primary,
-    ...Typography.caption,
-  },
-  empty: {
-    minHeight: 350,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+  },
+  unreadText: { color: "#FFFFFF", fontSize: 11, fontFamily: "Outfit_700Bold" },
+  empty: {
+    minHeight: 330,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
   },
   emptyIcon: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 66,
+    height: 66,
+    borderRadius: 33,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.primarySoft,
+    backgroundColor: colors.surfaceMuted,
   },
-  emptyTitle: { color: Colors.text, ...Typography.sectionTitle },
-  emptyBody: { color: Colors.muted, ...Typography.body, textAlign: "center" },
-  pressed: { opacity: 0.72 },
+  emptyTitle: { color: colors.text, fontSize: 20, fontFamily: "Outfit_700Bold" },
+  state: {
+    color: colors.muted,
+    fontSize: 14,
+    textAlign: "center",
+    fontFamily: "Outfit_400Regular",
+  },
+  pressed: { opacity: 0.65 },
 });

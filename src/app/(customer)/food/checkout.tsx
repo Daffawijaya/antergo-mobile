@@ -1,6 +1,6 @@
+import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LocationField } from "@/components/location-field";
 import {
@@ -15,7 +15,7 @@ import {
   SectionHeader,
   StatusState,
 } from "@/components/ui";
-import { Colors, Spacing, Typography } from "@/constants/colors";
+import { Spacing, Typography } from "@/constants/colors";
 import { createFoodOrder } from "@/lib/api/food";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { foodKeys } from "@/lib/food-query-keys";
@@ -23,7 +23,9 @@ import { formatRupiah } from "@/lib/format";
 import { orderKeys } from "@/lib/query-keys";
 import { useCartStore } from "@/stores/cart-store";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
+import { useAppTheme } from "@/stores/theme-store";
 export default function FoodCheckoutScreen() {
+  const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
   const merchant = useCartStore((s) => s.merchant);
@@ -108,8 +110,11 @@ export default function FoodCheckoutScreen() {
           placeholder="Pilih alamat pengantaran"
           onPress={() =>
             router.push({
-              pathname: "/(customer)/location-picker",
-              params: { purpose: "food-destination" },
+              pathname: "/(customer)/location-search" as never,
+              params: {
+                purpose: "food-destination",
+                returnTo: `/(customer)/food/checkout?service=${service}`,
+              },
             })
           }
         />
@@ -159,16 +164,20 @@ export default function FoodCheckoutScreen() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   section: { gap: Spacing.md },
-  merchant: { color: Colors.text, ...Typography.cardTitle },
+  merchant: { color: colors.text, ...Typography.cardTitle },
   item: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: Spacing.md,
   },
-  itemName: { flex: 1, color: Colors.muted, ...Typography.body },
-  itemPrice: { color: Colors.text, ...Typography.metadata, fontWeight: "700" },
-  divider: { height: 1, backgroundColor: Colors.border },
-  helper: { color: Colors.muted, ...Typography.metadata, textAlign: "center" },
+  itemName: { flex: 1, color: colors.muted, ...Typography.body },
+  itemPrice: { color: colors.text, ...Typography.metadata, fontWeight: "700" },
+  divider: { height: 1, backgroundColor: colors.border },
+  helper: { color: colors.muted, ...Typography.metadata, textAlign: "center" },
 });

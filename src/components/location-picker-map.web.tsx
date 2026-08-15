@@ -1,5 +1,22 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
-import type { Coordinate } from '@/lib/location';
-export function LocationPickerMap({ coordinate }: { coordinate?: Coordinate; onChange: (value: Coordinate) => void }) { return <View style={styles.frame}><Text style={styles.title}>Pratinjau lokasi</Text><Text style={styles.copy}>Peta interaktif tersedia di aplikasi Android dan iOS.</Text>{coordinate ? <Text style={styles.address}>Lokasi sudah dipilih dari pencarian atau GPS.</Text> : null}</View>; }
-const styles = StyleSheet.create({ frame: { flex: 1, minHeight: 340, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, borderRadius: Radius.xl, backgroundColor: Colors.primarySoft }, title: { color: Colors.text, ...Typography.sectionTitle }, copy: { color: Colors.muted, ...Typography.body, textAlign: 'center' }, address: { color: Colors.primaryDark, ...Typography.metadata } });
+import { Text, View } from "react-native";
+import type { Coordinate } from "@/lib/location";
+export function LocationPickerMap({
+  coordinate,
+}: {
+  coordinate?: Coordinate;
+  onChange: (value: Coordinate) => void;
+}) {
+  return (
+    <View className="flex-1 items-center justify-center bg-emerald-50 px-8 dark:bg-emerald-950/30">
+      <Text className="font-bold text-lg text-foreground">Pratinjau Maps</Text>
+      <Text className="mt-2 text-center text-sm leading-5 text-muted">
+        Peta interaktif tersedia pada aplikasi Android dan iOS.
+      </Text>
+      {coordinate ? (
+        <Text className="mt-3 font-semibold text-brand">
+          Lokasi siap dikonfirmasi.
+        </Text>
+      ) : null}
+    </View>
+  );
+}

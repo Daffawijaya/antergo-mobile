@@ -4,19 +4,16 @@ import { isAxiosError } from "axios";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { LocationField } from "@/components/location-field";
+import { Text, View } from "react-native";
+import { LocationRouteCard } from "@/components/location-field";
+import { CustomerPageHeader } from "@/components/customer-page";
 import {
-  BackButton,
   Button,
-  Card,
   FormField,
   Notice,
-  PageHeader,
   Screen,
   SectionHeader,
 } from "@/components/ui";
-import { Colors, Spacing, Typography } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { createSend } from "@/lib/api/send";
 import { orderKeys } from "@/lib/query-keys";
@@ -129,8 +126,8 @@ export default function CreateSendScreen() {
   );
   const openPicker = (purpose: "send-pickup" | "send-destination") =>
     router.push({
-      pathname: "/(customer)/location-picker",
-      params: { purpose },
+      pathname: "/(customer)/location-search" as never,
+      params: { purpose, returnTo: "/(customer)/send/create" },
     });
   const locationError =
     errors.pickup_address?.message ||
@@ -138,38 +135,37 @@ export default function CreateSendScreen() {
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
   return (
-    <Screen>
-      <PageHeader
-        eyebrow="DELIVERY"
-        title="Kirim barang"
-        description="Isi tujuan dan data penerima dalam satu langkah."
-        action={<BackButton onPress={() => router.back()} />}
+    <Screen className="gap-4 bg-background">
+      <CustomerPageHeader
+        title="Delivery"
+        subtitle="Isi tujuan, kendaraan, dan data penerima"
+        onBack={() => router.back()}
       />
-      <Card>
-        <LocationField
-          label="Dari mana?"
-          value={pickup?.address}
-          placeholder="Pilih lokasi pengambilan"
-          onPress={() => openPicker("send-pickup")}
-        />
-        <LocationField
-          label="Kirim ke mana?"
-          value={destination?.address}
-          placeholder="Pilih lokasi penerima"
-          onPress={() => openPicker("send-destination")}
-        />
-      </Card>
-      <View style={styles.section}>
+      <LocationRouteCard
+        pickup={{
+          label: "Dari mana?",
+          value: pickup?.address,
+          placeholder: "Pilih lokasi pengambilan",
+          onPress: () => openPicker("send-pickup"),
+        }}
+        destination={{
+          label: "Kirim ke mana?",
+          value: destination?.address,
+          placeholder: "Pilih lokasi penerima",
+          onPress: () => openPicker("send-destination"),
+        }}
+      />
+      <View className="gap-3">
         <SectionHeader title="Pilih kendaraan" />
-        <View style={styles.vehicleRow}>
-          <View style={styles.vehicle}>
+        <View className="flex-row gap-3">
+          <View className="flex-1">
             <Button
               title="Motor"
               variant={vehicleType === "motorcycle" ? "primary" : "secondary"}
               onPress={() => setVehicleType("motorcycle")}
             />
           </View>
-          <View style={styles.vehicle}>
+          <View className="flex-1">
             <Button
               title="Mobil"
               variant={vehicleType === "car" ? "primary" : "secondary"}
@@ -179,7 +175,7 @@ export default function CreateSendScreen() {
         </View>
       </View>
       {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
-      <View style={styles.section}>
+      <View className="gap-3">
         <SectionHeader title="Barang" />
         <Controller
           control={control}
@@ -209,7 +205,7 @@ export default function CreateSendScreen() {
           )}
         />
       </View>
-      <View style={styles.section}>
+      <View className="gap-3">
         <SectionHeader title="Penerima" />
         <Controller
           control={control}
@@ -256,7 +252,7 @@ export default function CreateSendScreen() {
       {mutation.isError ? (
         <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
       ) : null}
-      <Text style={styles.helper}>
+      <Text className="pt-2 text-center text-[13px] text-muted">
         Biaya pengiriman dihitung otomatis berdasarkan jarak.
       </Text>
       <Button
@@ -267,14 +263,3 @@ export default function CreateSendScreen() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  section: { gap: Spacing.md },
-  vehicleRow: { flexDirection: "row", gap: Spacing.md },
-  vehicle: { flex: 1 },
-  helper: {
-    color: Colors.muted,
-    ...Typography.metadata,
-    textAlign: "center",
-    paddingTop: Spacing.md,
-  },
-});

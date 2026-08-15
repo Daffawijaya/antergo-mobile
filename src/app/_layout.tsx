@@ -8,6 +8,7 @@ import {
 } from "@expo-google-fonts/outfit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -18,12 +19,16 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AppThemeProvider } from "@/components/app-theme-provider";
 import { PushNotificationManager } from "@/components/push-notification-manager";
+import { QueryLifecycleManager } from "@/components/query-lifecycle-manager";
 import { Colors } from "@/constants/colors";
 import { queryClient } from "@/lib/query-client";
 import { useAuthStore } from "@/stores/auth-store";
+import { useThemeStore } from "@/stores/theme-store";
 
 import "@/lib/driver-location-service";
+import "../../global.css";
 const AppText = Text as typeof Text & { defaultProps?: { style?: object } };
 const AppTextInput = TextInput as typeof TextInput & {
   defaultProps?: { style?: object };
@@ -42,10 +47,13 @@ function Router() {
   const activeRole = useAuthStore((state) => state.activeRole);
   const isHydrated = useAuthStore((state) => state.isHydrated);
   const restoreSession = useAuthStore((state) => state.restoreSession);
+  const mode = useThemeStore((state) => state.mode);
+  const restoreTheme = useThemeStore((state) => state.restore);
 
   useEffect(() => {
     void restoreSession();
-  }, [restoreSession]);
+    void restoreTheme();
+  }, [restoreSession, restoreTheme]);
   if (!isHydrated)
     return (
       <View style={styles.loading}>
@@ -54,32 +62,46 @@ function Router() {
     );
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!user}>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
-      <Stack.Protected
-        guard={
-          !!user && activeRole === "customer" && user.roles.includes("customer")
-        }
+    <>
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: mode === "dark" ? "#121313" : Colors.background,
+          },
+        }}
       >
-        <Stack.Screen name="(customer)" />
-      </Stack.Protected>
-      <Stack.Protected
-        guard={
-          !!user && activeRole === "driver" && user.roles.includes("driver")
-        }
-      >
-        <Stack.Screen name="(driver)" />
-      </Stack.Protected>
-      <Stack.Protected
-        guard={
-          !!user && activeRole === "merchant" && user.roles.includes("merchant")
-        }
-      >
-        <Stack.Screen name="(merchant)" />
-      </Stack.Protected>
-    </Stack>
+        <Stack.Protected guard={!user}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+        <Stack.Protected
+          guard={
+            !!user &&
+            activeRole === "customer" &&
+            user.roles.includes("customer")
+          }
+        >
+          <Stack.Screen name="(customer)" />
+        </Stack.Protected>
+        <Stack.Protected
+          guard={
+            !!user && activeRole === "driver" && user.roles.includes("driver")
+          }
+        >
+          <Stack.Screen name="(driver)" />
+        </Stack.Protected>
+        <Stack.Protected
+          guard={
+            !!user &&
+            activeRole === "merchant" &&
+            user.roles.includes("merchant")
+          }
+        >
+          <Stack.Screen name="(merchant)" />
+        </Stack.Protected>
+      </Stack>
+    </>
   );
 }
 
@@ -103,8 +125,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <PushNotificationManager />
-        <Router />
+        <AppThemeProvider>
+          <QueryLifecycleManager />
+          <PushNotificationManager />
+          <Router />
+        </AppThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

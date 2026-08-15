@@ -1,6 +1,6 @@
+import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { OrderStatusBadge } from "@/components/order-status-badge";
@@ -24,10 +24,12 @@ import { formatDateTime, formatRupiah } from "@/lib/format";
 import { parseCoordinate } from "@/lib/location";
 import { orderKeys } from "@/lib/query-keys";
 import { sendKeys } from "@/lib/send-query-keys";
+import { useAppTheme } from "@/stores/theme-store";
 
 const terminal = new Set(["completed", "cancelled"]);
 const cancellable = new Set(["searching_driver", "driver_assigned"]);
 export default function CustomerSendDetail() {
+  const { styles } = useScreenStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const orderId = Number(id);
   const router = useRouter();
@@ -199,14 +201,18 @@ export default function CustomerSendDetail() {
     </Screen>
   );
 }
-const styles = StyleSheet.create({
-  title: { color: Colors.text, fontSize: 18, fontWeight: "800" },
-  muted: { color: Colors.muted, lineHeight: 20 },
+function useScreenStyles() {
+  const { colors } = useAppTheme();
+  return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
+}
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  title: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  muted: { color: colors.muted, lineHeight: 20 },
   history: {
     gap: 6,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
   error: { color: Colors.danger },
 });

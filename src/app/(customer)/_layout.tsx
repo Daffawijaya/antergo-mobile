@@ -1,11 +1,14 @@
 import { Tabs } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Colors } from "@/constants/colors";
+import { useAppTheme } from "@/stores/theme-store";
 const hidden = [
   "payments",
+  "account-detail",
   "search",
   "driver-register",
   "merchant-register",
+  "location-search",
   "location-picker",
   "ride/create",
   "ride/[id]",
@@ -19,6 +22,7 @@ const hidden = [
   "chat/[id]",
 ];
 export default function CustomerLayout() {
+  const { colors } = useAppTheme();
   return (
     <Tabs
       screenOptions={{
@@ -31,7 +35,8 @@ export default function CustomerLayout() {
           paddingTop: 5,
           paddingBottom: 4,
           borderTopWidth: 0,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
         },
         tabBarLabelStyle: {
           fontSize: 12,

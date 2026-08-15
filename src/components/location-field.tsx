@@ -1,5 +1,96 @@
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/colors';
-export function LocationField({ label, value, placeholder, onPress }: { label: string; value?: string; placeholder: string; onPress: () => void }) { return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.field, pressed && styles.pressed]}><View style={styles.icon}><SymbolView name={{ ios: 'location.fill', android: 'location_on', web: 'location_on' }} size={21} tintColor={Colors.primary} /></View><View style={styles.copy}><Text style={styles.label}>{label}</Text><Text numberOfLines={2} style={[styles.value, !value && styles.placeholder]}>{value || placeholder}</Text></View><SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} size={20} tintColor={Colors.subtle} /></Pressable>; }
-const styles = StyleSheet.create({ field: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border }, icon: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft }, copy: { flex: 1, gap: 3 }, label: { color: Colors.muted, ...Typography.caption }, value: { color: Colors.text, ...Typography.body, fontWeight: '700' }, placeholder: { color: Colors.subtle, fontWeight: '500' }, pressed: { opacity: .72 } });
+import { SymbolView } from "expo-symbols";
+import { Pressable, Text, View } from "react-native";
+import { Colors } from "@/constants/colors";
+import { useAppTheme } from "@/stores/theme-store";
+
+export function LocationRouteCard({
+  pickup,
+  destination,
+}: {
+  pickup: {
+    label: string;
+    value?: string;
+    placeholder: string;
+    onPress: () => void;
+  };
+  destination: {
+    label: string;
+    value?: string;
+    placeholder: string;
+    onPress: () => void;
+  };
+}) {
+  return (
+    <View className="rounded-3xl bg-surface px-4 py-2 elevation-sm">
+      <LocationRow {...pickup} kind="pickup" />
+      <View className="ml-5 h-3 w-0.5 bg-border" />
+      <LocationRow {...destination} kind="destination" />
+    </View>
+  );
+}
+export function LocationField(props: {
+  label: string;
+  value?: string;
+  placeholder: string;
+  onPress: () => void;
+}) {
+  return (
+    <View className="rounded-2xl border border-border bg-surface px-3">
+      <LocationRow {...props} kind="pickup" />
+    </View>
+  );
+}
+function LocationRow({
+  label,
+  value,
+  placeholder,
+  onPress,
+  kind,
+}: {
+  label: string;
+  value?: string;
+  placeholder: string;
+  onPress: () => void;
+  kind: "pickup" | "destination";
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="min-h-[68px] flex-row items-center gap-3 active:opacity-70"
+    >
+      <View
+        className={`h-10 w-10 items-center justify-center rounded-full ${kind === "pickup" ? "bg-surface-muted" : "bg-surface-muted"}`}
+      >
+        <SymbolView
+          name={{
+            ios: "location.fill",
+            android: "location_on",
+            web: "location_on",
+          }}
+          size={22}
+          tintColor={kind === "pickup" ? Colors.primary : Colors.danger}
+        />
+      </View>
+      <View className="flex-1 gap-0.5">
+        <Text className="font-semibold text-xs text-muted">{label}</Text>
+        <Text
+          numberOfLines={2}
+          className={`font-semibold text-[15px] leading-5 ${value ? "text-foreground" : "text-muted"}`}
+        >
+          {value || placeholder}
+        </Text>
+      </View>
+      <SymbolView
+        name={{
+          ios: "chevron.right",
+          android: "chevron_right",
+          web: "chevron_right",
+        }}
+        size={19}
+        tintColor={colors.muted}
+      />
+    </Pressable>
+  );
+}
