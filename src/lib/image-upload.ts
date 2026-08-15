@@ -1,4 +1,3 @@
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { Platform } from "react-native";
 
@@ -9,72 +8,83 @@ export type PhotoKind =
   | "document"
   | "vehicle";
 
+export type SupportedImageMime = "image/jpeg" | "image/png" | "image/webp";
+
 export type OptimizedPhoto = {
   uri: string;
   name: string;
-  type: "image/webp";
+  type: SupportedImageMime;
   width: number;
   height: number;
 };
 
-const settings: Record<PhotoKind, { edge: number; quality: number }> = {
-  merchant: {
-    edge: 1600,
-    quality: 0.84,
-  },
-  product: {
-    edge: 1400,
-    quality: 0.84,
-  },
-  avatar: {
-    edge: 1000,
-    quality: 0.84,
-  },
-  document: {
-    edge: 2200,
-    quality: 0.9,
-  },
-  vehicle: {
-    edge: 1800,
-    quality: 0.86,
-  },
-};
+function resolveMimeType(asset: ImagePickerAsset): SupportedImageMime {
+  const mimeType = asset.mimeType?.toLowerCase();
+
+  if (mimeType === "image/jpeg" || mimeType === "image/jpg") {
+    return "image/jpeg";
+  }
+
+  if (mimeType === "image/png") {
+    return "image/png";
+  }
+
+  if (mimeType === "image/webp") {
+    return "image/webp";
+  }
+
+  const fileName = asset.fileName?.toLowerCase() ?? "";
+  const uri = asset.uri.toLowerCase();
+
+  if (
+    fileName.endsWith(".jpg") ||
+    fileName.endsWith(".jpeg") ||
+    uri.endsWith(".jpg") ||
+    uri.endsWith(".jpeg")
+  ) {
+    return "image/jpeg";
+  }
+
+  if (fileName.endsWith(".png") || uri.endsWith(".png")) {
+    return "image/png";
+  }
+
+  if (fileName.endsWith(".webp") || uri.endsWith(".webp")) {
+    return "image/webp";
+  }
+
+  throw new Error(
+    "Format foto tidak didukung. Gunakan JPG, JPEG, PNG, atau WebP.",
+  );
+}
+
+function extensionForMime(type: SupportedImageMime): string {
+  switch (type) {
+    case "image/png":
+      return "png";
+
+    case "image/webp":
+      return "webp";
+
+    case "image/jpeg":
+    default:
+      return "jpg";
+  }
+}
 
 export async function optimizePhoto(
   asset: ImagePickerAsset,
   kind: PhotoKind,
 ): Promise<OptimizedPhoto> {
-  const { edge, quality } = settings[kind];
-
-  const context = ImageManipulator.manipulate(asset.uri);
-
-  if (asset.width > edge || asset.height > edge) {
-    if (asset.width >= asset.height) {
-      context.resize({
-        width: edge,
-        height: null,
-      });
-    } else {
-      context.resize({
-        width: null,
-        height: edge,
-      });
-    }
-  }
-
-  const rendered = await context.renderAsync();
-
-  const result = await rendered.saveAsync({
-    compress: quality,
-    format: SaveFormat.WEBP,
-  });
+  const type = resolveMimeType(asset);
+  const extension = extensionForMime(type);
 
   return {
-    uri: result.uri,
-    name: `antergo-${kind}-${Date.now()}.webp`,
-    type: "image/webp",
-    width: result.width,
-    height: result.height,
+    uri: asset.uri,
+    name: `antergo-${kind}-${Date.now()}.${extension}`,
+    type,
+    width: asset.width,
+    height: asset.height,
   };
 }
 
@@ -85,13 +95,18 @@ export async function appendPhoto(
 ): Promise<void> {
   if (Platform.OS === "web") {
     const response = await fetch(photo.uri);
+
+    if (!response.ok) {
+      throw new Error("Foto tidak dapat dibaca.");
+    }
+
     const sourceBlob = await response.blob();
 
-    const webpBlob = new Blob([sourceBlob], {
-      type: "image/webp",
+    const blob = new Blob([sourceBlob], {
+      type: photo.type,
     });
 
-    form.append(key, webpBlob, photo.name);
+    form.append(key, blob, photo.name);
 
     return;
   }

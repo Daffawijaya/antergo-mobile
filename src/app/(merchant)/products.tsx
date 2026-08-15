@@ -1,9 +1,196 @@
-import { useState } from "react";
-import { useMutation,useQuery,useQueryClient } from "@tanstack/react-query";
-import { Image,Text,View } from "react-native";
 import { PhotoInput } from "@/components/photo-input";
-import { Button,FormField,Notice,PageHeader,Screen,StatusState } from "@/components/ui";
+import {
+  Button,
+  FormField,
+  Notice,
+  PageHeader,
+  Screen,
+  StatusState,
+} from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { createMerchantProduct,getMerchantProfile } from "@/lib/api/resources";
+import { createMerchantProduct, getMerchantProfile } from "@/lib/api/resources";
 import type { OptimizedPhoto } from "@/lib/image-upload";
-export default function MerchantProducts(){const client=useQueryClient();const query=useQuery({queryKey:["merchant","profile"],queryFn:getMerchantProfile});const[show,setShow]=useState(false);const[type,setType]=useState<"food"|"goods">("food");const[name,setName]=useState("");const[description,setDescription]=useState("");const[price,setPrice]=useState("");const[stock,setStock]=useState("");const[image,setImage]=useState<OptimizedPhoto>();const[validation,setValidation]=useState("");const mutation=useMutation({mutationFn:createMerchantProduct,onSuccess:async()=>{setName("");setDescription("");setPrice("");setStock("");setImage(undefined);setShow(false);await client.invalidateQueries({queryKey:["merchant","profile"]});}});const submit=()=>{const p=Number(price),s=Number(stock);if(name.trim().length<2||!Number.isFinite(p)||p<0||!Number.isInteger(s)||s<0||!image){setValidation("Foto, nama, harga, dan stok wajib diisi dengan benar.");return;}setValidation("");mutation.mutate({name:name.trim(),description:description.trim()||null,price:p,stock:s,product_type:type,image});};const products=query.data?.products??[];return <Screen className="gap-5"><PageHeader eyebrow="MERCHANT" title="Produk" description="Kelola makanan, minuman, dan barang toko." action={<Button compact title={show?"Tutup":"Tambah"} variant="secondary" onPress={()=>setShow(v=>!v)}/>}/>{show?<View className="gap-5 border-b border-border pb-6"><Text className="font-bold text-xl text-foreground">Produk baru</Text><PhotoInput label="Foto Produk" helper="Gunakan foto produk yang jelas dan memenuhi frame." kind="product" value={image} onChange={setImage}/><View className="gap-2"><Text className="font-medium text-base text-foreground">Jenis produk</Text><View className="flex-row gap-2"><View className="flex-1"><Button compact title="Food & Drink" variant={type==="food"?"primary":"secondary"} onPress={()=>setType("food")}/></View><View className="flex-1"><Button compact title="Barang" variant={type==="goods"?"primary":"secondary"} onPress={()=>setType("goods")}/></View></View></View><FormField label="Nama produk" value={name} onChangeText={setName}/><FormField label="Deskripsi (opsional)" value={description} onChangeText={setDescription} multiline/><FormField label="Harga" value={price} onChangeText={setPrice} keyboardType="numeric"/><FormField label="Stok" value={stock} onChangeText={setStock} keyboardType="number-pad"/>{validation?<Notice tone="danger">{validation}</Notice>:null}{mutation.isError?<Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>:null}<Button title="Simpan produk" loading={mutation.isPending} onPress={submit}/></View>:null}{query.isLoading?<StatusState type="loading"/>:query.isError?<StatusState type="error" message={getApiErrorMessage(query.error)} action={<Button title="Coba lagi" variant="secondary" onPress={()=>query.refetch()}/>}/>:!products.length?<StatusState type="empty" message="Belum ada produk di katalog."/>:<View className="gap-3">{products.map(product=><View key={product.id} className="flex-row gap-3 border-b border-border pb-4">{product.image?<Image source={{uri:product.image}} className="h-24 w-24 rounded-2xl bg-surface-muted"/>:<View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted"><Text className="text-xs text-muted">Tanpa foto</Text></View>}<View className="flex-1 gap-1"><Text className="font-bold text-lg text-foreground">{product.name}</Text><Text className="text-sm text-muted">{product.product_type==="goods"?"Barang":"Food & Drink"}</Text><Text className="font-semibold text-brand">Rp {Number(product.price).toLocaleString("id-ID")}</Text><Text className="text-sm text-muted">Stok {product.stock}</Text></View></View>)}</View>}</Screen>}
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Image, Text, View } from "react-native";
+export default function MerchantProducts() {
+  const client = useQueryClient();
+  const query = useQuery({
+    queryKey: ["merchant", "profile"],
+    queryFn: getMerchantProfile,
+  });
+  const [show, setShow] = useState(false);
+  const [type, setType] = useState<"food" | "goods">("food");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [image, setImage] = useState<OptimizedPhoto>();
+  const [validation, setValidation] = useState("");
+  const mutation = useMutation({
+    mutationFn: createMerchantProduct,
+    onSuccess: async () => {
+      setName("");
+      setDescription("");
+      setPrice("");
+      setStock("");
+      setImage(undefined);
+      setShow(false);
+      await client.invalidateQueries({ queryKey: ["merchant", "profile"] });
+    },
+  });
+  const submit = () => {
+    const p = Number(price),
+      s = Number(stock);
+    if (
+      name.trim().length < 2 ||
+      !Number.isFinite(p) ||
+      p < 0 ||
+      !Number.isInteger(s) ||
+      s < 0 ||
+      !image
+    ) {
+      setValidation("Foto, nama, harga, dan stok wajib diisi dengan benar.");
+      return;
+    }
+    setValidation("");
+    mutation.mutate({
+      name: name.trim(),
+      description: description.trim() || null,
+      price: p,
+      stock: s,
+      product_type: type,
+      image,
+    });
+  };
+  const products = query.data?.products ?? [];
+  return (
+    <Screen className="gap-5">
+      <PageHeader
+        eyebrow="MERCHANT"
+        title="Produk"
+        description="Kelola makanan, minuman, dan barang toko."
+        action={
+          <Button
+            compact
+            title={show ? "Tutup" : "Tambah"}
+            variant="secondary"
+            onPress={() => setShow((v) => !v)}
+          />
+        }
+      />
+      {show ? (
+        <View className="gap-5 border-b border-border pb-6">
+          <Text className="font-bold text-xl text-foreground">Produk baru</Text>
+          <PhotoInput
+            label="Foto Produk"
+            helper="Gunakan foto produk yang jelas dan memenuhi frame."
+            kind="product"
+            value={image}
+            onChange={setImage}
+          />
+          <View className="gap-2">
+            <Text className="font-medium text-base text-foreground">
+              Jenis produk
+            </Text>
+            <View className="flex-row gap-2">
+              <View className="flex-1">
+                <Button
+                  compact
+                  title="Food & Drink"
+                  variant={type === "food" ? "primary" : "secondary"}
+                  onPress={() => setType("food")}
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  compact
+                  title="Barang"
+                  variant={type === "goods" ? "primary" : "secondary"}
+                  onPress={() => setType("goods")}
+                />
+              </View>
+            </View>
+          </View>
+          <FormField label="Nama produk" value={name} onChangeText={setName} />
+          <FormField
+            label="Deskripsi (opsional)"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+          <FormField
+            label="Harga"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
+          <FormField
+            label="Stok"
+            value={stock}
+            onChangeText={setStock}
+            keyboardType="number-pad"
+          />
+          {validation ? <Notice tone="danger">{validation}</Notice> : null}
+          {mutation.isError ? (
+            <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
+          ) : null}
+          <Button
+            title="Simpan produk"
+            loading={mutation.isPending}
+            onPress={submit}
+          />
+        </View>
+      ) : null}
+      {query.isLoading ? (
+        <StatusState type="loading" />
+      ) : query.isError ? (
+        <StatusState
+          type="error"
+          message={getApiErrorMessage(query.error)}
+          action={
+            <Button
+              title="Coba lagi"
+              variant="secondary"
+              onPress={() => query.refetch()}
+            />
+          }
+        />
+      ) : !products.length ? (
+        <StatusState type="empty" message="Belum ada produk di katalog." />
+      ) : (
+        <View className="gap-3">
+          {products.map((product) => (
+            <View
+              key={product.id}
+              className="flex-row gap-3 border-b border-border pb-4"
+            >
+              {product.image ? (
+                <Image
+                  source={{ uri: product.image }}
+                  className="h-24 w-24 rounded-2xl bg-surface-muted"
+                />
+              ) : (
+                <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
+                  <Text className="text-xs text-muted">Tanpa foto</Text>
+                </View>
+              )}
+              <View className="flex-1 gap-1">
+                <Text className="font-bold text-lg text-foreground">
+                  {product.name}
+                </Text>
+                <Text className="text-sm text-muted">
+                  {product.product_type === "goods" ? "Barang" : "Food & Drink"}
+                </Text>
+                <Text className="font-semibold text-brand">
+                  Rp {Number(product.price).toLocaleString("id-ID")}
+                </Text>
+                <Text className="text-sm text-muted">Stok {product.stock}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </Screen>
+  );
+}
