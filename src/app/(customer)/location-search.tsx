@@ -1,6 +1,5 @@
-import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
   ActivityIndicator,
@@ -14,10 +13,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BackButton } from "@/components/ui";
 import { Colors } from "@/constants/colors";
+import { apiSearchLocations } from "@/lib/api/geocode";
 import {
   coordinateFromLocation,
+  getLastKnownCoordinate,
   requestCurrentLocation,
   reverseGeocodeLabel,
+  searchLocations,
   type Coordinate,
 } from "@/lib/location";
 import {
@@ -26,7 +28,18 @@ import {
 } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
 
-type Candidate = { coordinate: Coordinate; title: string; address: string };
+type Candidate = {
+  coordinate: Coordinate;
+  title: string;
+  address: string;
+  distance: number | null;
+  source?: "merchant" | "geoapify" | "nominatim";
+};
+function formatDistance(meters: number | null): string {
+  if (meters === null) return "";
+  if (meters < 1_000) return `${meters} m`;
+  return `${(meters / 1_000).toFixed(1).replace(".", ",")} km`;
+}
 const TITLES: Record<LocationPurpose, string> = {
   "ride-pickup": "Lokasi jemput",
   "ride-destination": "Tujuan",
@@ -43,10 +56,21 @@ export default function LocationSearchScreen() {
   }>();
   const purpose = (params.purpose ?? "ride-pickup") as LocationPurpose;
   const selections = useLocationPickerStore((state) => state.selections);
+  const queryRef = useRef("");
+  const lastSearchedRef = useRef("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Candidate[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const changeQuery = (value: string) => {
+    queryRef.current = value;
+    setQuery(value);
+    if (!value.trim()) {
+      setResults([]);
+      setError("");
+      setBusy(false);
+    }
+  };
   const recent = useMemo(() => {
     const seen = new Set<string>();
     return Object.values(selections)
@@ -68,36 +92,64 @@ export default function LocationSearchScreen() {
         address: candidate?.address,
       },
     });
-  const search = async () => {
-    const value = query.trim();
+  const search = async (raw?: string) => {
+    const value = (raw ?? query).trim();
     if (!value) return;
-    Keyboard.dismiss();
+    if (lastSearchedRef.current === value) return;
+    lastSearchedRef.current = value;
     setBusy(true);
     setError("");
     try {
-      const matches = await Location.geocodeAsync(value);
-      const candidates = await Promise.all(
-        matches.slice(0, 6).map(async ({ latitude, longitude }, index) => {
-          const coordinate = { latitude, longitude };
-          const address = await reverseGeocodeLabel(coordinate);
-          return {
-            coordinate,
-            title: index === 0 ? value : address.split(",")[0],
-            address,
-          };
-        }),
-      );
-      setResults(candidates);
-      if (!candidates.length)
+      // Try the backend first (Indonesia-only + nearest-first), fall back to
+      // a direct OpenStreetMap search when the API is unreachable.
+      const reference = await getLastKnownCoordinate();
+      let found: Candidate[];
+      try {
+        const viaApi = await apiSearchLocations(value, reference);
+        found = viaApi.map((item) => ({
+          coordinate: item.coordinate,
+          title: item.name,
+          address: item.address,
+          distance: item.distance,
+          source: item.source,
+        }));
+      } catch {
+        const local = await searchLocations(value);
+        found = local.map((item) => ({
+          coordinate: item.coordinate,
+          title: item.name,
+          address: item.address,
+          distance: null,
+          source: undefined,
+        }));
+      }
+      if (queryRef.current.trim() !== value) return;
+      setResults(found);
+      if (!found.length)
         setError("Lokasi tidak ditemukan. Coba kata kunci yang lebih lengkap.");
     } catch {
+      if (queryRef.current.trim() !== value) return;
       setError(
         "Pencarian lokasi belum tersedia. Kamu tetap dapat memilih langsung di Maps.",
       );
     } finally {
-      setBusy(false);
+      if (queryRef.current.trim() === value) setBusy(false);
     }
   };
+  // Search as the user types (debounced) instead of waiting for the keyboard's
+  // search key, which is easy to miss on web.
+  useEffect(() => {
+    const value = query.trim();
+    if (!value) {
+      lastSearchedRef.current = "";
+      return;
+    }
+    if (lastSearchedRef.current === value) return;
+    if (value.length < 2) return;
+    const timer = setTimeout(() => void search(value), 450);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
   const currentLocation = async () => {
     setBusy(true);
     setError("");
@@ -116,7 +168,12 @@ export default function LocationSearchScreen() {
   };
   const list = results.length
     ? results
-    : recent.map((item) => ({ ...item, title: item.address.split(",")[0] }));
+    : recent.map((item) => ({
+        ...item,
+        title: item.address.split(",")[0],
+        distance: null,
+        source: undefined,
+      }));
   return (
     <SafeAreaView
       className="flex-1 bg-background"
@@ -135,8 +192,11 @@ export default function LocationSearchScreen() {
           <TextInput
             autoFocus
             value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={() => void search()}
+            onChangeText={changeQuery}
+            onSubmitEditing={() => {
+              Keyboard.dismiss();
+              void search();
+            }}
             returnKeyType="search"
             placeholder="Cari lokasi..."
             placeholderTextColor={colors.muted}
@@ -191,9 +251,21 @@ export default function LocationSearchScreen() {
             >
               <AppIcon name="pin" size={25} color={Colors.primary} />
               <View className="flex-1 gap-1">
-                <Text className="font-bold text-base text-foreground">
-                  {item.title}
-                </Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className="flex-shrink font-bold text-base text-foreground">
+                    {item.title}
+                  </Text>
+                  {item.distance !== null ? (
+                    <Text className="font-semibold text-xs text-muted">
+                      {formatDistance(item.distance)}
+                    </Text>
+                  ) : null}
+                  {item.source === "merchant" ? (
+                    <Text className="rounded-full bg-brand/10 px-2 py-0.5 font-bold text-[10px] text-brand">
+                      Merchant
+                    </Text>
+                  ) : null}
+                </View>
                 <Text
                   numberOfLines={2}
                   className="text-sm leading-5 text-muted"

@@ -18,14 +18,14 @@ export const createRideSchema = z.object({
   pickup_address: z
     .string()
     .trim()
-    .min(3, "Alamat jemput minimal 3 karakter.")
+    .min(1, "Alamat jemput wajib diisi.")
     .max(500),
   pickup_latitude: coordinate("Latitude jemput", -90, 90),
   pickup_longitude: coordinate("Longitude jemput", -180, 180),
   destination_address: z
     .string()
     .trim()
-    .min(3, "Alamat tujuan minimal 3 karakter.")
+    .min(1, "Alamat tujuan wajib diisi.")
     .max(500),
   destination_latitude: coordinate("Latitude tujuan", -90, 90),
   destination_longitude: coordinate("Longitude tujuan", -180, 180),

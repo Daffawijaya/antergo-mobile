@@ -59,6 +59,22 @@ export default function LocationPickerScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // On web the URL params may not be available on the very first render, so
+  // pick up the search-selected location as soon as it arrives and make the
+  // map go straight there (adjusting state during render is the React-recommended
+  // pattern for syncing state to changing props).
+  const paramsKey = `${params.latitude ?? ""}|${params.longitude ?? ""}|${params.address ?? ""}`;
+  const [seenParamsKey, setSeenParamsKey] = useState("");
+  if (seenParamsKey !== paramsKey) {
+    setSeenParamsKey(paramsKey);
+    if (params.latitude && params.longitude) {
+      setCoordinate({
+        latitude: Number(params.latitude),
+        longitude: Number(params.longitude),
+      });
+    }
+    if (params.address) setAddress(params.address);
+  }
   const updateAddress = async (point: Coordinate) => {
     setBusy(true);
     try {

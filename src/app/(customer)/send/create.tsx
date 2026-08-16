@@ -1,25 +1,27 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
-import { useRouter } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import { LocationRouteCard } from "@/components/location-field";
-import { CustomerPageHeader } from "@/components/customer-page";
+import { AppIcon, type AppIconName } from "@/components/app-icon";
 import {
-  Button,
-  FormField,
-  Notice,
-  Screen,
-  SectionHeader,
-} from "@/components/ui";
+  FaDotCircleIcon,
+  HiLocationMarkerIcon,
+} from "@/components/brand-icons";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { listCustomerOrders } from "@/lib/api/rides";
 import { createSend } from "@/lib/api/send";
+import { parseCoordinate } from "@/lib/location";
 import { orderKeys } from "@/lib/query-keys";
 import { createSendSchema, type CreateSendForm } from "@/schemas/send";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
-import type { ApiErrorPayload } from "@/types/api";
+import { useAppTheme } from "@/stores/theme-store";
+import type { ApiErrorPayload, Order } from "@/types/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+
 const defaults: CreateSendForm = {
   pickup_address: "",
   pickup_latitude: "",
@@ -33,6 +35,12 @@ const defaults: CreateSendForm = {
   recipient_phone: "",
   notes: "",
 };
+
+// GrabExpress-style palette used on this screen (reference design).
+const PICKUP_BLUE = "#2E9BF5";
+const DEST_RED = "#FA2C19";
+const HERO_TEXT = "#1F1400";
+
 export default function CreateSendScreen() {
   const router = useRouter();
   const [vehicleType, setVehicleType] = useState<"motorcycle" | "car">(
@@ -81,6 +89,30 @@ export default function CreateSendScreen() {
       );
     }
   }, [destination, setValue]);
+  const history = useQuery({
+    queryKey: [...orderKeys.all, "create-send"],
+    queryFn: () => listCustomerOrders(1),
+  });
+  const suggestions = useMemo(() => {
+    const seen = new Set<string>();
+    const result: Order[] = [];
+    for (const order of history.data?.data ?? []) {
+      if (order.type !== "send" || !order.destination_address) continue;
+      if (
+        !parseCoordinate(
+          order.destination_latitude,
+          order.destination_longitude,
+        )
+      )
+        continue;
+      const key = order.destination_address.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(order);
+      if (result.length >= 5) break;
+    }
+    return result;
+  }, [history.data]);
   const mutation = useMutation({
     mutationFn: createSend,
     onSuccess: async ({ order }) => {
@@ -129,137 +161,434 @@ export default function CreateSendScreen() {
       pathname: "/(customer)/location-search" as never,
       params: { purpose, returnTo: "/(customer)/send/create" },
     });
+  const swapLocations = () => {
+    const state = useLocationPickerStore.getState();
+    const currentPickup = state.selections["send-pickup"];
+    const currentDestination = state.selections["send-destination"];
+    if (!currentPickup || !currentDestination) return;
+    state.setSelection("send-pickup", currentDestination);
+    state.setSelection("send-destination", currentPickup);
+  };
+  const applySuggestion = (order: Order) => {
+    const coordinate = parseCoordinate(
+      order.destination_latitude,
+      order.destination_longitude,
+    );
+    if (!coordinate || !order.destination_address) return;
+    useLocationPickerStore.getState().setSelection("send-destination", {
+      coordinate,
+      address: order.destination_address,
+    });
+  };
   const locationError =
     errors.pickup_address?.message ||
     errors.pickup_latitude?.message ||
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
   return (
-    <Screen className="gap-4 bg-background">
-      <CustomerPageHeader
-        title="Delivery"
-        subtitle="Isi tujuan, kendaraan, dan data penerima"
-        onBack={() => router.back()}
-      />
-      <LocationRouteCard
-        pickup={{
-          label: "Dari mana?",
-          value: pickup?.address,
-          placeholder: "Pilih lokasi pengambilan",
-          onPress: () => openPicker("send-pickup"),
-        }}
-        destination={{
-          label: "Kirim ke mana?",
-          value: destination?.address,
-          placeholder: "Pilih lokasi penerima",
-          onPress: () => openPicker("send-destination"),
-        }}
-      />
-      <View className="gap-3">
-        <SectionHeader title="Pilih kendaraan" />
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <Button
-              title="Motor"
-              variant={vehicleType === "motorcycle" ? "primary" : "secondary"}
-              onPress={() => setVehicleType("motorcycle")}
-            />
+    <Screen padded={false} className="gap-0 bg-background">
+      <View className="px-5 pb-14 pt-2">
+        <Svg
+          width="100%"
+          height="188"
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+        >
+          <Defs>
+            {" "}
+            <LinearGradient
+              id="delivery-hero"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <Stop offset="0%" stopColor="#FFF9E6" />
+              <Stop offset="100%" stopColor="#FFE7A0" />
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
+        </Svg>
+        <HeroHeader onBack={() => router.back()} />
+        <View className="relative mt-3 min-h-[104px] justify-start pr-24">
+          <Text
+            className="font-semibold text-[16px] leading-5"
+            style={{ color: HERO_TEXT }}
+          >
+            Kirim barang praktis & murah
+          </Text>
+          <View className="mt-1 flex-row items-center gap-0.5">
+            <Text
+              className="font-normal text-[15px] leading-5"
+              style={{ color: HERO_TEXT }}
+            >
+              Driver siap antar
+            </Text>
+            <AppIcon name="forward" size={16} color={HERO_TEXT} />
           </View>
-          <View className="flex-1">
-            <Button
-              title="Mobil"
-              variant={vehicleType === "car" ? "primary" : "secondary"}
-              onPress={() => setVehicleType("car")}
+          <View
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: 88,
+              height: 88,
+              // Drop shadow follows the PNG's transparency, not the image box.
+              filter: "drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18))",
+            }}
+          >
+            <Image
+              source={require("../../../../assets/images/icon/delivery.png")}
+              style={{ width: 88, height: 88 }}
+              resizeMode="contain"
+              accessibilityLabel="Delivery"
             />
           </View>
         </View>
       </View>
-      {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
-      <View className="gap-3">
-        <SectionHeader title="Barang" />
-        <Controller
-          control={control}
-          name="item_name"
-          render={({ field }) => (
-            <FormField
-              label="Nama barang"
-              placeholder="Contoh: Dokumen"
-              returnKeyType="next"
-              value={field.value}
-              onChangeText={field.onChange}
-              error={errors.item_name?.message}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="item_description"
-          render={({ field }) => (
-            <FormField
-              label="Detail barang (opsional)"
-              placeholder="Ukuran, warna, atau ciri barang"
-              value={field.value}
-              onChangeText={field.onChange}
-              error={errors.item_description?.message}
-            />
-          )}
+      <View className="-mt-22 px-5">
+        <LocationCard
+          pickup={{
+            value: pickup?.address,
+            placeholder: "Pilih lokasi jemput",
+            onPress: () => openPicker("send-pickup"),
+          }}
+          destination={{
+            value: destination?.address,
+            placeholder: "Antar ke?",
+            onPress: () => openPicker("send-destination"),
+          }}
+          onSwap={swapLocations}
+          swapDisabled={!pickup || !destination}
         />
       </View>
-      <View className="gap-3">
-        <SectionHeader title="Penerima" />
-        <Controller
-          control={control}
-          name="recipient_name"
-          render={({ field }) => (
-            <FormField
-              label="Nama penerima"
-              returnKeyType="next"
-              value={field.value}
-              onChangeText={field.onChange}
-              error={errors.recipient_name?.message}
+      <View className="gap-4 px-5 pt-4">
+        {suggestions.length ? (
+          <SuggestionRow items={suggestions} onSelect={applySuggestion} />
+        ) : null}
+        <VehicleSelector value={vehicleType} onChange={setVehicleType} />
+        {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
+        <View className="gap-4 rounded-[22px] bg-surface px-2 py-4 elevation-sm">
+          <Text className="font-extrabold text-[17px] text-foreground">
+            Formulir pengantaran
+          </Text>
+          <View className="gap-3">
+            <Text className="font-bold text-[13px] uppercase tracking-wide text-muted">
+              Barang
+            </Text>
+            <Controller
+              control={control}
+              name="item_name"
+              render={({ field }) => (
+                <FormField
+                  label="Nama barang"
+                  placeholder="Contoh: Dokumen"
+                  returnKeyType="next"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={errors.item_name?.message}
+                />
+              )}
             />
-          )}
-        />
-        <Controller
-          control={control}
-          name="recipient_phone"
-          render={({ field }) => (
-            <FormField
-              label="Nomor HP penerima"
-              keyboardType="phone-pad"
-              returnKeyType="done"
-              value={field.value}
-              onChangeText={field.onChange}
-              error={errors.recipient_phone?.message}
+            <Controller
+              control={control}
+              name="item_description"
+              render={({ field }) => (
+                <FormField
+                  label="Detail barang (opsional)"
+                  placeholder="Ukuran, warna, atau ciri barang"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={errors.item_description?.message}
+                />
+              )}
             />
-          )}
-        />
-        <Controller
-          control={control}
-          name="notes"
-          render={({ field }) => (
-            <FormField
-              label="Catatan untuk driver (opsional)"
-              multiline
-              numberOfLines={3}
-              value={field.value}
-              onChangeText={field.onChange}
-              error={errors.notes?.message}
+            <Text className="font-bold text-[13px] uppercase tracking-wide text-muted">
+              Penerima
+            </Text>
+            <Controller
+              control={control}
+              name="recipient_name"
+              render={({ field }) => (
+                <FormField
+                  label="Nama penerima"
+                  returnKeyType="next"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={errors.recipient_name?.message}
+                />
+              )}
             />
-          )}
+            <Controller
+              control={control}
+              name="recipient_phone"
+              render={({ field }) => (
+                <FormField
+                  label="Nomor HP penerima"
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={errors.recipient_phone?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="notes"
+              render={({ field }) => (
+                <FormField
+                  label="Catatan untuk driver (opsional)"
+                  multiline
+                  numberOfLines={3}
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={errors.notes?.message}
+                />
+              )}
+            />
+          </View>
+        </View>
+        {mutation.isError ? (
+          <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
+        ) : null}
+        <Text className="pt-2 text-center text-[13px] text-muted">
+          Biaya pengiriman dihitung otomatis berdasarkan jarak.
+        </Text>
+        <Button
+          title="Cari Driver"
+          loading={mutation.isPending}
+          onPress={submit}
         />
       </View>
-      {mutation.isError ? (
-        <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
-      ) : null}
-      <Text className="pt-2 text-center text-[13px] text-muted">
-        Biaya pengiriman dihitung otomatis berdasarkan jarak.
-      </Text>
-      <Button
-        title="Cari Driver"
-        loading={mutation.isPending}
-        onPress={submit}
-      />
     </Screen>
+  );
+}
+
+function HeroHeader({ onBack }: { onBack: () => void }) {
+  return (
+    <View className="mt-2 flex-row items-center">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Kembali"
+        onPress={onBack}
+        className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+      >
+        <AppIcon name="back" size={26} color={HERO_TEXT} />
+      </Pressable>
+      <Text
+        className="font-bold text-[22px] leading-7"
+        style={{ color: HERO_TEXT }}
+      >
+        Delivery
+      </Text>
+    </View>
+  );
+}
+
+function LocationCard({
+  pickup,
+  destination,
+  onSwap,
+  swapDisabled,
+}: {
+  pickup: { value?: string; placeholder: string; onPress: () => void };
+  destination: { value?: string; placeholder: string; onPress: () => void };
+  onSwap: () => void;
+  swapDisabled: boolean;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      className="rounded-2xl bg-surface px-4 py-5"
+      style={{
+        shadowColor: "#111827",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.07,
+        shadowRadius: 14,
+        elevation: 6,
+      }}
+    >
+      <View className="flex-row">
+        <View className="flex-1">
+          <LocationRow
+            marker={<FaDotCircleIcon size={16} color={PICKUP_BLUE} />}
+            value={pickup.value}
+            placeholder={pickup.placeholder}
+            onPress={pickup.onPress}
+          />
+          <View className="my-1 w-6 items-center gap-[6px] self-start">
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+          </View>
+          <LocationRow
+            marker={<HiLocationMarkerIcon size={22} color={DEST_RED} />}
+            value={destination.value}
+            placeholder={destination.placeholder}
+            onPress={destination.onPress}
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Tukar lokasi"
+          onPress={onSwap}
+          disabled={swapDisabled}
+          className="ml-2 h-10 w-10 self-center items-center justify-center rounded-full active:opacity-70"
+          style={swapDisabled ? { opacity: 0.4 } : null}
+        >
+          <AppIcon name="swap" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function LocationRow({
+  marker,
+  value,
+  placeholder,
+  onPress,
+}: {
+  marker: ReactNode;
+  value?: string;
+  placeholder: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="flex-row items-center active:opacity-70"
+    >
+      <View className="w-6 items-center justify-center">{marker}</View>
+      <Text
+        numberOfLines={1}
+        className={`ml-3 flex-1 text-[15px] leading-5 ${value ? "font-bold text-foreground" : "font-medium text-muted"}`}
+      >
+        {value || placeholder}
+      </Text>
+    </Pressable>
+  );
+}
+
+function SuggestionRow({
+  items,
+  onSelect,
+}: {
+  items: Order[];
+  onSelect: (order: Order) => void;
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerClassName="gap-2.5"
+    >
+      {items.map((order) => (
+        <Pressable
+          key={order.id}
+          onPress={() => onSelect(order)}
+          className="min-w-[150px] max-w-[220px] rounded-2xl border border-border bg-surface px-3.5 py-3 active:opacity-75"
+        >
+          <Text className="text-[11px] font-medium leading-4 text-muted">
+            Kirim ke
+          </Text>
+          <View className="mt-1 flex-row items-center gap-1.5">
+            <AppIcon name="pin" size={13} color={DEST_RED} />
+            <Text
+              numberOfLines={1}
+              className="shrink font-bold text-[14px] leading-5 text-foreground"
+            >
+              {order.destination_address}
+            </Text>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
+
+const VEHICLES: {
+  type: "motorcycle" | "car";
+  label: string;
+  sub: string;
+  icon: AppIconName;
+}[] = [
+  { type: "motorcycle", label: "Motor", sub: "Cepat & hemat", icon: "bike" },
+  { type: "car", label: "Mobil", sub: "Barang besar & banyak", icon: "car" },
+];
+
+function VehicleSelector({
+  value,
+  onChange,
+}: {
+  value: "motorcycle" | "car";
+  onChange: (type: "motorcycle" | "car") => void;
+}) {
+  return (
+    <View className="gap-3">
+      <Text className="font-extrabold text-[17px] text-foreground">
+        Pilih kendaraan
+      </Text>
+      <View className="flex-row gap-3">
+        {VEHICLES.map((vehicle) => (
+          <VehicleCard
+            key={vehicle.type}
+            label={vehicle.label}
+            sub={vehicle.sub}
+            icon={vehicle.icon}
+            selected={value === vehicle.type}
+            onPress={() => onChange(vehicle.type)}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function VehicleCard({
+  label,
+  sub,
+  icon,
+  selected,
+  onPress,
+}: {
+  label: string;
+  sub: string;
+  icon: AppIconName;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { mode } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className={`flex-1 rounded-[18px] border-2 px-4 pb-3.5 pt-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
+      style={
+        selected
+          ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }
+          : null
+      }
+    >
+      <View className="flex-row items-start justify-between">
+        <View className="h-11 w-11 items-center justify-center rounded-full bg-surface elevation-sm">
+          <AppIcon
+            name={icon}
+            size={24}
+            color={selected ? "#92400E" : "#9CA3AF"}
+          />
+        </View>
+        {selected ? (
+          <View className="h-5 w-5 items-center justify-center rounded-full bg-[#FFB900]">
+            <AppIcon name="check" size={12} color="#FFFFFF" strokeWidth={3} />
+          </View>
+        ) : null}
+      </View>
+      <Text className="mt-2.5 font-extrabold text-[15px] leading-5 text-foreground">
+        {label}
+      </Text>
+      <Text className="mt-0.5 text-[12px] leading-4 text-muted">{sub}</Text>
+    </Pressable>
   );
 }

@@ -1,14 +1,17 @@
 import type { ComponentProps } from "react";
 import {
+  ArrowUpDown,
   Bell,
   Bike,
   Car,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleX,
   ClipboardList,
   Clock,
+  History,
   House,
   Inbox,
   LocateFixed,
@@ -66,6 +69,9 @@ const icons = {
   package: Package,
   utensils: Utensils,
   bag: ShoppingBag,
+  swap: ArrowUpDown,
+  history: History,
+  check: Check,
 } as const;
 
 export type AppIconName = keyof typeof icons;

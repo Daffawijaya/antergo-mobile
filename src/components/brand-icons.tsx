@@ -134,6 +134,46 @@ export function FaEnvelopeIcon({
   );
 }
 
+// Font Awesome 5 — FaDotCircle (solid circle)
+export function FaDotCircleIcon({
+  size = 24,
+  color = "#111827",
+}: BrandIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 512 512" fill={color}>
+      <Path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm80 248c0 44.112-35.888 80-80 80s-80-35.888-80-80 35.888-80 80-80 80 35.888 80 80z" />
+    </Svg>
+  );
+}
+
+// Font Awesome 6 — FaCircleDot (solid circle with center dot)
+export function FaCircleDotIcon({
+  size = 24,
+  color = "#111827",
+}: BrandIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 512 512" fill={color}>
+      <Path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-352a96 96 0 1 1 0 192 96 96 0 1 1 0-192z" />
+    </Svg>
+  );
+}
+
+// Heroicons — HiLocationMarker (solid map pin with hole)
+export function HiLocationMarkerIcon({
+  size = 24,
+  color = "#111827",
+}: BrandIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill={color}>
+      <Path
+        fillRule="evenodd"
+        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+        clipRule="evenodd"
+      />
+    </Svg>
+  );
+}
+
 // Simple Icons — SiGmail (logo Gmail)
 export function SiGmailIcon({ size = 24, color = "#111827" }: BrandIconProps) {
   return (
