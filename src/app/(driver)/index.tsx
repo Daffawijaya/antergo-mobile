@@ -336,7 +336,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
   sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
   muted: { color: colors.muted, lineHeight: 20 },
   warning: { color: Colors.warning, lineHeight: 20 },
-  location: { color: Colors.primary, lineHeight: 20 },
+  location: { color: Colors.primaryDark, lineHeight: 20 },
   error: { color: Colors.danger, lineHeight: 20 },
   permissionBox: {
     gap: 10,

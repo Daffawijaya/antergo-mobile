@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -13,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppIcon } from "./app-icon";
 import { BackButton, StatusState } from "./ui";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
 import { listChatMessages, sendChatMessage } from "@/lib/api/chat";
@@ -76,15 +76,7 @@ export function ChatThreadScreen({ orderId }: { orderId: number }) {
           >
             {!query.data?.length ? (
               <View style={styles.start}>
-                <SymbolView
-                  name={{
-                    ios: "bubble.left.fill",
-                    android: "chat_bubble",
-                    web: "chat_bubble",
-                  }}
-                  size={26}
-                  tintColor={Colors.primary}
-                />
+                <AppIcon name="chat" size={26} color={Colors.primary} />
                 <Text style={styles.startTitle}>Mulai percakapan</Text>
                 <Text style={styles.startCopy}>
                   Gunakan chat untuk informasi terkait pickup dan pengantaran.
@@ -139,11 +131,7 @@ export function ChatThreadScreen({ orderId }: { orderId: number }) {
               (!body.trim() || mutation.isPending) && styles.disabled,
             ]}
           >
-            <SymbolView
-              name={{ ios: "paperplane.fill", android: "send", web: "send" }}
-              size={21}
-              tintColor={Colors.white}
-            />
+            <AppIcon name="send" size={21} color={Colors.onPrimary} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -187,9 +175,9 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
   },
   bubbleMine: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   message: { color: colors.text, ...Typography.body },
-  messageMine: { color: Colors.white },
+  messageMine: { color: Colors.onPrimary },
   timestamp: { color: colors.muted, fontSize: 10 },
-  timestampMine: { color: "#D1FAE5" },
+  timestampMine: { color: "#5C4700" },
   start: { alignItems: "center", gap: Spacing.sm, padding: Spacing.xxxl },
   startTitle: { color: colors.text, ...Typography.cardTitle },
   startCopy: {

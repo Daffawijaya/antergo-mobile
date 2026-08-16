@@ -1,5 +1,5 @@
-import { SymbolView } from "expo-symbols";
 import { Pressable, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 
@@ -63,14 +63,10 @@ function LocationRow({
       <View
         className={`h-10 w-10 items-center justify-center rounded-full ${kind === "pickup" ? "bg-surface-muted" : "bg-surface-muted"}`}
       >
-        <SymbolView
-          name={{
-            ios: "location.fill",
-            android: "location_on",
-            web: "location_on",
-          }}
+        <AppIcon
+          name="pin"
           size={22}
-          tintColor={kind === "pickup" ? Colors.primary : Colors.danger}
+          color={kind === "pickup" ? Colors.primary : Colors.danger}
         />
       </View>
       <View className="flex-1 gap-0.5">
@@ -82,15 +78,7 @@ function LocationRow({
           {value || placeholder}
         </Text>
       </View>
-      <SymbolView
-        name={{
-          ios: "chevron.right",
-          android: "chevron_right",
-          web: "chevron_right",
-        }}
-        size={19}
-        tintColor={colors.muted}
-      />
+      <AppIcon name="forward" size={19} color={colors.muted} />
     </Pressable>
   );
 }

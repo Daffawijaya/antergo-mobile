@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { BackButton, Screen } from "@/components/ui";
+import { Colors } from "@/constants/colors";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function AccountDetailScreen() {
@@ -16,11 +17,7 @@ export default function AccountDetailScreen() {
       </View>
       <View className="items-center py-3">
         <View className="h-28 w-28 items-center justify-center rounded-full bg-brand">
-          <SymbolView
-            name={{ ios: "person.fill", android: "person", web: "person" }}
-            size={68}
-            tintColor="#FFFFFF"
-          />
+          <AppIcon name="profile" size={68} color={Colors.onPrimary} />
         </View>
       </View>
       <View className="gap-5">

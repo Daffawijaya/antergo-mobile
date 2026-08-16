@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { type Region } from "react-native-maps";
-import { SymbolView } from "expo-symbols";
+import { AppIcon } from "@/components/app-icon";
 import { Colors, Elevation, Radius } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
 const JAKARTA = {
@@ -42,15 +42,7 @@ export function LocationPickerMap({
       />
       <View pointerEvents="none" style={styles.pin}>
         <View style={styles.pinBubble}>
-          <SymbolView
-            name={{
-              ios: "location.fill",
-              android: "location_on",
-              web: "location_on",
-            }}
-            size={28}
-            tintColor={Colors.white}
-          />
+          <AppIcon name="pin" size={28} color={Colors.onPrimary} />
         </View>
         <View style={styles.tip} />
       </View>

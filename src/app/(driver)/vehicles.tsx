@@ -93,7 +93,7 @@ export default function VehiclesScreen() {
                   </Text>
                 </View>
                 {query.data?.active_vehicle_id === v.id ? (
-                  <Text className="font-semibold text-brand">Aktif</Text>
+                  <Text className="font-semibold text-brand-dark">Aktif</Text>
                 ) : null}
               </View>
               {query.data?.active_vehicle_id !== v.id ? (

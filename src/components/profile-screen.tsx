@@ -11,8 +11,8 @@ import {
 import type { AppRole } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useCallback, useState } from "react";
+import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
@@ -22,24 +22,12 @@ const ROLE_LABELS: Record<AppRole, string> = {
   driver: "Driver",
   merchant: "Merchant",
 };
-const roleSymbol = (role: AppRole) =>
+const roleSymbol = (role: AppRole): AppIconName =>
   role === "customer"
-    ? {
-        ios: "person.fill" as const,
-        android: "person" as const,
-        web: "person" as const,
-      }
+    ? "profile"
     : role === "driver"
-      ? {
-          ios: "motorcycle.fill" as const,
-          android: "two_wheeler" as const,
-          web: "two_wheeler" as const,
-        }
-      : {
-          ios: "storefront.fill" as const,
-          android: "storefront" as const,
-          web: "storefront" as const,
-        };
+      ? "bike"
+      : "store";
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -106,15 +94,7 @@ export function ProfileScreen() {
           >
             <View className="flex-row items-center gap-3">
               <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
-                <SymbolView
-                  name={{
-                    ios: "person.fill",
-                    android: "person",
-                    web: "person",
-                  }}
-                  size={40}
-                  tintColor="#FFFFFF"
-                />
+                <AppIcon name="profile" size={40} color={Colors.onPrimary} />
               </View>
               <View className="min-w-0 flex-1">
                 <Text
@@ -131,30 +111,18 @@ export function ProfileScreen() {
                 </Text>
               </View>
               <View className="rounded-full bg-surface-muted px-4 py-2">
-                <Text className="font-bold text-brand">Profil</Text>
+                <Text className="font-bold text-brand-dark">Profil</Text>
               </View>
             </View>
             <View className="mt-4 flex-row items-center gap-2 rounded-full border border-border px-3 py-2.5">
-              <SymbolView
-                name={{ ios: "phone.fill", android: "phone", web: "phone" }}
-                size={17}
-                tintColor={Colors.primary}
-              />
+              <AppIcon name="phone" size={17} color={Colors.primary} />
               <Text
                 numberOfLines={1}
                 className="flex-1 font-semibold text-sm text-foreground"
               >
                 {user?.phone || "Nomor telepon belum tersedia"}
               </Text>
-              <SymbolView
-                name={{
-                  ios: "chevron.right",
-                  android: "chevron_right",
-                  web: "chevron_right",
-                }}
-                size={18}
-                tintColor={colors.muted}
-              />
+              <AppIcon name="forward" size={18} color={colors.muted} />
             </View>
           </Pressable>
         </View>
@@ -173,13 +141,14 @@ export function ProfileScreen() {
                     onPress={() => void setActiveRole(role)}
                     className={`flex-1 items-center rounded-2xl border px-2 py-3 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
                   >
-                    <SymbolView
+                    <AppIcon
                       name={roleSymbol(role)}
                       size={24}
-                      tintColor={selected ? "#FFFFFF" : colors.text}
+                      color={selected ? Colors.onPrimary : colors.text}
+                      filled={selected}
                     />
                     <Text
-                      className={`mt-1 font-semibold text-sm ${selected ? "text-white" : "text-foreground"}`}
+                      className={`mt-1 font-semibold text-sm ${selected ? "text-on-brand" : "text-foreground"}`}
                     >
                       {ROLE_LABELS[role]}
                     </Text>
@@ -201,20 +170,17 @@ export function ProfileScreen() {
                   className={`flex-1 flex-row items-center gap-3 rounded-2xl border p-4 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
                 >
                   <View
-                    className={`h-10 w-10 items-center justify-center rounded-full ${selected ? "bg-white/20" : "bg-surface-muted"}`}
+                    className={`h-10 w-10 items-center justify-center rounded-full ${selected ? "bg-on-brand/15" : "bg-surface-muted"}`}
                   >
-                    <SymbolView
-                      name={{
-                        ios: item === "light" ? "sun.max.fill" : "moon.fill",
-                        android: item === "light" ? "light_mode" : "dark_mode",
-                        web: item === "light" ? "light_mode" : "dark_mode",
-                      }}
+                    <AppIcon
+                      name={item === "light" ? "sun" : "moon"}
                       size={22}
-                      tintColor={selected ? "#FFFFFF" : colors.text}
+                      color={selected ? Colors.onPrimary : colors.text}
+                      filled={selected}
                     />
                   </View>
                   <Text
-                    className={`font-bold ${selected ? "text-white" : "text-foreground"}`}
+                    className={`font-bold ${selected ? "text-on-brand" : "text-foreground"}`}
                   >
                     {item === "light" ? "Light" : "Dark"}
                   </Text>
@@ -318,25 +284,22 @@ function SettingsRow({
   const content = (
     <>
       <View className="w-8 items-center">
-        <SymbolView
-          name={{
-            ios:
-              icon === "badge"
-                ? "bell.fill"
-                : icon === "settings"
-                  ? "gearshape.fill"
-                  : icon === "logout"
-                    ? "rectangle.portrait.and.arrow.right"
-                    : icon === "two_wheeler"
-                      ? "motorcycle.fill"
-                      : icon === "directions_car"
-                        ? "car.fill"
-                        : "storefront.fill",
-            android: icon === "badge" ? "notifications" : icon,
-            web: icon,
-          }}
+        <AppIcon
+          name={
+            icon === "badge"
+              ? "bell"
+              : icon === "settings"
+                ? "settings"
+                : icon === "logout"
+                  ? "logout"
+                  : icon === "two_wheeler"
+                    ? "bike"
+                    : icon === "directions_car"
+                      ? "car"
+                      : "store"
+          }
           size={21}
-          tintColor={danger ? Colors.danger : colors.text}
+          color={danger ? Colors.danger : colors.text}
         />
       </View>
       <Text
@@ -353,15 +316,7 @@ function SettingsRow({
         </Text>
       ) : null}
       {onPress ? (
-        <SymbolView
-          name={{
-            ios: "chevron.right",
-            android: "chevron_right",
-            web: "chevron_right",
-          }}
-          size={20}
-          tintColor={colors.muted}
-        />
+        <AppIcon name="forward" size={20} color={colors.muted} />
       ) : null}
     </>
   );

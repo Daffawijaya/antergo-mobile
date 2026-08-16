@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { type Region } from "react-native-maps";
-import { SymbolView } from "expo-symbols";
+import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
 const DEFAULT_REGION = {
@@ -45,15 +45,7 @@ export function LocationPickerMap({
         className="absolute left-1/2 top-1/2 -ml-6 -mt-14 items-center"
       >
         <View className="h-12 w-12 items-center justify-center rounded-full bg-brand elevation-lg">
-          <SymbolView
-            name={{
-              ios: "location.fill",
-              android: "location_on",
-              web: "location_on",
-            }}
-            size={29}
-            tintColor={Colors.white}
-          />
+          <AppIcon name="pin" size={29} color={Colors.onPrimary} />
         </View>
         <View className="h-3 w-1 rounded-full bg-brand" />
       </View>

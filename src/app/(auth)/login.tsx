@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Controller, useForm } from "react-hook-form";
+import { AppIcon } from "@/components/app-icon";
 import { StyleSheet, Text, View } from "react-native";
 import { useState } from "react";
 import { Button, Card, FormField, Notice, Screen } from "@/components/ui";
@@ -32,11 +32,7 @@ export default function LoginScreen() {
     <Screen contentStyle={styles.screen}>
       <View style={styles.brand}>
         <View style={styles.logo}>
-          <SymbolView
-            name={{ ios: "location.fill", android: "near_me", web: "near_me" }}
-            size={34}
-            tintColor={Colors.white}
-          />
+          <AppIcon name="navigation" size={34} color={Colors.onPrimary} />
         </View>
         <Text style={styles.brandName}>AnterGo</Text>
         <Text style={styles.tagline}>Semua perjalanan dimulai dari sini.</Text>

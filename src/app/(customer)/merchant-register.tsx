@@ -91,7 +91,7 @@ export default function MerchantRegisterScreen() {
               >
                 <Text
                   className={
-                    category_id === c.id ? "text-white" : "text-foreground"
+                    category_id === c.id ? "text-on-brand" : "text-foreground"
                   }
                 >
                   {c.name}

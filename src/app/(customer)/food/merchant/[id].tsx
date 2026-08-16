@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { CustomerPageHeader } from "@/components/customer-page";
 import { Button, Notice, Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
@@ -77,15 +77,7 @@ export default function MerchantDetailScreen() {
             })
           }
         >
-          <SymbolView
-            name={{
-              ios: "cart.fill",
-              android: "shopping_cart",
-              web: "shopping_cart",
-            }}
-            size={20}
-            tintColor="#FFFFFF"
-          />
+          <AppIcon name="cart" size={20} color="#FFFFFF" />
           <Text style={styles.cartText}>
             Lihat Cart ({items.reduce((n, item) => n + item.quantity, 0)})
           </Text>
@@ -117,15 +109,7 @@ export default function MerchantDetailScreen() {
               <Image source={{ uri: query.data.logo }} style={styles.logo} />
             ) : (
               <View style={styles.logoFallback}>
-                <SymbolView
-                  name={{
-                    ios: "storefront.fill",
-                    android: "storefront",
-                    web: "storefront",
-                  }}
-                  size={30}
-                  tintColor={Colors.primaryDark}
-                />
+                <AppIcon name="store" size={30} color={Colors.primaryDark} />
               </View>
             )}
             <View style={styles.merchantCopy}>

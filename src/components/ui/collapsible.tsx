@@ -1,6 +1,6 @@
-import { SymbolView } from "expo-symbols";
 import { PropsWithChildren, useState } from "react";
 import { Pressable, StyleSheet } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/themed-text";
@@ -25,15 +25,11 @@ export function Collapsible({
         onPress={() => setIsOpen((value) => !value)}
       >
         <ThemedView type="backgroundElement" style={styles.button}>
-          <SymbolView
-            name={{
-              ios: "chevron.right",
-              android: "chevron_right",
-              web: "chevron_right",
-            }}
+          <AppIcon
+            name="forward"
             size={14}
-            weight="bold"
-            tintColor={theme.text}
+            strokeWidth={3}
+            color={theme.text}
             style={{ transform: [{ rotate: isOpen ? "-90deg" : "90deg" }] }}
           />
         </ThemedView>

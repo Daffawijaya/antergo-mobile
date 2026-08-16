@@ -1,7 +1,7 @@
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { AppIcon } from "@/components/app-icon";
 import {
   ActivityIndicator,
   Keyboard,
@@ -131,11 +131,7 @@ export default function LocationSearchScreen() {
           }
         />
         <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-border bg-surface px-4">
-          <SymbolView
-            name={{ ios: "magnifyingglass", android: "search", web: "search" }}
-            size={21}
-            tintColor={colors.muted}
-          />
+          <AppIcon name="search" size={21} color={colors.muted} />
           <TextInput
             autoFocus
             value={query}
@@ -163,15 +159,7 @@ export default function LocationSearchScreen() {
           className="mt-4 flex-row items-center gap-3 border-b border-border py-4"
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-surface-muted">
-            <SymbolView
-              name={{
-                ios: "location.fill",
-                android: "my_location",
-                web: "my_location",
-              }}
-              size={21}
-              tintColor={Colors.primary}
-            />
+            <AppIcon name="locate" size={21} color={Colors.primary} />
           </View>
           <View className="flex-1">
             <Text className="font-semibold text-base text-foreground">
@@ -201,15 +189,7 @@ export default function LocationSearchScreen() {
               onPress={() => openMap(item)}
               className="flex-row items-start gap-3 border-b border-border py-4"
             >
-              <SymbolView
-                name={{
-                  ios: "mappin.circle.fill",
-                  android: "location_on",
-                  web: "location_on",
-                }}
-                size={25}
-                tintColor={Colors.primary}
-              />
+              <AppIcon name="pin" size={25} color={Colors.primary} />
               <View className="flex-1 gap-1">
                 <Text className="font-bold text-base text-foreground">
                   {item.title}
@@ -230,12 +210,8 @@ export default function LocationSearchScreen() {
           onPress={() => openMap()}
           className="min-h-12 flex-row items-center justify-center gap-2 rounded-full bg-brand active:opacity-80"
         >
-          <SymbolView
-            name={{ ios: "map.fill", android: "map", web: "map" }}
-            size={21}
-            tintColor="#FFFFFF"
-          />
-          <Text className="font-bold text-base text-white">Pilih di Maps</Text>
+          <AppIcon name="map" size={21} color={Colors.onPrimary} />
+          <Text className="font-bold text-base text-on-brand">Pilih di Maps</Text>
         </Pressable>
       </View>
     </SafeAreaView>

@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SymbolView } from "expo-symbols";
+import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 
@@ -22,7 +22,7 @@ const buttonClasses = {
     "border border-danger bg-surface-muted",
 } as const;
 const buttonTextClasses = {
-  primary: "text-white",
+  primary: "text-on-brand",
   secondary: "text-foreground",
   danger: "text-danger",
 } as const;
@@ -84,7 +84,7 @@ export function PageHeader({
     <View className="flex-row items-start gap-3">
       <View className="flex-1 gap-1 py-1">
         {eyebrow ? (
-          <Text className="font-extrabold text-xs uppercase tracking-wider text-brand">
+          <Text className="font-extrabold text-xs uppercase tracking-wider text-brand-dark">
             {eyebrow}
           </Text>
         ) : null}
@@ -197,7 +197,7 @@ export function Button({
         <ActivityIndicator
           color={
             variant === "primary"
-              ? Colors.white
+              ? Colors.onPrimary
               : variant === "danger"
                 ? Colors.danger
                 : Colors.primary
@@ -229,11 +229,7 @@ export function BackButton({
       onPress={onPress}
       className={`h-10 w-10 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface elevation-md" : "bg-transparent"}`}
     >
-      <SymbolView
-        name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
-        size={22}
-        tintColor={colors.text}
-      />
+      <AppIcon name="back" size={22} color={colors.text} />
     </Pressable>
   );
 }
@@ -258,21 +254,9 @@ export function StatusState({
           className={`mb-2 h-[58px] w-[58px] items-center justify-center rounded-full ${type === "error" ? "bg-surface-muted" : "bg-surface-muted"}`}
         >
           {type === "error" ? (
-            <SymbolView
-              name={{
-                ios: "exclamationmark.triangle.fill",
-                android: "error",
-                web: "error",
-              }}
-              size={26}
-              tintColor={Colors.danger}
-            />
+            <AppIcon name="alert" size={26} color={Colors.danger} />
           ) : (
-            <SymbolView
-              name={{ ios: "tray.fill", android: "inbox", web: "inbox" }}
-              size={26}
-              tintColor={Colors.primary}
-            />
+            <AppIcon name="empty" size={26} color={Colors.primary} />
           )}
         </View>
       )}

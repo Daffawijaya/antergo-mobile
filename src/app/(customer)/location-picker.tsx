@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect, useRef, useState } from "react";
+import { AppIcon } from "@/components/app-icon";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LocationPickerMap } from "@/components/location-picker-map";
@@ -127,27 +127,11 @@ export default function LocationPickerScreen() {
           onPress={() => void gps()}
           className="absolute bottom-44 right-4 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
         >
-          <SymbolView
-            name={{
-              ios: "location.fill",
-              android: "my_location",
-              web: "my_location",
-            }}
-            size={23}
-            tintColor={Colors.primary}
-          />
+          <AppIcon name="locate" size={23} color={Colors.primary} />
         </Pressable>
         <View className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-surface px-5 pb-5 pt-4 elevation-lg">
           <View className="mb-4 flex-row items-start gap-3">
-            <SymbolView
-              name={{
-                ios: "mappin.circle.fill",
-                android: "location_on",
-                web: "location_on",
-              }}
-              size={28}
-              tintColor={Colors.primary}
-            />
+            <AppIcon name="pin" size={28} color={Colors.primary} />
             <View className="flex-1">
               <Text className="font-bold text-base text-foreground">
                 {address.split(",")[0]}
@@ -169,7 +153,7 @@ export default function LocationPickerScreen() {
             onPress={confirm}
             className={`min-h-13 items-center justify-center rounded-full bg-brand ${!coordinate || busy ? "opacity-50" : "active:opacity-80"}`}
           >
-            <Text className="font-bold text-base text-white">
+            <Text className="font-bold text-base text-on-brand">
               {LABELS[purpose].cta}
             </Text>
           </Pressable>

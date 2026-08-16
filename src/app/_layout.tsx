@@ -8,7 +8,6 @@ import {
 } from "@expo-google-fonts/outfit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -63,7 +62,6 @@ function Router() {
 
   return (
     <>
-      <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{
           headerShown: false,

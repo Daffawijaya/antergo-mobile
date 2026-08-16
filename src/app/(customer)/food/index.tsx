@@ -1,6 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import {
   Image,
@@ -11,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppIcon } from "@/components/app-icon";
 import { BackButton, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
@@ -107,22 +107,10 @@ export default function CommerceCatalogScreen() {
               {destination?.address ?? "Pilih alamat pengantaran"}
             </Text>
           </Pressable>
-          <SymbolView
-            name={{
-              ios: "chevron.down",
-              android: "keyboard_arrow_down",
-              web: "keyboard_arrow_down",
-            }}
-            size={20}
-            tintColor={colors.text}
-          />
+          <AppIcon name="down" size={20} color={colors.text} />
         </View>
         <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4">
-          <SymbolView
-            name={{ ios: "magnifyingglass", android: "search", web: "search" }}
-            size={23}
-            tintColor={colors.muted}
-          />
+          <AppIcon name="search" size={23} color={colors.muted} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -142,15 +130,7 @@ export default function CommerceCatalogScreen() {
                 setPage(1);
               }}
             >
-              <SymbolView
-                name={{
-                  ios: "xmark.circle.fill",
-                  android: "cancel",
-                  web: "cancel",
-                }}
-                size={20}
-                tintColor={colors.muted}
-              />
+              <AppIcon name="close" size={20} color={colors.muted} />
             </Pressable>
           ) : null}
         </View>
@@ -211,15 +191,7 @@ export default function CommerceCatalogScreen() {
                     />
                   ) : (
                     <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
-                      <SymbolView
-                        name={{
-                          ios: "storefront.fill",
-                          android: "storefront",
-                          web: "storefront",
-                        }}
-                        size={34}
-                        tintColor={Colors.primary}
-                      />
+                      <AppIcon name="store" size={34} color={Colors.primary} />
                     </View>
                   )}
                   <View className="flex-1 justify-center gap-1">
@@ -239,7 +211,7 @@ export default function CommerceCatalogScreen() {
                       {merchant.address}
                     </Text>
                     <Text
-                      className={`font-semibold text-xs ${merchant.is_open && merchant.is_active ? "text-brand" : "text-danger"}`}
+                      className={`font-semibold text-xs ${merchant.is_open && merchant.is_active ? "text-brand-dark" : "text-danger"}`}
                     >
                       {merchant.is_open && merchant.is_active
                         ? "Buka"
@@ -287,11 +259,11 @@ export default function CommerceCatalogScreen() {
                   <Text numberOfLines={1} className="text-sm text-muted">
                     {product.merchant?.name ?? "UMKM AnterGo"}
                   </Text>
-                  <Text className="font-bold text-base text-brand">
+                  <Text className="font-bold text-base text-brand-dark">
                     {formatRupiah(product.price)}
                   </Text>
                   <Text
-                    className={`text-xs font-semibold ${product.stock > 0 ? "text-brand" : "text-danger"}`}
+                    className={`text-xs font-semibold ${product.stock > 0 ? "text-brand-dark" : "text-danger"}`}
                   >
                     {product.stock > 0 ? `Stok ${product.stock}` : "Stok habis"}
                   </Text>
@@ -305,9 +277,9 @@ export default function CommerceCatalogScreen() {
             <Pressable
               disabled={page <= 1}
               onPress={() => setPage((value) => value - 1)}
-              className={`rounded-xl bg-emerald-50 px-4 py-2.5 dark:bg-emerald-950/40 ${page <= 1 ? "opacity-40" : ""}`}
+              className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page <= 1 ? "opacity-40" : ""}`}
             >
-              <Text className="font-semibold text-brand">Sebelumnya</Text>
+              <Text className="font-semibold text-brand-dark">Sebelumnya</Text>
             </Pressable>
             <Text className="text-sm text-muted">
               {page}/{paginator.last_page}
@@ -315,9 +287,9 @@ export default function CommerceCatalogScreen() {
             <Pressable
               disabled={page >= paginator.last_page}
               onPress={() => setPage((value) => value + 1)}
-              className={`rounded-xl bg-emerald-50 px-4 py-2.5 dark:bg-emerald-950/40 ${page >= paginator.last_page ? "opacity-40" : ""}`}
+              className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page >= paginator.last_page ? "opacity-40" : ""}`}
             >
-              <Text className="font-semibold text-brand">Berikutnya</Text>
+              <Text className="font-semibold text-brand-dark">Berikutnya</Text>
             </Pressable>
           </View>
         ) : null}
@@ -340,7 +312,7 @@ function Filter({
       className={`min-h-9 justify-center rounded-full border px-4 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
     >
       <Text
-        className={`font-semibold text-sm ${selected ? "text-white" : "text-foreground"}`}
+        className={`font-semibold text-sm ${selected ? "text-on-brand" : "text-foreground"}`}
       >
         {label}
       </Text>

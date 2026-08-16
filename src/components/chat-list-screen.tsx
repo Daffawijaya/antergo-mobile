@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "./app-icon";
 import { CustomerPageHeader } from "./customer-page";
 import { orderService, ServiceIcon } from "./service-icon";
 import { Screen } from "./ui";
@@ -33,15 +33,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
       ) : !query.data?.length ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
-            <SymbolView
-              name={{
-                ios: "bubble.left.and.bubble.right.fill",
-                android: "chat_bubble",
-                web: "chat_bubble",
-              }}
-              size={30}
-              tintColor={Colors.primary}
-            />
+            <AppIcon name="inbox" size={30} color={Colors.primary} />
           </View>
           <Text style={styles.emptyTitle}>Belum ada pesan</Text>
           <Text style={styles.state}>
@@ -91,15 +83,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
                     </Text>
                   </View>
                 ) : (
-                  <SymbolView
-                    name={{
-                      ios: "chevron.right",
-                      android: "chevron_right",
-                      web: "chevron_right",
-                    }}
-                    size={20}
-                    tintColor="#A0A0A0"
-                  />
+                  <AppIcon name="forward" size={20} color="#A0A0A0" />
                 )}
               </Pressable>
             );
@@ -144,7 +128,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
     justifyContent: "center",
     backgroundColor: Colors.primary,
   },
-  unreadText: { color: "#FFFFFF", fontSize: 11, fontFamily: "Outfit_700Bold" },
+  unreadText: { color: Colors.onPrimary, fontSize: 11, fontFamily: "Outfit_700Bold" },
   empty: {
     minHeight: 330,
     alignItems: "center",

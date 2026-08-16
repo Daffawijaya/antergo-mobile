@@ -182,7 +182,7 @@ export default function MerchantProducts() {
                 <Text className="text-sm text-muted">
                   {product.product_type === "goods" ? "Barang" : "Food & Drink"}
                 </Text>
-                <Text className="font-semibold text-brand">
+                <Text className="font-semibold text-brand-dark">
                   Rp {Number(product.price).toLocaleString("id-ID")}
                 </Text>
                 <Text className="text-sm text-muted">Stok {product.stock}</Text>

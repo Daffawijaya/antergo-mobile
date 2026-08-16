@@ -5,14 +5,21 @@ import { formatRupiah } from "@/lib/format";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Image, Pressable, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 
 type Service = {
   type: ServiceVariant;
   label: string;
-  emoji: string;
+  icon: number;
   onPress: () => void;
+};
+const serviceIcons: Record<ServiceVariant, number> = {
+  food: require("../../../assets/images/icon/food.png"),
+  delivery: require("../../../assets/images/icon/delivery.png"),
+  shopping: require("../../../assets/images/icon/shopping.png"),
+  bike: require("../../../assets/images/icon/bike.png"),
+  car: require("../../../assets/images/icon/car.png"),
 };
 const onePerMerchant = (products: Product[] = []) => {
   const seen = new Set<number>();
@@ -38,7 +45,7 @@ export default function CustomerHome() {
     {
       type: "food",
       label: "Food",
-      emoji: "🍳",
+      icon: serviceIcons.food,
       onPress: () =>
         router.push({
           pathname: "/(customer)/food",
@@ -48,13 +55,13 @@ export default function CustomerHome() {
     {
       type: "delivery",
       label: "Delivery",
-      emoji: "📦",
+      icon: serviceIcons.delivery,
       onPress: () => router.push("/(customer)/send/create"),
     },
     {
       type: "shopping",
       label: "Shopping",
-      emoji: "🛒",
+      icon: serviceIcons.shopping,
       onPress: () =>
         router.push({
           pathname: "/(customer)/food",
@@ -64,7 +71,7 @@ export default function CustomerHome() {
     {
       type: "bike",
       label: "Bike",
-      emoji: "🛵",
+      icon: serviceIcons.bike,
       onPress: () =>
         router.push({
           pathname: "/(customer)/ride/create",
@@ -74,7 +81,7 @@ export default function CustomerHome() {
     {
       type: "car",
       label: "Car",
-      emoji: "🚙",
+      icon: serviceIcons.car,
       onPress: () =>
         router.push({
           pathname: "/(customer)/ride/create",
@@ -111,22 +118,14 @@ export default function CustomerHome() {
           onPress={() => router.push("/(customer)/search")}
           className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
         >
-          <SymbolView
-            name={{ ios: "magnifyingglass", android: "search", web: "search" }}
-            size={24}
-            tintColor="#737373"
-          />
+          <AppIcon name="search" size={24} color="#737373" />
           <Text className="text-base text-muted">Cari item</Text>
         </Pressable>
         <Pressable
           onPress={() => router.push("/(customer)/profile")}
           className="h-12 w-12 items-center justify-center rounded-full bg-surface"
         >
-          <SymbolView
-            name={{ ios: "person.fill", android: "person", web: "person" }}
-            size={25}
-            tintColor={Colors.primary}
-          />
+          <AppIcon name="profile" size={25} color={Colors.primary} />
         </Pressable>
       </View>
       <View className="gap-4 px-4 py-5">
@@ -148,7 +147,7 @@ export default function CustomerHome() {
             <Text className="font-bold text-base text-foreground">Rp0</Text>
           </View>
           <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-brand bg-surface-muted">
-            <Text className="font-extrabold text-brand">A</Text>
+            <Text className="font-extrabold text-brand-dark">A</Text>
           </View>
         </View>
         <View className="min-h-[66px] flex-1 flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
@@ -158,15 +157,7 @@ export default function CustomerHome() {
               Top Up
             </Text>
           </View>
-          <SymbolView
-            name={{
-              ios: "doc.text.fill",
-              android: "receipt_long",
-              web: "receipt_long",
-            }}
-            size={22}
-            tintColor={Colors.primary}
-          />
+          <AppIcon name="orders" size={22} color={Colors.primary} />
         </View>
       </View>
       <MerchantSection
@@ -184,13 +175,18 @@ export default function CustomerHome() {
     </Screen>
   );
 }
-function ServiceButton({ label, emoji, onPress }: Service) {
+function ServiceButton({ label, icon, onPress }: Service) {
   return (
     <Pressable
       onPress={onPress}
-      className="w-[30%] items-center gap-1 active:opacity-70"
+      className="w-[30%] items-center gap-1.5 active:opacity-70"
     >
-      <Text className="text-[40px] leading-[48px]">{emoji}</Text>
+      <Image
+        source={icon}
+        style={{ width: 56, height: 56 }}
+        resizeMode="contain"
+        accessibilityLabel={label}
+      />
       <Text className="font-medium text-sm text-foreground">{label}</Text>
     </Pressable>
   );
@@ -248,7 +244,7 @@ function MerchantSection({
                 </Text>
               </View>
               <Text
-                className={`font-semibold text-xs ${merchant.is_open ? "text-brand" : "text-muted"}`}
+                className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}
               >
                 {merchant.is_open ? "Buka" : "Tutup"}
               </Text>
@@ -309,7 +305,7 @@ function ProductSection({
                 <Text numberOfLines={1} className="text-xs text-muted">
                   {product.merchant?.name ?? "UMKM AnterGo"}
                 </Text>
-                <Text className="font-bold text-sm text-brand">
+                <Text className="font-bold text-sm text-brand-dark">
                   {formatRupiah(product.price)}
                 </Text>
               </View>

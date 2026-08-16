@@ -1,5 +1,14 @@
 import { Tabs } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import {
+  BsChatTextFillIcon,
+  BsChatTextIcon,
+  FaRegUserIcon,
+  FaUserIcon,
+  TbClipboardTextFilledIcon,
+  TbClipboardTextIcon,
+  TiHomeIcon,
+  TiHomeOutlineIcon,
+} from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 const hidden = [
@@ -49,68 +58,48 @@ export default function CustomerLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, focused }) => (
-            <SymbolView
-              name={{
-                ios: focused ? "house.fill" : "house",
-                android: "home",
-                web: "home",
-              }}
-              size={25}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TiHomeIcon size={25} color={String(color)} />
+            ) : (
+              <TiHomeOutlineIcon size={25} color={String(color)} />
+            ),
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
           title: "Activities",
-          tabBarIcon: ({ color, focused }) => (
-            <SymbolView
-              name={{
-                ios: focused ? "list.clipboard.fill" : "list.clipboard",
-                android: "assignment",
-                web: "assignment",
-              }}
-              size={25}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TbClipboardTextFilledIcon size={25} color={String(color)} />
+            ) : (
+              <TbClipboardTextIcon size={25} color={String(color)} />
+            ),
         }}
       />
       <Tabs.Screen
         name="chat/index"
         options={{
           title: "Inbox",
-          tabBarIcon: ({ color, focused }) => (
-            <SymbolView
-              name={{
-                ios: focused ? "bubble.left.fill" : "bubble.left",
-                android: focused ? "chat_bubble" : "chat_bubble_outline",
-                web: focused ? "chat_bubble" : "chat_bubble_outline",
-              }}
-              size={25}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <BsChatTextFillIcon size={25} color={String(color)} />
+            ) : (
+              <BsChatTextIcon size={25} color={String(color)} />
+            ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, focused }) => (
-            <SymbolView
-              name={{
-                ios: focused ? "person.crop.circle.fill" : "person.crop.circle",
-                android: focused ? "account_circle" : "person_outline",
-                web: focused ? "account_circle" : "person_outline",
-              }}
-              size={26}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <FaUserIcon size={26} color={String(color)} />
+            ) : (
+              <FaRegUserIcon size={26} color={String(color)} />
+            ),
         }}
       />
       {hidden.map((name) => (

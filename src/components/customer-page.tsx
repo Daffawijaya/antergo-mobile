@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
-import { SymbolView } from "expo-symbols";
+import { AppIcon } from "@/components/app-icon";
 import { useAppTheme } from "@/stores/theme-store";
 
 export function CustomerPageHeader({
@@ -23,15 +23,7 @@ export function CustomerPageHeader({
           onPress={onBack}
           className="h-10 w-10 items-center justify-center rounded-full active:bg-surface-muted"
         >
-          <SymbolView
-            name={{
-              ios: "chevron.left",
-              android: "arrow_back",
-              web: "arrow_back",
-            }}
-            size={22}
-            tintColor={colors.text}
-          />
+          <AppIcon name="back" size={22} color={colors.text} />
         </Pressable>
       ) : null}
       <View className="flex-1">
@@ -76,7 +68,7 @@ export function CustomerChip({
       className={`min-h-9 items-center justify-center rounded-full border px-3.5 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
     >
       <Text
-        className={`font-semibold text-sm ${selected ? "text-white" : "text-foreground"}`}
+        className={`font-semibold text-sm ${selected ? "text-on-brand" : "text-foreground"}`}
       >
         {label}
       </Text>

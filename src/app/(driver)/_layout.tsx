@@ -1,5 +1,14 @@
 import { Tabs } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import {
+  BsChatTextFillIcon,
+  BsChatTextIcon,
+  FaRegUserIcon,
+  FaUserIcon,
+  TbClipboardTextFilledIcon,
+  TbClipboardTextIcon,
+  TiHomeIcon,
+  TiHomeOutlineIcon,
+} from "@/components/brand-icons";
 import { DriverLocationTracker } from "@/components/driver-location-tracker";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
@@ -28,60 +37,48 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Home",
-            tabBarIcon: ({ color }) => (
-              <SymbolView
-                name={{ ios: "house.fill", android: "home", web: "home" }}
-                size={23}
-                tintColor={String(color)}
-              />
+          title: "Home",
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TiHomeIcon size={23} color={String(color)} />
+            ) : (
+              <TiHomeOutlineIcon size={23} color={String(color)} />
             ),
           }}
         />
         <Tabs.Screen
           name="orders"
           options={{
-            title: "Orders",
-            tabBarIcon: ({ color }) => (
-              <SymbolView
-                name={{
-                  ios: "doc.text.fill",
-                  android: "receipt_long",
-                  web: "receipt_long",
-                }}
-                size={23}
-                tintColor={String(color)}
-              />
+          title: "Orders",
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TbClipboardTextFilledIcon size={23} color={String(color)} />
+            ) : (
+              <TbClipboardTextIcon size={23} color={String(color)} />
             ),
           }}
         />
         <Tabs.Screen
           name="chat/index"
           options={{
-            title: "Chat",
-            tabBarIcon: ({ color }) => (
-              <SymbolView
-                name={{
-                  ios: "bubble.left.and.bubble.right.fill",
-                  android: "chat_bubble",
-                  web: "chat_bubble",
-                }}
-                size={23}
-                tintColor={String(color)}
-              />
+          title: "Chat",
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <BsChatTextFillIcon size={23} color={String(color)} />
+            ) : (
+              <BsChatTextIcon size={23} color={String(color)} />
             ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Profile",
-            tabBarIcon: ({ color }) => (
-              <SymbolView
-                name={{ ios: "person.fill", android: "person", web: "person" }}
-                size={23}
-                tintColor={String(color)}
-              />
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <FaUserIcon size={23} color={String(color)} />
+            ) : (
+              <FaRegUserIcon size={23} color={String(color)} />
             ),
           }}
         />

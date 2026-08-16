@@ -1,5 +1,12 @@
 import { Tabs } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import {
+  FaRegUserIcon,
+  FaUserIcon,
+  TbClipboardTextFilledIcon,
+  TbClipboardTextIcon,
+  TiHomeIcon,
+  TiHomeOutlineIcon,
+} from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 export function RoleTabs({
@@ -31,43 +38,36 @@ export function RoleTabs({
         name="index"
         options={{
           title: "Beranda",
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: "house.fill", android: "home", web: "home" }}
-              size={23}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TiHomeIcon size={23} color={String(color)} />
+            ) : (
+              <TiHomeOutlineIcon size={23} color={String(color)} />
+            ),
         }}
       />
       <Tabs.Screen
         name={middle}
         options={{
           title: "Pesanan",
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: "doc.text.fill",
-                android: "receipt_long",
-                web: "receipt_long",
-              }}
-              size={23}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <TbClipboardTextFilledIcon size={23} color={String(color)} />
+            ) : (
+              <TbClipboardTextIcon size={23} color={String(color)} />
+            ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profil",
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: "person.fill", android: "person", web: "person" }}
-              size={23}
-              tintColor={String(color)}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <FaUserIcon size={23} color={String(color)} />
+            ) : (
+              <FaRegUserIcon size={23} color={String(color)} />
+            ),
         }}
       />
       {hidden

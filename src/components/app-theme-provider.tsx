@@ -1,6 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { View } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar, View } from "react-native";
 import { VariableContextProvider } from "react-native-css";
 
 import { useAppTheme } from "@/stores/theme-store";
@@ -22,7 +21,8 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <StatusBar
           animated
-          style={mode === "dark" ? "light" : "dark"}
+          barStyle={mode === "dark" ? "light-content" : "dark-content"}
+          backgroundColor={colors.background}
         />
         {children}
       </View>

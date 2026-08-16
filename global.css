@@ -4,8 +4,11 @@
 @import "nativewind/theme";
 
 @theme {
-  --color-brand: #10b981;
-  --color-brand-pressed: #059669;
+  --color-brand: #ffb900;
+  --color-brand-pressed: #e5a600;
+  --color-brand-dark: #92400e;
+  --color-brand-soft: #fff4cc;
+  --color-on-brand: #1f1400;
   --color-danger: #dc2626;
   --font-sans: "Outfit_400Regular";
   --font-medium: "Outfit_500Medium";

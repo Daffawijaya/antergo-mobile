@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
+import { AppIcon } from "@/components/app-icon";
 import {
   Image,
   Keyboard,
@@ -79,15 +79,7 @@ export default function SearchScreen() {
       >
         <View style={styles.locationRow}>
           <Pressable onPress={() => router.back()} style={styles.back}>
-            <SymbolView
-              name={{
-                ios: "chevron.left",
-                android: "arrow_back",
-                web: "arrow_back",
-              }}
-              size={28}
-              tintColor={colors.text}
-            />
+            <AppIcon name="back" size={28} color={colors.text} />
           </Pressable>
           <Pressable
             style={styles.locationCopy}
@@ -106,23 +98,11 @@ export default function SearchScreen() {
               Pilih lokasi jemput
             </Text>
           </Pressable>
-          <SymbolView
-            name={{
-              ios: "chevron.down",
-              android: "keyboard_arrow_down",
-              web: "keyboard_arrow_down",
-            }}
-            size={22}
-            tintColor={colors.text}
-          />
+          <AppIcon name="down" size={22} color={colors.text} />
         </View>
 
         <View style={styles.searchBox}>
-          <SymbolView
-            name={{ ios: "magnifyingglass", android: "search", web: "search" }}
-            size={25}
-            tintColor={colors.muted}
-          />
+          <AppIcon name="search" size={25} color={colors.muted} />
           <TextInput
             autoFocus
             value={query}
@@ -140,15 +120,7 @@ export default function SearchScreen() {
                 setSubmitted("");
               }}
             >
-              <SymbolView
-                name={{
-                  ios: "xmark.circle.fill",
-                  android: "cancel",
-                  web: "cancel",
-                }}
-                size={21}
-                tintColor={colors.muted}
-              />
+              <AppIcon name="close" size={21} color={colors.muted} />
             </Pressable>
           ) : null}
         </View>
@@ -195,20 +167,17 @@ export default function SearchScreen() {
                 })
               }
             >
-              <Text style={styles.rideEmoji}>🛵</Text>
+              <Image
+                source={require("../../../assets/images/icon/bike.png")}
+                style={styles.rideIcon}
+                resizeMode="contain"
+                accessibilityLabel="Bike"
+              />
               <View style={styles.resultCopy}>
                 <Text style={styles.resultTitle}>Bike</Text>
                 <Text style={styles.resultMeta}>Perjalanan dengan motor</Text>
               </View>
-              <SymbolView
-                name={{
-                  ios: "chevron.right",
-                  android: "chevron_right",
-                  web: "chevron_right",
-                }}
-                size={21}
-                tintColor={colors.text}
-              />
+              <AppIcon name="forward" size={21} color={colors.text} />
             </Pressable>
             <Pressable
               style={styles.rideRow}
@@ -219,20 +188,17 @@ export default function SearchScreen() {
                 })
               }
             >
-              <Text style={styles.rideEmoji}>🚙</Text>
+              <Image
+                source={require("../../../assets/images/icon/car.png")}
+                style={styles.rideIcon}
+                resizeMode="contain"
+                accessibilityLabel="Car"
+              />
               <View style={styles.resultCopy}>
                 <Text style={styles.resultTitle}>Car</Text>
                 <Text style={styles.resultMeta}>Perjalanan dengan mobil</Text>
               </View>
-              <SymbolView
-                name={{
-                  ios: "chevron.right",
-                  android: "chevron_right",
-                  web: "chevron_right",
-                }}
-                size={21}
-                tintColor={colors.text}
-              />
+              <AppIcon name="forward" size={21} color={colors.text} />
             </Pressable>
           </View>
         ) : submitted ? (
@@ -276,15 +242,7 @@ export default function SearchScreen() {
                       {formatRupiah(product.price)}
                     </Text>
                   </View>
-                  <SymbolView
-                    name={{
-                      ios: "chevron.right",
-                      android: "chevron_right",
-                      web: "chevron_right",
-                    }}
-                    size={21}
-                    tintColor={colors.text}
-                  />
+                  <AppIcon name="forward" size={21} color={colors.text} />
                 </Pressable>
               ))
             )}
@@ -302,15 +260,7 @@ export default function SearchScreen() {
                     style={styles.historyChip}
                     onPress={() => submit(term)}
                   >
-                    <SymbolView
-                      name={{
-                        ios: "clock.arrow.circlepath",
-                        android: "history",
-                        web: "history",
-                      }}
-                      size={19}
-                      tintColor={colors.muted}
-                    />
+                    <AppIcon name="clock" size={19} color={colors.muted} />
                     <Text style={styles.historyText}>{term}</Text>
                   </Pressable>
                 ))}
@@ -346,19 +296,16 @@ function FilterChip({
       style={[styles.filter, selected && styles.filterSelected]}
     >
       {icon ? (
-        <SymbolView
-          name={{
-            ios:
-              icon === "restaurant"
-                ? "fork.knife"
-                : icon === "shopping_bag"
-                  ? "bag.fill"
-                  : "car.fill",
-            android: icon,
-            web: icon,
-          }}
+        <AppIcon
+          name={
+            icon === "restaurant"
+              ? "utensils"
+              : icon === "shopping_bag"
+                ? "bag"
+                : "car"
+          }
           size={19}
-          tintColor={selected ? "#FFFFFF" : Colors.primaryDark}
+          color={selected ? Colors.onPrimary : Colors.primaryDark}
         />
       ) : null}
       <Text style={[styles.filterText, selected && styles.filterTextSelected]}>
@@ -418,15 +365,15 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
     gap: 8,
     paddingHorizontal: 20,
     borderRadius: 25,
-    backgroundColor: "#EFFBFA",
+    backgroundColor: Colors.primarySoft,
   },
-  filterSelected: { backgroundColor: "#174F49" },
+  filterSelected: { backgroundColor: Colors.primary },
   filterText: {
-    color: "#174F49",
+    color: Colors.primaryDark,
     fontSize: 15,
     fontFamily: "Outfit_600SemiBold",
   },
-  filterTextSelected: { color: "#FFFFFF" },
+  filterTextSelected: { color: Colors.onPrimary },
   section: { paddingTop: 5 },
   heading: {
     color: colors.text,
@@ -497,5 +444,6 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  rideIcon: { width: 56, height: 56 },
   rideEmoji: { width: 58, fontSize: 38, textAlign: "center" },
 });

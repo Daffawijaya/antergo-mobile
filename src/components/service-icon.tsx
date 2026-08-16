@@ -1,5 +1,5 @@
-import { SymbolView } from "expo-symbols";
 import { StyleSheet, Text, View } from "react-native";
+import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
 import type { Order, ServiceVariant } from "@/types/api";
 export function orderService(
@@ -15,30 +15,11 @@ export function orderService(
   );
 }
 const service = {
-  bike: {
-    label: "Bike",
-    icon: {
-      ios: "motorcycle.fill",
-      android: "two_wheeler",
-      web: "two_wheeler",
-    },
-  },
-  car: {
-    label: "Car",
-    icon: { ios: "car.fill", android: "directions_car", web: "directions_car" },
-  },
-  delivery: {
-    label: "Delivery",
-    icon: { ios: "shippingbox.fill", android: "package_2", web: "package_2" },
-  },
-  food: {
-    label: "Food",
-    icon: { ios: "fork.knife", android: "restaurant", web: "restaurant" },
-  },
-  shopping: {
-    label: "Shopping",
-    icon: { ios: "bag.fill", android: "shopping_bag", web: "shopping_bag" },
-  },
+  bike: { label: "Bike", icon: "bike" as AppIconName },
+  car: { label: "Car", icon: "car" as AppIconName },
+  delivery: { label: "Delivery", icon: "package" as AppIconName },
+  food: { label: "Food", icon: "utensils" as AppIconName },
+  shopping: { label: "Shopping", icon: "bag" as AppIconName },
 } as const;
 export function ServiceIcon({
   type,
@@ -54,10 +35,10 @@ export function ServiceIcon({
         { width: size, height: size, borderRadius: size / 2 },
       ]}
     >
-      <SymbolView
+      <AppIcon
         name={service[type].icon}
         size={size * 0.46}
-        tintColor={Colors.primary}
+        color={Colors.primaryDark}
       />
     </View>
   );

@@ -279,7 +279,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
   sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
   route: { gap: 3 },
   routeLabel: {
-    color: Colors.primary,
+    color: Colors.primaryDark,
     fontSize: 12,
     fontWeight: "800",
     textTransform: "uppercase",
