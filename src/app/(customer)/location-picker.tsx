@@ -113,7 +113,14 @@ export default function LocationPickerScreen() {
       <View className="flex-1">
         <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
         <View className="absolute left-3 right-3 top-3 flex-row items-center gap-2">
-          <BackButton floating onPress={() => router.back()} />
+          <BackButton
+            floating
+            onPress={() =>
+              params.returnTo
+                ? router.replace(params.returnTo as never)
+                : router.back()
+            }
+          />
           <View className="min-h-12 flex-1 justify-center rounded-2xl bg-surface px-4 elevation-md">
             <Text className="font-bold text-sm text-foreground">
               {LABELS[purpose].title}

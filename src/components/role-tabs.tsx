@@ -25,9 +25,9 @@ export function RoleTabs({
         tabBarInactiveTintColor: colors.muted,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          height: 72,
+          height: 78,
           paddingTop: 8,
-          paddingBottom: 9,
+          paddingBottom: 15,
           borderTopColor: colors.border,
           backgroundColor: colors.surface,
         },

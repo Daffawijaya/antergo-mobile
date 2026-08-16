@@ -53,12 +53,6 @@ export default function CustomerHome() {
         }),
     },
     {
-      type: "delivery",
-      label: "Delivery",
-      icon: serviceIcons.delivery,
-      onPress: () => router.push("/(customer)/send/create"),
-    },
-    {
       type: "shopping",
       label: "Shopping",
       icon: serviceIcons.shopping,
@@ -67,6 +61,12 @@ export default function CustomerHome() {
           pathname: "/(customer)/food",
           params: { service: "shopping" },
         }),
+    },
+    {
+      type: "delivery",
+      label: "Delivery",
+      icon: serviceIcons.delivery,
+      onPress: () => router.push("/(customer)/send/create"),
     },
     {
       type: "bike",
@@ -113,7 +113,7 @@ export default function CustomerHome() {
       scrollBottomPadding={false}
       className="gap-0 bg-background"
     >
-      <View className="flex-row items-center gap-2.5 bg-surface-muted px-4 py-2.5">
+      <View className="flex-row items-center gap-2.5 bg-surface-muted px-4 py-4">
         <Pressable
           onPress={() => router.push("/(customer)/search")}
           className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
@@ -140,7 +140,7 @@ export default function CustomerHome() {
           ))}
         </View>
       </View>
-      <View className="flex-row gap-2.5 px-4 pb-5">
+      <View className="flex-row gap-2.5 px-4 pb-2.5">
         <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
           <View>
             <Text className="text-xs text-muted">Balance</Text>
@@ -179,7 +179,7 @@ function ServiceButton({ label, icon, onPress }: Service) {
   return (
     <Pressable
       onPress={onPress}
-      className="w-[30%] items-center gap-1.5 active:opacity-70"
+      className="w-[30%] items-center gap-0.5 active:opacity-70"
     >
       <Image
         source={icon}
@@ -203,7 +203,7 @@ function MerchantSection({
   onPress: (merchant: Merchant) => void;
 }) {
   return (
-    <View className="gap-3 px-4 pb-6">
+    <View className="gap-3 px-4 pb-3">
       <Text className="font-bold text-lg text-foreground">{title}</Text>
       {loading ? (
         <StatusState type="loading" />

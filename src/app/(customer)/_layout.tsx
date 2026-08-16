@@ -40,9 +40,9 @@ export default function CustomerLayout() {
         tabBarInactiveTintColor: "#767676",
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          height: 64,
+          height: 76,
           paddingTop: 5,
-          paddingBottom: 4,
+          paddingBottom: 16,
           borderTopWidth: 0,
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
@@ -51,6 +51,7 @@ export default function CustomerLayout() {
           fontSize: 12,
           fontWeight: "600",
           fontFamily: "Outfit_600SemiBold",
+          paddingTop: 4,
         },
       }}
     >
@@ -60,9 +61,9 @@ export default function CustomerLayout() {
           title: "Home",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <TiHomeIcon size={25} color={String(color)} />
+              <TiHomeIcon size={24} color={String(color)} />
             ) : (
-              <TiHomeOutlineIcon size={25} color={String(color)} />
+              <TiHomeOutlineIcon size={24} color={String(color)} />
             ),
         }}
       />
@@ -72,9 +73,9 @@ export default function CustomerLayout() {
           title: "Activities",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <TbClipboardTextFilledIcon size={25} color={String(color)} />
+              <TbClipboardTextFilledIcon size={22} color={String(color)} />
             ) : (
-              <TbClipboardTextIcon size={25} color={String(color)} />
+              <TbClipboardTextIcon size={22} color={String(color)} />
             ),
         }}
       />
@@ -84,9 +85,9 @@ export default function CustomerLayout() {
           title: "Inbox",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <BsChatTextFillIcon size={25} color={String(color)} />
+              <BsChatTextFillIcon size={22} color={String(color)} />
             ) : (
-              <BsChatTextIcon size={25} color={String(color)} />
+              <BsChatTextIcon size={22} color={String(color)} />
             ),
         }}
       />
@@ -96,9 +97,9 @@ export default function CustomerLayout() {
           title: "Profile",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
-              <FaUserIcon size={26} color={String(color)} />
+              <FaUserIcon size={21} color={String(color)} />
             ) : (
-              <FaRegUserIcon size={26} color={String(color)} />
+              <FaRegUserIcon size={21} color={String(color)} />
             ),
         }}
       />
