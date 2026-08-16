@@ -1,6 +1,45 @@
 import * as Location from "expo-location";
+import { Platform } from "react-native";
 
 export type Coordinate = { latitude: number; longitude: number };
+
+// expo-location does not support reverse geocoding on web, so web builds
+// use Nominatim (OpenStreetMap) instead — free, no API key, Indonesian labels.
+async function webReverseGeocode(coordinate: Coordinate): Promise<string | null> {
+  const params = new URLSearchParams({
+    format: "jsonv2",
+    lat: String(coordinate.latitude),
+    lon: String(coordinate.longitude),
+    "accept-language": "id",
+    zoom: "18",
+    addressdetails: "1",
+  });
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
+    { headers: { Accept: "application/json" } },
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  const address: Record<string, string> = data?.address ?? {};
+  const road = address.road ?? address.pedestrian ?? address.footway;
+  const area = address.neighbourhood ?? address.suburb ?? address.quarter;
+  const city =
+    address.city ?? address.town ?? address.village ?? address.municipality;
+  const state = address.state ?? address.region;
+  const name =
+    typeof data?.name === "string" && data.name.trim()
+      ? data.name.trim()
+      : "";
+  if (road) {
+    const parts = [road, area, city].filter(Boolean);
+    return parts.join(", ");
+  }
+  if (name) return name;
+  if (area) return `dekat ${area}`;
+  if (city) return city;
+  if (state) return state;
+  return null;
+}
 
 export class LocationUnavailableError extends Error {}
 export class LocationPermissionError extends Error {}
@@ -51,6 +90,10 @@ export function coordinateLabel(coordinate: Coordinate) {
 }
 
 export async function reverseGeocodeLabel(coordinate: Coordinate) {
+  if (Platform.OS === "web") {
+    const webLabel = await webReverseGeocode(coordinate).catch(() => null);
+    if (webLabel) return webLabel;
+  }
   try {
     const [address] = await Location.reverseGeocodeAsync(coordinate);
     if (!address) return coordinateLabel(coordinate);
