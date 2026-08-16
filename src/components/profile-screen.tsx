@@ -1,3 +1,5 @@
+import { AppIcon, type AppIconName } from "@/components/app-icon";
+import { FaWhatsappIcon } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getDriverApplication } from "@/lib/api/resources";
@@ -12,8 +14,7 @@ import type { AppRole } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { AppIcon, type AppIconName } from "@/components/app-icon";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
@@ -23,11 +24,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   merchant: "Merchant",
 };
 const roleSymbol = (role: AppRole): AppIconName =>
-  role === "customer"
-    ? "profile"
-    : role === "driver"
-      ? "bike"
-      : "store";
+  role === "customer" ? "profile" : role === "driver" ? "bike" : "store";
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -87,14 +84,14 @@ export function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerClassName="pb-6"
       >
-        <View className="bg-surface-muted px-4 pb-7 pt-3">
+        <View className="bg-surface-muted px-4 pt-4">
           <Pressable
             onPress={() => router.push("/(customer)/account-detail" as never)}
-            className="rounded-3xl bg-surface p-4 elevation-md active:opacity-90"
+            className="-mb-12 rounded-2xl bg-surface p-4 elevation-md active:opacity-90 shadow shadow-lg"
           >
             <View className="flex-row items-center gap-3">
               <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
-                <AppIcon name="profile" size={40} color={Colors.onPrimary} />
+                <AppIcon name="profile" size={35} color={Colors.onPrimary} />
               </View>
               <View className="min-w-0 flex-1">
                 <Text
@@ -103,35 +100,37 @@ export function ProfileScreen() {
                 >
                   {user?.name ?? "Pengguna AnterGo"}
                 </Text>
-                <Text
-                  numberOfLines={1}
-                  className="font-sans text-sm text-muted"
-                >
+              </View>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mt-3.5"
+              contentContainerClassName="flex-row items-center gap-2"
+            >
+              <View className="flex-row items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
+                <FaWhatsappIcon size={14} color="#25D366" />
+                <Text className="font-semibold text-sm text-foreground">
+                  {user?.phone || "Nomor telepon belum tersedia"}
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
+                <Image
+                  source={require("@/assets/icon/gmail.webp")}
+                  style={{ height: 16, width: 14 }}
+                  resizeMode="contain"
+                />
+                <Text className="font-medium text-sm text-muted">
                   {user?.email ?? "-"}
                 </Text>
               </View>
-              <View className="rounded-full bg-surface-muted px-4 py-2">
-                <Text className="font-bold text-brand-dark">Profil</Text>
-              </View>
-            </View>
-            <View className="mt-4 flex-row items-center gap-2 rounded-full border border-border px-3 py-2.5">
-              <AppIcon name="phone" size={17} color={Colors.primary} />
-              <Text
-                numberOfLines={1}
-                className="flex-1 font-semibold text-sm text-foreground"
-              >
-                {user?.phone || "Nomor telepon belum tersedia"}
-              </Text>
-              <AppIcon name="forward" size={18} color={colors.muted} />
-            </View>
+            </ScrollView>
           </Pressable>
         </View>
+        <View className="h-12" />
 
         {ownedRoles.length > 1 ? (
-          <View className="border-b-[10px] border-surface-muted bg-background px-4 py-5">
-            <Text className="mb-3 font-bold text-lg text-foreground">
-              Akun AnterGo
-            </Text>
+          <View className="px-4 py-5">
             <View className="flex-row gap-2">
               {ownedRoles.map((role) => {
                 const selected = role === activeRole;
@@ -159,28 +158,23 @@ export function ProfileScreen() {
           </View>
         ) : null}
 
-        <View className="border-b-[10px] border-surface-muted px-4 py-5">
-          <View className="flex-row gap-3">
+        <View className="bg-surface-muted px-4 py-5">
+          <View className="flex-row gap-2">
             {(["light", "dark"] as ThemeMode[]).map((item) => {
               const selected = mode === item;
               return (
                 <Pressable
                   key={item}
                   onPress={() => void setThemeMode(item)}
-                  className={`flex-1 flex-row items-center gap-3 rounded-2xl border p-4 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full border border-none bg-surface px-3 py-1.5"
                 >
-                  <View
-                    className={`h-10 w-10 items-center justify-center rounded-full ${selected ? "bg-on-brand/15" : "bg-surface-muted"}`}
-                  >
-                    <AppIcon
-                      name={item === "light" ? "sun" : "moon"}
-                      size={22}
-                      color={selected ? Colors.onPrimary : colors.text}
-                      filled={selected}
-                    />
-                  </View>
+                  <AppIcon
+                    name={item === "light" ? "sun" : "moon"}
+                    size={14}
+                    color={selected ? Colors.primary : colors.text}
+                  />
                   <Text
-                    className={`font-bold ${selected ? "text-on-brand" : "text-foreground"}`}
+                    className={`font-semibold text-xs ${selected ? "text-brand" : "text-foreground"}`}
                   >
                     {item === "light" ? "Light" : "Dark"}
                   </Text>
@@ -274,7 +268,13 @@ function SettingsRow({
   onPress,
   danger = false,
 }: {
-  icon: "badge" | "settings" | "logout" | "two_wheeler" | "storefront" | "directions_car";
+  icon:
+    | "badge"
+    | "settings"
+    | "logout"
+    | "two_wheeler"
+    | "storefront"
+    | "directions_car";
   title: string;
   value?: string;
   onPress?: () => void;

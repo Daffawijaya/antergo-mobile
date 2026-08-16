@@ -1,3 +1,4 @@
+import { AppIcon } from "@/components/app-icon";
 import { Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
@@ -6,7 +7,6 @@ import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
-import { AppIcon } from "@/components/app-icon";
 
 type Service = {
   type: ServiceVariant;
@@ -161,7 +161,7 @@ export default function CustomerHome() {
         </View>
       </View>
       <MerchantSection
-        title="Makanan & Minuman"
+        title="Foods"
         loading={foodMerchants.isLoading}
         merchants={foodMerchants.data?.data ?? []}
         onPress={openMerchant}
@@ -187,7 +187,7 @@ function ServiceButton({ label, icon, onPress }: Service) {
         resizeMode="contain"
         accessibilityLabel={label}
       />
-      <Text className="font-medium text-sm text-foreground">{label}</Text>
+      <Text className="font-sans text-sm text-foreground">{label}</Text>
     </Pressable>
   );
 }
@@ -212,42 +212,40 @@ function MerchantSection({
           Belum ada merchant makanan tersedia.
         </Text>
       ) : (
-        <View className="gap-2.5">
+        <View className="flex-row flex-wrap gap-2.5">
           {merchants.slice(0, 6).map((merchant) => (
             <Pressable
               key={merchant.id}
               onPress={() => onPress(merchant)}
-              className="flex-row items-center gap-3 rounded-2xl border border-border bg-surface p-3 active:opacity-75"
+              className="w-[48%] grow overflow-hidden rounded-2xl border border-border bg-surface active:opacity-75"
             >
               {merchant.logo ? (
                 <Image
                   source={{ uri: merchant.logo }}
-                  className="h-16 w-16 rounded-xl"
+                  className="aspect-square w-full"
+                  resizeMode="cover"
                 />
               ) : (
-                <View className="h-16 w-16 items-center justify-center rounded-xl bg-surface-muted">
-                  <Text className="text-3xl">🍜</Text>
+                <View className="aspect-square w-full items-center justify-center bg-surface-muted">
+                  <Text className="text-5xl">🍜</Text>
                 </View>
               )}
-              <View className="min-w-0 flex-1 gap-0.5">
+              <View className="gap-0.5 p-2.5">
                 <Text
                   numberOfLines={1}
-                  className="font-bold text-base text-foreground"
+                  className="font-bold text-[15px] text-foreground"
                 >
                   {merchant.name}
                 </Text>
-                <Text numberOfLines={1} className="text-sm text-muted">
+                <Text numberOfLines={1} className="text-xs text-muted">
                   {merchant.category?.name ?? "UMKM kuliner"}
                 </Text>
-                <Text numberOfLines={1} className="text-xs text-muted">
-                  {merchant.address}
+                <Text
+                  className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}
+                >
+                  {merchant.is_open ? "Buka" : "Tutup"}
                 </Text>
               </View>
-              <Text
-                className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}
-              >
-                {merchant.is_open ? "Buka" : "Tutup"}
-              </Text>
             </Pressable>
           ))}
         </View>
@@ -286,10 +284,11 @@ function ProductSection({
               {product.image ? (
                 <Image
                   source={{ uri: product.image }}
-                  className="h-32 w-full"
+                  className="aspect-square w-full"
+                  resizeMode="cover"
                 />
               ) : (
-                <View className="h-32 items-center justify-center bg-surface-muted">
+                <View className="aspect-square w-full items-center justify-center bg-surface-muted">
                   <Text className="text-5xl">
                     {product.product_type === "goods" ? "🛍️" : "🍜"}
                   </Text>
