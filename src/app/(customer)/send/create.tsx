@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
+import { MotiView } from "moti";
 import {
   useCallback,
   useEffect,
@@ -228,213 +229,228 @@ export default function CreateSendScreen() {
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
   return (
-    <Screen padded={false} className="gap-0 bg-background">
-      <View className="px-5 pb-14 pt-2">
-        <Svg
-          width="100%"
-          height="188"
-          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
-        >
-          <Defs>
-            <LinearGradient
-              id="delivery-hero"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <Stop
-                offset="0%"
-                stopColor={mode === "dark" ? "#423500" : "#FFF9E6"}
-              />
-              <Stop
-                offset="100%"
-                stopColor={mode === "dark" ? "#2B2410" : "#FFE7A0"}
-              />
-            </LinearGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
-        </Svg>
-        <HeroHeader
-          mode={mode}
-          onBack={() => {
-            // Don't carry the chosen locations or form data over: leaving via
-            // back starts the next order from a clean state.
-            useLocationPickerStore.getState().clearSelection("send-pickup");
-            useLocationPickerStore
-              .getState()
-              .clearSelection("send-destination");
-            reset();
-            router.back();
-          }}
-        />
-        <View className="relative mt-3 min-h-[104px] justify-start pr-24">
-          <Text
-            className="font-semibold text-[16px] leading-5"
-            style={{ color: mode === "dark" ? "#FFFFFF" : HERO_TEXT }}
+    <MotiView
+      from={{ opacity: 0, translateX: 50 }}
+      animate={{ opacity: 1, translateX: 0 }}
+      transition={{ type: "timing", duration: 300 }}
+      style={{ flex: 1 }}
+    >
+      <Screen padded={false} className="gap-0 bg-background">
+        <View className="px-5 pb-14 pt-2">
+          <Svg
+            width="100%"
+            height="188"
+            style={{ position: "absolute", top: 0, left: 0, right: 0 }}
           >
-            Kirim barang praktis & murah
-          </Text>
-          <View className="mt-1 flex-row items-center gap-0.5">
+            <Defs>
+              <LinearGradient
+                id="delivery-hero"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
+                <Stop
+                  offset="0%"
+                  stopColor={mode === "dark" ? "#423500" : "#FFF9E6"}
+                />
+                <Stop
+                  offset="100%"
+                  stopColor={mode === "dark" ? "#2B2410" : "#FFE7A0"}
+                />
+              </LinearGradient>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
+          </Svg>
+          <HeroHeader
+            mode={mode}
+            onBack={() => {
+              // Don't carry the chosen locations or form data over: leaving via
+              // back starts the next order from a clean state.
+              useLocationPickerStore.getState().clearSelection("send-pickup");
+              useLocationPickerStore
+                .getState()
+                .clearSelection("send-destination");
+              reset();
+              router.back();
+            }}
+          />
+          <View className="relative mt-3 min-h-[104px] justify-start pr-24">
             <Text
-              className="font-normal text-[15px] leading-5"
+              className="font-semibold text-[16px] leading-5"
               style={{ color: mode === "dark" ? "#FFFFFF" : HERO_TEXT }}
             >
-              Driver siap antar
+              Kirim barang praktis & murah
             </Text>
-            <AppIcon
-              name="forward"
-              size={16}
-              color={mode === "dark" ? "#FFFFFF" : HERO_TEXT}
-            />
+            <View className="mt-1 flex-row items-center gap-0.5">
+              <Text
+                className="font-normal text-[15px] leading-5"
+                style={{ color: mode === "dark" ? "#FFFFFF" : HERO_TEXT }}
+              >
+                Driver siap antar
+              </Text>
+              <AppIcon
+                name="forward"
+                size={16}
+                color={mode === "dark" ? "#FFFFFF" : HERO_TEXT}
+              />
+            </View>
+            <View
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 0,
+                width: 88,
+                height: 88,
+                // Drop shadow follows the PNG's transparency, not the image box.
+                filter: "drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18))",
+              }}
+            >
+              <Image
+                source={require("../../../../assets/images/icon/delivery.png")}
+                style={{ width: 88, height: 88 }}
+                resizeMode="contain"
+                accessibilityLabel="Delivery"
+              />
+            </View>
           </View>
-          <View
-            style={{
-              position: "absolute",
-              right: 0,
-              top: 0,
-              width: 88,
-              height: 88,
-              // Drop shadow follows the PNG's transparency, not the image box.
-              filter: "drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18))",
+        </View>
+        <View className="-mt-22 px-5">
+          <LocationCard
+            pickup={{
+              value: pickup?.address,
+              placeholder: "Ambil barang dari mana?",
+              onPress: () => openPicker("send-pickup"),
             }}
-          >
-            <Image
-              source={require("../../../../assets/images/icon/delivery.png")}
-              style={{ width: 88, height: 88 }}
-              resizeMode="contain"
-              accessibilityLabel="Delivery"
-            />
-          </View>
+            destination={{
+              value: destination?.address,
+              placeholder: "Antar ke?",
+              onPress: () => openPicker("send-destination"),
+            }}
+            onSwap={swapLocations}
+            swapDisabled={!pickup || !destination}
+          />
         </View>
-      </View>
-      <View className="-mt-22 px-5">
-        <LocationCard
-          pickup={{
-            value: pickup?.address,
-            placeholder: "Ambil barang dari mana?",
-            onPress: () => openPicker("send-pickup"),
-          }}
-          destination={{
-            value: destination?.address,
-            placeholder: "Antar ke?",
-            onPress: () => openPicker("send-destination"),
-          }}
-          onSwap={swapLocations}
-          swapDisabled={!pickup || !destination}
-        />
-      </View>
-      <View className="gap-4 px-5 pt-4">
-        {suggestions.length ? (
-          <SuggestionRow items={suggestions} onSelect={applySuggestion} />
-        ) : null}
-        <VehicleSelector value={vehicleType} onChange={setVehicleType} />
-        {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
-        <View className="gap-4 px-2 pt-4">
-          <Text className="font-extrabold text-[17px] text-foreground">
-            Detail pengiriman
+        <View className="gap-4 px-5 pt-4">
+          {suggestions.length ? (
+            <SuggestionRow items={suggestions} onSelect={applySuggestion} />
+          ) : null}
+          <VehicleSelector value={vehicleType} onChange={setVehicleType} />
+          {locationError ? (
+            <Notice tone="danger">{locationError}</Notice>
+          ) : null}
+          <View className="gap-4 px-2 pt-4">
+            <Text className="font-extrabold text-[17px] text-foreground">
+              Detail pengiriman
+            </Text>
+            <View className="gap-3">
+              <Text className="font-medium text-[13px] uppercase tracking-widest text-muted">
+                Barang
+              </Text>
+              <Controller
+                control={control}
+                name="item_name"
+                render={({ field }) => (
+                  <FormField
+                    label="Nama barang"
+                    placeholder="Contoh: Dokumen"
+                    returnKeyType="next"
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    error={errors.item_name?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="item_description"
+                render={({ field }) => (
+                  <FormField
+                    label="Detail barang (opsional)"
+                    placeholder="Ukuran, warna, atau ciri barang"
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    error={errors.item_description?.message}
+                  />
+                )}
+              />
+              <Text className="mt-6 font-medium text-[13px] uppercase tracking-widest text-muted">
+                Penerima
+              </Text>
+              <Controller
+                control={control}
+                name="recipient_name"
+                render={({ field }) => (
+                  <FormField
+                    label="Nama penerima"
+                    placeholder="Contoh: Daffa"
+                    returnKeyType="next"
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    error={errors.recipient_name?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="recipient_phone"
+                render={({ field }) => (
+                  <FormField
+                    label="Nomor HP penerima"
+                    placeholder="Contoh: 0812xxxx"
+                    keyboardType="phone-pad"
+                    returnKeyType="done"
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    error={errors.recipient_phone?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="notes"
+                render={({ field }) => (
+                  <FormField
+                    label="Catatan untuk driver (opsional)"
+                    placeholder="Contoh: Titip di satpam"
+                    multiline
+                    numberOfLines={3}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    error={errors.notes?.message}
+                  />
+                )}
+              />
+            </View>
+          </View>
+          {mutation.isError ? (
+            <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
+          ) : null}
+          <Text className="pt-2 text-center text-[13px] text-muted">
+            Biaya pengiriman dihitung otomatis berdasarkan jarak.
           </Text>
-          <View className="gap-3">
-            <Text className="font-medium text-[13px] uppercase tracking-widest text-muted">
-              Barang
-            </Text>
-            <Controller
-              control={control}
-              name="item_name"
-              render={({ field }) => (
-                <FormField
-                  label="Nama barang"
-                  placeholder="Contoh: Dokumen"
-                  returnKeyType="next"
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  error={errors.item_name?.message}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="item_description"
-              render={({ field }) => (
-                <FormField
-                  label="Detail barang (opsional)"
-                  placeholder="Ukuran, warna, atau ciri barang"
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  error={errors.item_description?.message}
-                />
-              )}
-            />
-            <Text className="mt-6 font-medium text-[13px] uppercase tracking-widest text-muted">
-              Penerima
-            </Text>
-            <Controller
-              control={control}
-              name="recipient_name"
-              render={({ field }) => (
-                <FormField
-                  label="Nama penerima"
-                  placeholder="Contoh: Budi"
-                  returnKeyType="next"
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  error={errors.recipient_name?.message}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="recipient_phone"
-              render={({ field }) => (
-                <FormField
-                  label="Nomor HP penerima"
-                  placeholder="Contoh: 0812xxxx"
-                  keyboardType="phone-pad"
-                  returnKeyType="done"
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  error={errors.recipient_phone?.message}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="notes"
-              render={({ field }) => (
-                <FormField
-                  label="Catatan untuk driver (opsional)"
-                  placeholder="Contoh: Titip di satpam"
-                  multiline
-                  numberOfLines={3}
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  error={errors.notes?.message}
-                />
-              )}
-            />
+          <Button
+            title="Cari Driver"
+            loading={mutation.isPending}
+            onPress={submit}
+            className="rounded-full"
+          />
+          <View style={{ position: "absolute", opacity: 0 }}>
+            <Text className="text-white" />
           </View>
         </View>
-        {mutation.isError ? (
-          <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
-        ) : null}
-        <Text className="pt-2 text-center text-[13px] text-muted">
-          Biaya pengiriman dihitung otomatis berdasarkan jarak.
-        </Text>
-        <Button
-          title="Cari Driver"
-          loading={mutation.isPending}
-          onPress={submit}
-          className="rounded-full"
-        />
-        <View style={{ position: 'absolute', opacity: 0 }}>
-             <Text className="text-white"/>
-        </View>
-      </View>
-    </Screen>
+      </Screen>
+    </MotiView>
   );
 }
 
-function HeroHeader({ onBack, mode }: { onBack: () => void; mode: "light" | "dark" }) {
+function HeroHeader({
+  onBack,
+  mode,
+}: {
+  onBack: () => void;
+  mode: "light" | "dark";
+}) {
   const color = mode === "dark" ? "#FFFFFF" : HERO_TEXT;
   return (
     <View className="mt-2 flex-row items-center">
@@ -446,10 +462,7 @@ function HeroHeader({ onBack, mode }: { onBack: () => void; mode: "light" | "dar
       >
         <AppIcon name="back" size={26} color={color} />
       </Pressable>
-      <Text
-        className="font-bold text-[22px] leading-7"
-        style={{ color }}
-      >
+      <Text className="font-bold text-[22px] leading-7" style={{ color }}>
         Delivery
       </Text>
     </View>

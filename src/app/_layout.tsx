@@ -65,6 +65,7 @@ function Router() {
       <Stack
         screenOptions={{
           headerShown: false,
+          animation: 'slide_from_right',
           contentStyle: {
             backgroundColor: mode === "dark" ? "#121313" : Colors.background,
           },
