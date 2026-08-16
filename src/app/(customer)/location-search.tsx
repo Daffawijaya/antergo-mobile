@@ -1,5 +1,16 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
   FaDotCircleIcon,
@@ -59,14 +70,27 @@ export default function LocationSearchScreen() {
     purpose?: string;
     returnTo?: string;
   }>();
-  const initialPurpose = (params.purpose ?? "ride-pickup") as LocationPurpose;
-  const [purpose, setPurpose] = useState<LocationPurpose>(initialPurpose);
+  const purposeParam = (params.purpose ?? "ride-pickup") as LocationPurpose;
+  const [purpose, setPurpose] = useState<LocationPurpose>(purposeParam);
+  // On web the URL params can arrive after the first render — follow the
+  // tapped location (pickup/destination) as soon as they show up so the
+  // matching input becomes the active one. (Adjusting state during render is
+  // the React-recommended pattern for syncing state to changing props.)
+  const [seenPurposeParam, setSeenPurposeParam] = useState(purposeParam);
+  if (seenPurposeParam !== purposeParam) {
+    setSeenPurposeParam(purposeParam);
+    setPurpose(purposeParam);
+  }
   const selections = useLocationPickerStore((state) => state.selections);
   const queryRef = useRef("");
   const lastSearchedRef = useRef("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Candidate[]>([]);
-  const [busy, setBusy] = useState(false);
+  // Which field's search is in flight (spinner shows only there), plus a
+  // separate one for the "Pilih lokasi terkini" action — the two never show at
+  // the same time.
+  const [busyPurpose, setBusyPurpose] = useState<LocationPurpose | null>(null);
+  const [busyLocation, setBusyLocation] = useState(false);
   const [error, setError] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const isFood = purpose === "food-destination";
@@ -88,7 +112,7 @@ export default function LocationSearchScreen() {
     if (!value.trim()) {
       setResults([]);
       setError("");
-      setBusy(false);
+      setBusyPurpose(null);
     }
   };
   const switchPurpose = (next: LocationPurpose) => {
@@ -97,6 +121,7 @@ export default function LocationSearchScreen() {
     setQuery("");
     setResults([]);
     setError("");
+    setBusyPurpose(null);
     queryRef.current = "";
     lastSearchedRef.current = "";
   };
@@ -143,7 +168,7 @@ export default function LocationSearchScreen() {
   const isPickupPurpose =
     purpose === "ride-pickup" || purpose === "send-pickup";
   const openCurrentLocation = async () => {
-    setBusy(true);
+    setBusyLocation(true);
     try {
       const point = coordinateFromLocation(await requestCurrentLocation());
       const address = await reverseGeocodeLabel(point);
@@ -151,7 +176,7 @@ export default function LocationSearchScreen() {
     } catch {
       openMap();
     } finally {
-      setBusy(false);
+      setBusyLocation(false);
     }
   };
   const search = async (raw?: string) => {
@@ -159,7 +184,8 @@ export default function LocationSearchScreen() {
     if (!value) return;
     if (lastSearchedRef.current === value) return;
     lastSearchedRef.current = value;
-    setBusy(true);
+    const searchedPurpose = purpose;
+    setBusyPurpose(searchedPurpose);
     setError("");
     try {
       // Use the current location as the search reference so results stay
@@ -203,7 +229,13 @@ export default function LocationSearchScreen() {
         "Pencarian lokasi belum tersedia. Kamu tetap dapat memilih langsung di Maps.",
       );
     } finally {
-      if (queryRef.current.trim() === value) setBusy(false);
+      // Only clear the spinner if this search is still the one in charge — a
+      // newer search (same text in the other field) must keep its spinner.
+      if (queryRef.current.trim() === value) {
+        setBusyPurpose((current) =>
+          current === searchedPurpose ? null : current,
+        );
+      }
     }
   };
   // Search as the user types (debounced) instead of waiting for the keyboard's
@@ -220,6 +252,19 @@ export default function LocationSearchScreen() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+  // The tab navigator keeps this screen mounted between visits, so the search
+  // state would otherwise linger (e.g. a typed query after backing out without
+  // picking anything). Reset it every time the screen is focused again.
+  useFocusEffect(
+    useCallback(() => {
+      setQuery("");
+      setResults([]);
+      setError("");
+      setBusyPurpose(null);
+      queryRef.current = "";
+      lastSearchedRef.current = "";
+    }, []),
+  );
 
   const list = results.length
     ? results
@@ -243,6 +288,14 @@ export default function LocationSearchScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Kembali"
+            // Return to the screen the flow started from (the caller always
+            // passes returnTo) instead of relying on browser history, which on
+            // web breaks when the page is opened or reloaded directly. Falls
+            // back to router.back() when no returnTo was provided.
+            //
+            // Uses replace, not dismissTo: dismissTo dispatches a POP_TO action
+            // that tab routers don't handle, so on web the press silently does
+            // nothing. replace jumps to the target and drops this screen.
             onPress={() =>
               params.returnTo
                 ? router.replace(params.returnTo as never)
@@ -263,7 +316,7 @@ export default function LocationSearchScreen() {
                 }
                 placeholder="Pilih lokasi jemput"
                 active={purpose === pickupPurpose}
-                busy={busy}
+                busy={busyPurpose === pickupPurpose}
                 autoFocus={purpose === pickupPurpose}
                 onFocus={() => switchPurpose(pickupPurpose)}
                 onChangeText={changeQuery}
@@ -284,7 +337,7 @@ export default function LocationSearchScreen() {
                 }
                 placeholder={isFood ? "Alamat pengantaran" : "Antar ke?"}
                 active={purpose === destinationPurpose}
-                busy={busy}
+                busy={busyPurpose === destinationPurpose}
                 autoFocus={purpose === destinationPurpose}
                 onFocus={() => switchPurpose(destinationPurpose)}
                 onChangeText={changeQuery}
@@ -314,7 +367,7 @@ export default function LocationSearchScreen() {
               }
               placeholder={isFood ? "Alamat pengantaran" : "Antar ke?"}
               active={purpose === destinationPurpose}
-              busy={busy}
+              busy={busyPurpose === destinationPurpose}
               autoFocus={purpose === destinationPurpose}
               onFocus={() => switchPurpose(destinationPurpose)}
               onChangeText={changeQuery}
@@ -341,7 +394,7 @@ export default function LocationSearchScreen() {
             {results.length ? "Hasil pencarian" : "Terakhir dipilih"}
           </Text>
         ) : null}
-        {!list.length && !busy ? (
+        {!list.length && !busyPurpose && !busyLocation ? (
           <View
             className="mt-3 rounded-2xl px-4 py-8"
             style={{ backgroundColor: MINT_BG }}
@@ -410,7 +463,7 @@ export default function LocationSearchScreen() {
           <Text className="font-bold text-base" style={{ color: PIN_TEAL }}>
             {isPickupPurpose ? "Pilih lokasi terkini" : "Pilih di Maps"}
           </Text>
-          {busy ? (
+          {busyLocation ? (
             <ActivityIndicator size="small" color={PIN_TEAL} />
           ) : null}
         </Pressable>
@@ -443,6 +496,14 @@ function SearchField({
   onSubmit: () => void;
 }) {
   const { colors } = useAppTheme();
+  const inputRef = useRef<TextInput>(null);
+  // autoFocus only applies when the input first mounts; refocus whenever this
+  // field becomes the active purpose so the tapped location (pickup or
+  // destination) is always the one receiving input, even when the URL params
+  // arrive after the first render on web.
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
   return (
     <View className="flex-row items-center gap-2">
       <View
@@ -453,6 +514,7 @@ function SearchField({
       </View>
       <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-[14px] border border-border bg-surface px-4">
         <TextInput
+          ref={inputRef}
           autoFocus={autoFocus}
           value={value}
           onFocus={onFocus}

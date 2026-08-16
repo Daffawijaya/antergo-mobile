@@ -33,6 +33,15 @@ const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
   },
   "food-destination": { title: "Alamat pengantaran", cta: "Pilih alamat ini" },
 };
+
+// The counterpart location of a pickup/destination purpose, so after confirming
+// one side the flow can move on to the other. Food has no counterpart.
+const OTHER_PURPOSES: Partial<Record<LocationPurpose, LocationPurpose>> = {
+  "ride-pickup": "ride-destination",
+  "ride-destination": "ride-pickup",
+  "send-pickup": "send-destination",
+  "send-destination": "send-pickup",
+};
 export default function LocationPickerScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -43,7 +52,8 @@ export default function LocationPickerScreen() {
     address?: string;
   }>();
   const purpose = (params.purpose ?? "ride-pickup") as LocationPurpose;
-  const previous = useLocationPickerStore((state) => state.selections[purpose]);
+  const selections = useLocationPickerStore((state) => state.selections);
+  const previous = selections[purpose];
   const setSelection = useLocationPickerStore((state) => state.setSelection);
   const initial =
     params.latitude && params.longitude
@@ -118,6 +128,21 @@ export default function LocationPickerScreen() {
       return;
     }
     setSelection(purpose, { coordinate, address });
+    // The counterpart location (pickup <-> destination). If it is not filled
+    // yet, go back to the location search screen with the counterpart field
+    // active so the user fills it next (the confirmed location shows in its
+    // own field); only when both sides are filled does the flow return to the
+    // screen it started from.
+    const other = OTHER_PURPOSES[purpose];
+    if (other && !selections[other]) {
+      router.replace({
+        pathname: "/(customer)/location-search",
+        params: { purpose: other, returnTo: params.returnTo },
+      });
+      return;
+    }
+    // Uses replace, not dismissTo: dismissTo dispatches a POP_TO action that
+    // tab routers don't handle, so on web the confirm silently does nothing.
     if (params.returnTo) router.replace(params.returnTo as never);
     else router.back();
   };
@@ -131,11 +156,24 @@ export default function LocationPickerScreen() {
         <View className="absolute left-3 right-3 top-3 flex-row items-center gap-2">
           <BackButton
             floating
-            onPress={() =>
-              params.returnTo
-                ? router.replace(params.returnTo as never)
-                : router.back()
-            }
+            // Back returns to the location search screen with the same flow
+            // params (purpose/returnTo). Navigates explicitly instead of using
+            // router.back(), because on web the browser history for this flow
+            // doesn't reliably contain the search screen — back can land on the
+            // app root instead.
+            onPress={() => {
+              if (params.purpose) {
+                router.replace({
+                  pathname: "/(customer)/location-search",
+                  params: {
+                    purpose: params.purpose,
+                    returnTo: params.returnTo,
+                  },
+                });
+              } else {
+                router.back();
+              }
+            }}
           />
           <View className="min-h-12 flex-1 justify-center rounded-2xl bg-surface px-4 elevation-md">
             <Text className="font-bold text-sm text-foreground">
