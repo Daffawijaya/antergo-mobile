@@ -38,9 +38,11 @@ const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
   "food-destination": { title: "Alamat pengantaran", cta: "Pilih alamat ini" },
 };
 
-// Marker colors/icons matching the search fields on the location search screen.
+// Marker colors/icons matching the search fields and result list on the
+// location search screen.
 const PICKUP_BLUE = "#2E9BF5";
 const DEST_RED = "#FA2C19";
+const PIN_TEAL = "#184840";
 
 // The counterpart location of a pickup/destination purpose, so after confirming
 // one side the flow can move on to the other. Food has no counterpart.
@@ -201,13 +203,13 @@ export default function LocationPickerScreen() {
         </View>
         <Pressable
           onPress={() => void gps()}
-          className="absolute bottom-44 right-5 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
+          className="absolute bottom-42 right-5 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
         >
-          <AppIcon name="locate" size={23} color={Colors.primary} />
+          <AppIcon name="locate" size={23} color="#000000" />
         </Pressable>
         <View className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-surface px-5 pb-5 pt-4 elevation-lg">
-          <View className="mb-4 flex-row items-start gap-3">
-            <AppIcon name="pin" size={28} color={Colors.primary} />
+          <View className="mb-4 flex-row items-center gap-3">
+            <HiLocationMarkerIcon size={28} color={PIN_TEAL} />
             <View className="flex-1">
               <Text className="font-bold text-base text-foreground">
                 {address.split(",")[0]}
@@ -227,9 +229,9 @@ export default function LocationPickerScreen() {
           <Pressable
             disabled={!coordinate || busy}
             onPress={confirm}
-            className={`min-h-13 items-center justify-center rounded-full bg-brand ${!coordinate || busy ? "opacity-50" : "active:opacity-80"}`}
+            className={`min-h-12 py-3.5 items-center justify-center rounded-full bg-brand ${!coordinate || busy ? "opacity-50" : "active:opacity-80"}`}
           >
-            <Text className="font-bold text-base text-on-brand">
+            <Text className="font-bold text-base text-white">
               {LABELS[purpose].cta}
             </Text>
           </Pressable>

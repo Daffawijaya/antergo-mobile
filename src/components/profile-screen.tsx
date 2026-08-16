@@ -23,8 +23,18 @@ const ROLE_LABELS: Record<AppRole, string> = {
   driver: "Driver",
   merchant: "Merchant",
 };
-const roleSymbol = (role: AppRole): AppIconName =>
-  role === "customer" ? "profile" : role === "driver" ? "bike" : "store";
+
+const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
+  customer: "Pesan makanan",
+  driver: "Terima pesanan",
+  merchant: "Kelola toko",
+};
+
+const roleImage = (role: AppRole) => {
+  if (role === "customer") return require("@/assets/icon/customer.png");
+  if (role === "driver") return require("@/assets/icon/driver.png");
+  return require("@/assets/icon/merchant.png");
+};
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -87,7 +97,14 @@ export function ProfileScreen() {
         <View className="bg-surface-muted px-4 pt-4">
           <Pressable
             onPress={() => router.push("/(customer)/account-detail" as never)}
-            className="-mb-12 rounded-2xl bg-surface p-4 elevation-md active:opacity-90 shadow shadow-lg"
+            className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"
+            style={{
+              shadowColor: "#111827",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.07,
+              shadowRadius: 14,
+              elevation: 6,
+            }}
           >
             <View className="flex-row items-center gap-3">
               <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
@@ -110,7 +127,7 @@ export function ProfileScreen() {
             >
               <View className="flex-row items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
                 <FaWhatsappIcon size={14} color="#25D366" />
-                <Text className="font-semibold text-sm text-foreground">
+                <Text className="font-semibold text-sm text-muted">
                   {user?.phone || "Nomor telepon belum tersedia"}
                 </Text>
               </View>
@@ -127,10 +144,10 @@ export function ProfileScreen() {
             </ScrollView>
           </Pressable>
         </View>
-        <View className="h-12" />
+        <View className="h-16" />
 
         {ownedRoles.length > 1 ? (
-          <View className="px-4 py-5">
+          <View className="px-4 pb-4 pt-0">
             <View className="flex-row gap-2">
               {ownedRoles.map((role) => {
                 const selected = role === activeRole;
@@ -138,19 +155,30 @@ export function ProfileScreen() {
                   <Pressable
                     key={role}
                     onPress={() => void setActiveRole(role)}
-                    className={`flex-1 items-center rounded-2xl border px-2 py-3 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
+                    className={`flex-1 rounded-[18px] border p-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
+                    style={
+                      selected
+                        ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }
+                        : null
+                    }
                   >
-                    <AppIcon
-                      name={roleSymbol(role)}
-                      size={24}
-                      color={selected ? Colors.onPrimary : colors.text}
-                      filled={selected}
-                    />
-                    <Text
-                      className={`mt-1 font-semibold text-sm ${selected ? "text-on-brand" : "text-foreground"}`}
-                    >
-                      {ROLE_LABELS[role]}
-                    </Text>
+                    <View className="items-start gap-3">
+                      <Image
+                        source={roleImage(role)}
+                        style={{ width: 32, height: 32 }}
+                        resizeMode="contain"
+                      />
+                      <View>
+                        <Text
+                          className={`font-semibold text-sm ${selected ? (mode === "dark" ? "text-white" : "text-black") : "text-foreground"}`}
+                        >
+                          {ROLE_LABELS[role]}
+                        </Text>
+                        <Text className="text-[11px] text-muted">
+                          {ROLE_DESCRIPTIONS[role]}
+                        </Text>
+                      </View>
+                    </View>
                   </Pressable>
                 );
               })}
@@ -158,23 +186,27 @@ export function ProfileScreen() {
           </View>
         ) : null}
 
-        <View className="bg-surface-muted px-4 py-5">
-          <View className="flex-row gap-2">
+        <View className="px-4 pb-4">
+          <View className="flex-row rounded-full bg-surface-muted p-1">
             {(["light", "dark"] as ThemeMode[]).map((item) => {
               const selected = mode === item;
               return (
                 <Pressable
                   key={item}
                   onPress={() => void setThemeMode(item)}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full border border-none bg-surface px-3 py-1.5"
+                  className={`flex-1 flex-row items-center justify-center gap-2 rounded-full py-2.5 transition-colors ${
+                    selected ? "bg-surface elevation-sm" : ""
+                  }`}
                 >
                   <AppIcon
                     name={item === "light" ? "sun" : "moon"}
-                    size={14}
-                    color={selected ? Colors.primary : colors.text}
+                    size={16}
+                    color={selected ? colors.text : colors.muted}
                   />
                   <Text
-                    className={`font-semibold text-xs ${selected ? "text-brand" : "text-foreground"}`}
+                    className={`font-semibold text-sm ${
+                      selected ? "text-foreground" : "text-muted"
+                    }`}
                   >
                     {item === "light" ? "Light" : "Dark"}
                   </Text>

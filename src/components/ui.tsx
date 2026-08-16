@@ -177,6 +177,7 @@ export function Button({
   variant = "primary",
   disabled,
   compact = false,
+  className = "",
 }: {
   title: string;
   onPress: () => void;
@@ -184,6 +185,7 @@ export function Button({
   variant?: "primary" | "secondary" | "danger";
   disabled?: boolean;
   compact?: boolean;
+  className?: string;
 }) {
   const inactive = disabled || loading;
   return (
@@ -191,7 +193,7 @@ export function Button({
       accessibilityRole="button"
       disabled={inactive}
       onPress={onPress}
-      className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center rounded-[14px] active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""}`}
+      className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center rounded-[14px] active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""} ${className}`}
     >
       {loading ? (
         <ActivityIndicator
@@ -205,7 +207,7 @@ export function Button({
         />
       ) : (
         <Text
-          className={`font-extrabold text-[15px] leading-5 ${buttonTextClasses[variant]}`}
+          className={`font-extrabold text-[15px] leading-5 text-white`}
         >
           {title}
         </Text>

@@ -221,6 +221,7 @@ export default function CreateSendScreen() {
       address: order.destination_address,
     });
   };
+  const { mode } = useAppTheme();
   const locationError =
     errors.pickup_address?.message ||
     errors.pickup_latitude?.message ||
@@ -235,7 +236,6 @@ export default function CreateSendScreen() {
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
           <Defs>
-            {" "}
             <LinearGradient
               id="delivery-hero"
               x1="0%"
@@ -243,13 +243,20 @@ export default function CreateSendScreen() {
               x2="100%"
               y2="0%"
             >
-              <Stop offset="0%" stopColor="#FFF9E6" />
-              <Stop offset="100%" stopColor="#FFE7A0" />
+              <Stop
+                offset="0%"
+                stopColor={mode === "dark" ? "#423500" : "#FFF9E6"}
+              />
+              <Stop
+                offset="100%"
+                stopColor={mode === "dark" ? "#2B2410" : "#FFE7A0"}
+              />
             </LinearGradient>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
         </Svg>
         <HeroHeader
+          mode={mode}
           onBack={() => {
             // Don't carry the chosen locations or form data over: leaving via
             // back starts the next order from a clean state.
@@ -264,18 +271,22 @@ export default function CreateSendScreen() {
         <View className="relative mt-3 min-h-[104px] justify-start pr-24">
           <Text
             className="font-semibold text-[16px] leading-5"
-            style={{ color: HERO_TEXT }}
+            style={{ color: mode === "dark" ? "#FFFFFF" : HERO_TEXT }}
           >
             Kirim barang praktis & murah
           </Text>
           <View className="mt-1 flex-row items-center gap-0.5">
             <Text
               className="font-normal text-[15px] leading-5"
-              style={{ color: HERO_TEXT }}
+              style={{ color: mode === "dark" ? "#FFFFFF" : HERO_TEXT }}
             >
               Driver siap antar
             </Text>
-            <AppIcon name="forward" size={16} color={HERO_TEXT} />
+            <AppIcon
+              name="forward"
+              size={16}
+              color={mode === "dark" ? "#FFFFFF" : HERO_TEXT}
+            />
           </View>
           <View
             style={{
@@ -319,12 +330,12 @@ export default function CreateSendScreen() {
         ) : null}
         <VehicleSelector value={vehicleType} onChange={setVehicleType} />
         {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
-        <View className="gap-4 rounded-[22px] bg-surface px-2 py-4 elevation-sm">
+        <View className="gap-4 px-2 pt-4">
           <Text className="font-extrabold text-[17px] text-foreground">
-            Formulir pengantaran
+            Detail pengiriman
           </Text>
           <View className="gap-3">
-            <Text className="font-bold text-[13px] uppercase tracking-wide text-muted">
+            <Text className="font-medium text-[13px] uppercase tracking-widest text-muted">
               Barang
             </Text>
             <Controller
@@ -354,7 +365,7 @@ export default function CreateSendScreen() {
                 />
               )}
             />
-            <Text className="font-bold text-[13px] uppercase tracking-wide text-muted">
+            <Text className="mt-6 font-medium text-[13px] uppercase tracking-widest text-muted">
               Penerima
             </Text>
             <Controller
@@ -363,6 +374,7 @@ export default function CreateSendScreen() {
               render={({ field }) => (
                 <FormField
                   label="Nama penerima"
+                  placeholder="Contoh: Budi"
                   returnKeyType="next"
                   value={field.value}
                   onChangeText={field.onChange}
@@ -376,6 +388,7 @@ export default function CreateSendScreen() {
               render={({ field }) => (
                 <FormField
                   label="Nomor HP penerima"
+                  placeholder="Contoh: 0812xxxx"
                   keyboardType="phone-pad"
                   returnKeyType="done"
                   value={field.value}
@@ -390,6 +403,7 @@ export default function CreateSendScreen() {
               render={({ field }) => (
                 <FormField
                   label="Catatan untuk driver (opsional)"
+                  placeholder="Contoh: Titip di satpam"
                   multiline
                   numberOfLines={3}
                   value={field.value}
@@ -410,13 +424,18 @@ export default function CreateSendScreen() {
           title="Cari Driver"
           loading={mutation.isPending}
           onPress={submit}
+          className="rounded-full"
         />
+        <View style={{ position: 'absolute', opacity: 0 }}>
+             <Text className="text-white"/>
+        </View>
       </View>
     </Screen>
   );
 }
 
-function HeroHeader({ onBack }: { onBack: () => void }) {
+function HeroHeader({ onBack, mode }: { onBack: () => void; mode: "light" | "dark" }) {
+  const color = mode === "dark" ? "#FFFFFF" : HERO_TEXT;
   return (
     <View className="mt-2 flex-row items-center">
       <Pressable
@@ -425,11 +444,11 @@ function HeroHeader({ onBack }: { onBack: () => void }) {
         onPress={onBack}
         className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
       >
-        <AppIcon name="back" size={26} color={HERO_TEXT} />
+        <AppIcon name="back" size={26} color={color} />
       </Pressable>
       <Text
         className="font-bold text-[22px] leading-7"
-        style={{ color: HERO_TEXT }}
+        style={{ color }}
       >
         Delivery
       </Text>
@@ -616,7 +635,7 @@ function VehicleCard({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      className={`flex-1 rounded-[18px] border-2 px-4 pb-3.5 pt-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
+      className={`flex-1 rounded-[18px] border px-4 pb-3.5 pt-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
       style={
         selected
           ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }
