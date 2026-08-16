@@ -45,7 +45,11 @@ export default function CustomerLayout() {
           paddingBottom: 16,
           borderTopWidth: 0,
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          elevation: 10,
         },
         tabBarLabelStyle: {
           fontSize: 12,
