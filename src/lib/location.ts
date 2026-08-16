@@ -1,5 +1,6 @@
 import * as Location from "expo-location";
 import { Platform } from "react-native";
+import { apiReverseGeocode } from "./api/geocode";
 
 export type Coordinate = { latitude: number; longitude: number };
 
@@ -142,12 +143,61 @@ export async function requestCurrentLocation(): Promise<Location.LocationObject>
     throw new LocationUnavailableError(
       "Layanan lokasi/GPS sedang tidak aktif. Aktifkan GPS lalu coba lagi.",
     );
-  const permission = await Location.requestForegroundPermissionsAsync();
-  if (!permission.granted)
-    throw new LocationPermissionError(
-      "Izin lokasi ditolak. Izinkan lokasi foreground untuk menggunakan fitur ini.",
+  if (Platform.OS === "web") {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted)
+        throw new LocationPermissionError(
+          "Izin lokasi ditolak. Izinkan lokasi foreground untuk menggunakan fitur ini.",
+        );
+      return await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+    } catch (error) {
+      // navigator.permissions.query tidak tersedia di sebagian browser —
+      // fallback langsung ke browser geolocation di bawah.
+      if (error instanceof LocationPermissionError) throw error;
+    }
+  } else {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (!permission.granted)
+      throw new LocationPermissionError(
+        "Izin lokasi ditolak. Izinkan lokasi foreground untuk menggunakan fitur ini.",
+      );
+    return Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+  }
+  // Web fallback: minta posisi langsung via browser geolocation (prompt izin
+  // muncul otomatis di browser).
+  return new Promise<Location.LocationObject>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          coords: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            altitude: position.coords.altitude,
+            accuracy: position.coords.accuracy,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed,
+          },
+          timestamp: position.timestamp,
+        });
+      },
+      (error) =>
+        reject(
+          error.code === error.PERMISSION_DENIED
+            ? new LocationPermissionError(
+                "Izin lokasi ditolak. Izinkan lokasi foreground untuk menggunakan fitur ini.",
+              )
+            : new LocationUnavailableError(
+                "Layanan lokasi/GPS sedang tidak aktif. Aktifkan GPS lalu coba lagi.",
+              ),
+        ),
     );
-  return Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+  });
 }
 
 export async function requestDriverTrackingPermissions() {
@@ -182,30 +232,44 @@ export function coordinateLabel(coordinate: Coordinate) {
 
 export async function reverseGeocodeLabel(coordinate: Coordinate) {
   if (Platform.OS === "web") {
+    // 1. The project's own backend (Geoapify proxy, Nominatim fallback) is the
+    //    most reliable source: no browser CORS/rate-limit issues, Indonesian
+    //    labels, and a proper street/place name instead of raw coordinates.
+    const viaApi = await apiReverseGeocode(coordinate).catch(() => null);
+    if (viaApi?.address) return viaApi.address;
+    // 2. Direct OpenStreetMap from the browser as a backup.
     const webLabel = await webReverseGeocode(coordinate).catch(() => null);
     if (webLabel) return webLabel;
+  } else {
+    // 1. The platform geocoder (Android/iOS) is fast and local.
+    try {
+      const [address] = await Location.reverseGeocodeAsync(coordinate);
+      if (address) {
+        const label =
+          address.formattedAddress ||
+          [
+            address.name,
+            address.street,
+            address.district,
+            address.city,
+            address.region,
+            address.postalCode,
+          ]
+            .filter(Boolean)
+            .filter((value, index, all) => all.indexOf(value) === index)
+            .join(", ");
+        if (label) return label;
+      }
+    } catch {
+      // fall through to the backend below
+    }
+    // 2. The project's own backend (Geoapify proxy, Nominatim fallback).
+    const viaApi = await apiReverseGeocode(coordinate).catch(() => null);
+    if (viaApi?.address) return viaApi.address;
   }
-  try {
-    const [address] = await Location.reverseGeocodeAsync(coordinate);
-    if (!address) return coordinateLabel(coordinate);
-    return (
-      address.formattedAddress ||
-      [
-        address.name,
-        address.street,
-        address.district,
-        address.city,
-        address.region,
-        address.postalCode,
-      ]
-        .filter(Boolean)
-        .filter((value, index, all) => all.indexOf(value) === index)
-        .join(", ") ||
-      coordinateLabel(coordinate)
-    );
-  } catch {
-    return coordinateLabel(coordinate);
-  }
+
+  // 3. Last resort: never show raw coordinates — use a human label instead.
+  return "Lokasi saya";
 }
 
 export function parseCoordinate(

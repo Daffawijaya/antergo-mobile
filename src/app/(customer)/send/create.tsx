@@ -7,7 +7,13 @@ import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { listCustomerOrders } from "@/lib/api/rides";
 import { createSend } from "@/lib/api/send";
-import { parseCoordinate } from "@/lib/location";
+import {
+  coordinateFromLocation,
+  getLastKnownCoordinate,
+  parseCoordinate,
+  requestCurrentLocation,
+  reverseGeocodeLabel,
+} from "@/lib/location";
 import { orderKeys } from "@/lib/query-keys";
 import { createSendSchema, type CreateSendForm } from "@/schemas/send";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
@@ -16,8 +22,14 @@ import type { ApiErrorPayload, Order } from "@/types/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -51,11 +63,40 @@ export default function CreateSendScreen() {
   const destination = useLocationPickerStore(
     (s) => s.selections["send-destination"],
   );
+  // Pre-fill the pickup with the user's current location whenever the screen
+  // gains focus — on first open and on every re-entry after going back. This
+  // screen is a tab, so it stays mounted across visits and a mount-only effect
+  // never re-runs (which is why the pickup went missing on re-entry). Skip it
+  // when a pickup has already been chosen.
+  useFocusEffect(
+    useCallback(() => {
+      if (useLocationPickerStore.getState().selections["send-pickup"]) return;
+      let cancelled = false;
+      void (async () => {
+        try {
+          const known = await getLastKnownCoordinate();
+          const point =
+            known ?? coordinateFromLocation(await requestCurrentLocation());
+          const address = await reverseGeocodeLabel(point);
+          if (cancelled) return;
+          useLocationPickerStore
+            .getState()
+            .setSelection("send-pickup", { coordinate: point, address });
+        } catch {
+          // GPS tidak tersedia/ditolak — biarkan lokasi jemput tetap kosong.
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
   const {
     control,
     handleSubmit,
     setError,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CreateSendForm>({
     resolver: zodResolver(createSendSchema),
@@ -208,7 +249,18 @@ export default function CreateSendScreen() {
           </Defs>
           <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
         </Svg>
-        <HeroHeader onBack={() => router.back()} />
+        <HeroHeader
+          onBack={() => {
+            // Don't carry the chosen locations or form data over: leaving via
+            // back starts the next order from a clean state.
+            useLocationPickerStore.getState().clearSelection("send-pickup");
+            useLocationPickerStore
+              .getState()
+              .clearSelection("send-destination");
+            reset();
+            router.back();
+          }}
+        />
         <View className="relative mt-3 min-h-[104px] justify-start pr-24">
           <Text
             className="font-semibold text-[16px] leading-5"

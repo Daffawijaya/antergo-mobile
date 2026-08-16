@@ -6,7 +6,7 @@ export type ApiSearchResult = {
   name: string;
   address: string;
   distance: number | null;
-  source?: "merchant" | "geoapify" | "nominatim";
+  source?: "merchant" | "geoapify" | "nominatim" | "nearby";
 };
 
 export async function apiSearchLocations(
@@ -16,11 +16,29 @@ export async function apiSearchLocations(
   const { data } = await apiClient.get<{ data: ApiSearchResult[] }>("/geocode", {
     params: {
       q: query,
-      limit: 6,
+      limit: 10,
       ...(reference
         ? { lat: reference.latitude, lon: reference.longitude }
         : {}),
     },
   });
   return data.data ?? [];
+}
+
+export type ApiReverseGeocodeResult = {
+  coordinate: Coordinate;
+  name: string;
+  address: string;
+  source?: "geoapify" | "nominatim";
+};
+
+export async function apiReverseGeocode(
+  coordinate: Coordinate,
+): Promise<ApiReverseGeocodeResult | null> {
+  const { data } = await apiClient.get<{
+    data: ApiReverseGeocodeResult | null;
+  }>("/geocode/reverse", {
+    params: { lat: coordinate.latitude, lon: coordinate.longitude },
+  });
+  return data.data ?? null;
 }
