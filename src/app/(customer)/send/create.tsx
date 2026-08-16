@@ -301,7 +301,7 @@ export default function CreateSendScreen() {
         <LocationCard
           pickup={{
             value: pickup?.address,
-            placeholder: "Pilih lokasi jemput",
+            placeholder: "Ambil barang dari mana?",
             onPress: () => openPicker("send-pickup"),
           }}
           destination={{

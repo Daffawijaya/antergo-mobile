@@ -26,7 +26,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Elevation } from "@/constants/colors";
+import { Colors, Elevation } from "@/constants/colors";
 import { apiSearchLocations } from "@/lib/api/geocode";
 import {
   coordinateFromLocation,
@@ -314,7 +314,11 @@ export default function LocationSearchScreen() {
                     ? query
                     : (selections[pickupPurpose]?.address ?? "")
                 }
-                placeholder="Pilih lokasi jemput"
+                placeholder={
+                  pickupPurpose === "send-pickup"
+                    ? "Ambil barang dari mana?"
+                    : "Pilih lokasi jemput"
+                }
                 active={purpose === pickupPurpose}
                 busy={busyPurpose === pickupPurpose}
                 autoFocus={purpose === pickupPurpose}
@@ -447,24 +451,24 @@ export default function LocationSearchScreen() {
           </View>
         )}
       </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 border-t border-border bg-background px-5 pb-5 pt-3">
+      <View className="absolute bottom-0 left-0 right-0 items-center px-5 pb-5 pt-3">
         <Pressable
           onPress={
             isPickupPurpose ? () => void openCurrentLocation() : () => openMap()
           }
-          className="min-h-12 flex-row items-center justify-center gap-2 rounded-full active:opacity-80"
-          style={{ backgroundColor: MINT_BG }}
+          className="flex-row items-center justify-center gap-1 self-center rounded-full px-3 py-1 active:opacity-80"
+          style={{ backgroundColor: "#FFF9E6" }}
         >
           <AppIcon
             name={isPickupPurpose ? "locate" : "map"}
-            size={21}
-            color={PIN_TEAL}
+            size={16}
+            color={Colors.onPrimary}
           />
-          <Text className="font-bold text-base" style={{ color: PIN_TEAL }}>
+          <Text className="text-sm" style={{ color: Colors.onPrimary }}>
             {isPickupPurpose ? "Pilih lokasi terkini" : "Pilih di Maps"}
           </Text>
           {busyLocation ? (
-            <ActivityIndicator size="small" color={PIN_TEAL} />
+            <ActivityIndicator size="small" color={Colors.onPrimary} />
           ) : null}
         </Pressable>
       </View>

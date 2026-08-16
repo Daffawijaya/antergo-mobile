@@ -1,6 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
+import {
+  FaDotCircleIcon,
+  HiLocationMarkerIcon,
+} from "@/components/brand-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LocationPickerMap } from "@/components/location-picker-map";
@@ -24,8 +28,8 @@ const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
     cta: "Pilih lokasi tujuan",
   },
   "send-pickup": {
-    title: "Lokasi pengambilan",
-    cta: "Pilih lokasi pengambilan",
+    title: "Ambil barang dari mana?",
+    cta: "Ambil barang dari sini",
   },
   "send-destination": {
     title: "Lokasi penerima",
@@ -33,6 +37,10 @@ const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
   },
   "food-destination": { title: "Alamat pengantaran", cta: "Pilih alamat ini" },
 };
+
+// Marker colors/icons matching the search fields on the location search screen.
+const PICKUP_BLUE = "#2E9BF5";
+const DEST_RED = "#FA2C19";
 
 // The counterpart location of a pickup/destination purpose, so after confirming
 // one side the flow can move on to the other. Food has no counterpart.
@@ -52,6 +60,7 @@ export default function LocationPickerScreen() {
     address?: string;
   }>();
   const purpose = (params.purpose ?? "ride-pickup") as LocationPurpose;
+  const isPickup = purpose === "ride-pickup" || purpose === "send-pickup";
   const selections = useLocationPickerStore((state) => state.selections);
   const previous = selections[purpose];
   const setSelection = useLocationPickerStore((state) => state.setSelection);
@@ -153,7 +162,7 @@ export default function LocationPickerScreen() {
     >
       <View className="flex-1">
         <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
-        <View className="absolute left-3 right-3 top-3 flex-row items-center gap-2">
+        <View className="absolute left-5 right-5 top-5 flex-row items-center gap-2">
           <BackButton
             floating
             // Back returns to the location search screen with the same flow
@@ -175,18 +184,24 @@ export default function LocationPickerScreen() {
               }
             }}
           />
-          <View className="min-h-12 flex-1 justify-center rounded-2xl bg-surface px-4 elevation-md">
-            <Text className="font-bold text-sm text-foreground">
-              {LABELS[purpose].title}
-            </Text>
-            <Text numberOfLines={1} className="text-sm text-muted">
-              {busy ? "Mencari alamat…" : address}
+          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
+            {isPickup ? (
+              <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
+            ) : (
+              <HiLocationMarkerIcon size={22} color={DEST_RED} />
+            )}
+            <Text numberOfLines={1} className="flex-1 text-sm text-muted">
+              {busy
+                ? "Mencari alamat…"
+                : purpose === "send-pickup"
+                  ? "Ambil barang dari mana?"
+                  : address}
             </Text>
           </View>
         </View>
         <Pressable
           onPress={() => void gps()}
-          className="absolute bottom-44 right-4 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
+          className="absolute bottom-44 right-5 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
         >
           <AppIcon name="locate" size={23} color={Colors.primary} />
         </Pressable>
