@@ -718,7 +718,8 @@ function VehicleCard({
         style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
       >
         {label}
-      </Text>        <Image
+      </Text>
+      <Image
           source={image}
           style={{ width: 44, height: 44 }}
           resizeMode="contain"
