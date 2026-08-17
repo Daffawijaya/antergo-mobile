@@ -158,6 +158,18 @@ export function FaCircleDotIcon({
   );
 }
 
+// Font Awesome 6 — FaChevronRight (solid chevron)
+export function FaChevronRightIcon({
+  size = 24,
+  color = "#111827",
+}: BrandIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 320 512" fill={color}>
+      <Path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z" />
+    </Svg>
+  );
+}
+
 // Heroicons — HiLocationMarker (solid map pin with hole)
 export function HiLocationMarkerIcon({
   size = 24,

@@ -8,6 +8,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { AppIcon } from "@/components/app-icon";
 import {
+  FaChevronRightIcon,
   FaDotCircleIcon,
   HiLocationMarkerIcon,
 } from "@/components/brand-icons";
@@ -40,6 +41,13 @@ const defaults: CreateRideForm = {
 const PICKUP_BLUE = "#2E9BF5";
 const DEST_RED = "#FA2C19";
 
+// Per-service hero icon. Each require() must stay a static literal so
+// Metro can bundle it; the selection happens on the resolved modules.
+const SERVICE_ICONS = {
+  car: require("../../../../../assets/images/icon/carr.png"),
+  bike: require("../../../../../assets/images/icon/bikee.png"),
+} as const;
+
 // Bike brand gradient: right end is the brand yellow, getting darker toward
 // the left (same shape/contrast as the Delivery hero gradient).
 const BIKE_GRADIENT = {
@@ -52,15 +60,19 @@ const BIKE_GRADIENT = {
 // the full width that dips on the left, crosses the middle at the center
 // and rises on the right, so the two halves stay symmetric.
 // (Reference: https://stackoverflow.com/a/56012973, CC BY-SA 4.0)
-function buildWavePath(width: number, height: number): string {
-  const amplitude = Math.min(26, Math.max(16, width * 0.055));
+function buildWavePath(
+  width: number,
+  heroHeight: number,
+  fillBottom: number,
+): string {
+  const amplitude = Math.min(20, Math.max(12, width * 0.044));
   // Lift the wave a little above the hero's bottom edge so it floats
   // instead of touching the very bottom of the hero.
   const lift = 14;
-  const middle = height - amplitude - lift;
-  // The white fill runs all the way to the hero's bottom edge so no
-  // yellow strip shows below the wave.
-  const bottom = height;
+  const middle = heroHeight - amplitude - lift;
+  // The white fill runs from the wave all the way down to the bottom of
+  // the screen so no yellow shows below the wave.
+  const bottom = fillBottom;
   // A single cubic only reaches ~29% of its control-point offset, so the
   // control points sit ~3.46× farther than the visible amplitude — the
   // reference does the same (its controls sit far outside the visible band).
@@ -79,6 +91,13 @@ export default function CreateRideScreen() {
   const { service } = useLocalSearchParams<{ service?: string }>();
   const serviceType = service === "car" ? "car" : "bike";
   const serviceLabel = serviceType === "car" ? "Car" : "Bike";
+  // Promo copy follows the service: bike sells on price (hemat), car on
+  // comfort (nyaman).
+  const promoTitle = serviceType === "car" ? "Perjalanan Nyaman" : "Perjalanan Hemat";
+  const promoSubtitle =
+    serviceType === "car" ? "Driver siap antar" : "Driver siap jemput";
+  const promoSubtitle2 =
+    serviceType === "car" ? "dengan armada premium" : "di lokasi kamu";
   const queryClient = useQueryClient();
   const pickup = useLocationPickerStore((s) => s.selections["ride-pickup"]);
   const destination = useLocationPickerStore(
@@ -208,6 +227,11 @@ export default function CreateRideScreen() {
   const { mode, colors } = useAppTheme();
   const [heroWidth, setHeroWidth] = useState(0);
   const [heroHeight, setHeroHeight] = useState(0);
+  // Bottom edge of the form content (= bottom of the "Cari Driver" button,
+  // the last element). The white wave fill extends down to here so nothing
+  // yellow peeks out between the wave and the button.
+  const [formBottom, setFormBottom] = useState(0);
+  const waveFillBottom = formBottom > 0 ? formBottom : heroHeight || 300;
   const locationError =
     errors.pickup_address?.message ||
     errors.pickup_latitude?.message ||
@@ -230,7 +254,7 @@ export default function CreateRideScreen() {
       >
         <Svg
           width="100%"
-          height={heroHeight || 300}
+          height={waveFillBottom}
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
           <Defs>
@@ -245,10 +269,12 @@ export default function CreateRideScreen() {
               <Stop offset="100%" stopColor={gradient.to} />
             </LinearGradient>
           </Defs>
-          <Rect width="100%" height="100%" fill="url(#bike-hero)" />
+          {/* The yellow only covers the hero itself; everything below the
+              wave is the white fill running to the bottom of the screen. */}
+          <Rect width="100%" height={heroHeight || 300} fill="url(#bike-hero)" />
           {heroWidth > 0 ? (
             <Path
-              d={buildWavePath(heroWidth, heroHeight || 300)}
+              d={buildWavePath(heroWidth, heroHeight || 300, waveFillBottom)}
               fill={colors.background}
             />
           ) : null}
@@ -282,19 +308,23 @@ export default function CreateRideScreen() {
         />
         <View className="relative mt-3 min-h-[104px] justify-start pr-24">
           <Text
-            className="font-semibold text-[16px] leading-5"
+            className="mt-2 font-semibold text-[19px] leading-6"
             style={{ color: heroColor }}
           >
-            Perjalanan praktis & hemat
+            {promoTitle}
           </Text>
-          <View className="mt-1 flex-row items-center gap-0.5">
+          <View className="mt-1 flex-row items-center gap-2">
             <Text
               className="font-normal text-[15px] leading-5"
               style={{ color: heroColor }}
             >
-              Driver siap jemput
+              {promoSubtitle}
+              {"\n"}
+              {promoSubtitle2}
             </Text>
-            <AppIcon name="forward" size={16} color={heroColor} />
+            <View className="h-[18px] w-[18px] items-center justify-center rounded-full bg-white">
+              <FaChevronRightIcon size={10} color="#000000" />
+            </View>
           </View>
           <View
             style={{
@@ -308,7 +338,7 @@ export default function CreateRideScreen() {
             }}
           >
             <Image
-              source={require("../../../../../assets/images/icon/bike.png")}
+              source={SERVICE_ICONS[serviceType]}
               style={{ width: 88, height: 88 }}
               resizeMode="contain"
               accessibilityLabel={serviceLabel}
@@ -316,11 +346,17 @@ export default function CreateRideScreen() {
           </View>
         </View>
       </View>
-      <View className="gap-4 px-5 pt-2">
+      <View
+        className="gap-4 px-5"
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          setFormBottom(y + height);
+        }}
+      >
         {locationError ? (
           <Notice tone="danger">{locationError}</Notice>
         ) : null}
-        <View className="gap-4 px-2 pt-4">
+        <View className="gap-4">
           <Text className="font-extrabold text-[17px] text-foreground">
             Catatan untuk driver
           </Text>
