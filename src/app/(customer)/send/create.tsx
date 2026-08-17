@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
-import { MotiView } from "moti";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   useCallback,
   useEffect,
@@ -228,13 +228,22 @@ export default function CreateSendScreen() {
     errors.pickup_latitude?.message ||
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
+
+  const opacity = useSharedValue(0);
+  const translateX = useSharedValue(50);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 300 });
+    translateX.value = withTiming(0, { duration: 300 });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
-    <MotiView
-      from={{ opacity: 0, translateX: 50 }}
-      animate={{ opacity: 1, translateX: 0 }}
-      transition={{ type: "timing", duration: 300 }}
-      style={{ flex: 1 }}
-    >
+    <Animated.View style={[animatedStyle, { flex: 1 }]}>
       <Screen padded={false} className="gap-0 bg-background">
         <View className="px-5 pb-14 pt-2">
           <Svg
@@ -440,7 +449,7 @@ export default function CreateSendScreen() {
           </View>
         </View>
       </Screen>
-    </MotiView>
+    </Animated.View>
   );
 }
 
