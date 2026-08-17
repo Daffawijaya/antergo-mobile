@@ -44,10 +44,6 @@ import { useAppTheme } from "@/stores/theme-store";
 
 // Palette from the design reference (WhatsApp Image 2026-08-16 at 17.23.35).
 const ACCENT_RED = "#D03020";
-// Back icon color, matching the Delivery page (send/create.tsx) HeroHeader.
-const HERO_TEXT = "#1F1400";
-const PIN_TEAL = "#184840";
-const MINT_BG = "#E3F5E9";
 // LocationCard palette copied from the Delivery page (send/create.tsx).
 const PICKUP_BLUE = "#2E9BF5";
 const DEST_RED = "#FA2C19";
@@ -66,6 +62,10 @@ function formatDistance(meters: number | null): string {
 }
 export default function LocationSearchScreen() {
   const router = useRouter();
+  const { mode, colors } = useAppTheme();
+  const HERO_TEXT = mode === "dark" ? "#FFFFFF" : "#1F1400";
+  const PIN_TEAL = Colors.primary;
+  const MINT_BG = mode === "dark" ? "#1A3A30" : "#E3F5E9";
   const params = useLocalSearchParams<{
     purpose?: string;
     returnTo?: string;
@@ -457,18 +457,18 @@ export default function LocationSearchScreen() {
             isPickupPurpose ? () => void openCurrentLocation() : () => openMap()
           }
           className="flex-row items-center justify-center gap-1 self-center rounded-full px-3 py-1 active:opacity-80"
-          style={{ backgroundColor: "#FFF9E6" }}
+          style={{ backgroundColor: mode === "dark" ? "#423500" : "#FFF9E6" }}
         >
           <AppIcon
             name={isPickupPurpose ? "locate" : "map"}
             size={16}
-            color={Colors.onPrimary}
+            color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark}
           />
-          <Text className="text-sm" style={{ color: Colors.onPrimary }}>
+          <Text className="text-sm" style={{ color: mode === "dark" ? "#FFFFFF" : Colors.primaryDark }}>
             {isPickupPurpose ? "Pilih lokasi terkini" : "Pilih di Maps"}
           </Text>
           {busyLocation ? (
-            <ActivityIndicator size="small" color={Colors.onPrimary} />
+            <ActivityIndicator size="small" color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark} />
           ) : null}
         </Pressable>
       </View>
@@ -530,7 +530,7 @@ function SearchField({
           className="min-h-12 flex-1 font-sans text-base text-foreground"
         />
         {busy ? (
-          <ActivityIndicator size="small" color={ACCENT_RED} />
+          <ActivityIndicator size="small" color={Colors.primary} />
         ) : null}
       </View>
     </View>
