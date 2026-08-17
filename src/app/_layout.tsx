@@ -24,6 +24,7 @@ import { QueryLifecycleManager } from "@/components/query-lifecycle-manager";
 import { Colors } from "@/constants/colors";
 import { queryClient } from "@/lib/query-client";
 import { useAuthStore } from "@/stores/auth-store";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useThemeStore } from "@/stores/theme-store";
 
 import "@/lib/driver-location-service";
@@ -53,6 +54,14 @@ function Router() {
     void restoreSession();
     void restoreTheme();
   }, [restoreSession, restoreTheme]);
+  // Once the session is restored, activate GPS right away and capture the
+  // user's current location so every create screen can pre-fill its pickup
+  // field (lokasi jemput) without asking again.
+  useEffect(() => {
+    if (isHydrated && user) {
+      void useLocationPickerStore.getState().refreshCurrentLocation();
+    }
+  }, [isHydrated, user]);
   if (!isHydrated)
     return (
       <View style={styles.loading}>

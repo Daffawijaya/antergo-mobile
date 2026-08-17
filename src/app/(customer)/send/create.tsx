@@ -7,13 +7,7 @@ import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { listCustomerOrders } from "@/lib/api/rides";
 import { createSend } from "@/lib/api/send";
-import {
-  coordinateFromLocation,
-  getLastKnownCoordinate,
-  parseCoordinate,
-  requestCurrentLocation,
-  reverseGeocodeLabel,
-} from "@/lib/location";
+import { parseCoordinate } from "@/lib/location";
 import { orderKeys } from "@/lib/query-keys";
 import { createSendSchema, type CreateSendForm } from "@/schemas/send";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
@@ -71,28 +65,22 @@ export default function CreateSendScreen() {
   const destination = useLocationPickerStore(
     (s) => s.selections["send-destination"],
   );
-  // Pre-fill the pickup with the user's current location whenever the screen
-  // gains focus — on first open and on every re-entry after going back. This
-  // screen is a tab, so it stays mounted across visits and a mount-only effect
-  // never re-runs (which is why the pickup went missing on re-entry). Skip it
-  // when a pickup has already been chosen.
+  // Fill the pickup instantly from the stored current location when this
+  // screen gains focus with an empty pickup. The current location is captured
+  // at app startup and refreshed whenever the user leaves with a moved pickup,
+  // so re-entering shows it immediately — no waiting for GPS.
   useFocusEffect(
     useCallback(() => {
       if (useLocationPickerStore.getState().selections["send-pickup"]) return;
       let cancelled = false;
       void (async () => {
-        try {
-          const known = await getLastKnownCoordinate();
-          const point =
-            known ?? coordinateFromLocation(await requestCurrentLocation());
-          const address = await reverseGeocodeLabel(point);
-          if (cancelled) return;
-          useLocationPickerStore
-            .getState()
-            .setSelection("send-pickup", { coordinate: point, address });
-        } catch {
-          // GPS tidak tersedia/ditolak — biarkan lokasi jemput tetap kosong.
-        }
+        const state = useLocationPickerStore.getState();
+        const point =
+          state.currentLocation ?? (await state.refreshCurrentLocation());
+        if (cancelled || !point) return;
+        useLocationPickerStore
+          .getState()
+          .setSelection("send-pickup", point);
       })();
       return () => {
         cancelled = true;
@@ -237,10 +225,24 @@ export default function CreateSendScreen() {
   const [heroHeaderBottom, setHeroHeaderBottom] = useState(0);
   const [sticky, setSticky] = useState(false);
   const handleBack = () => {
-    // Don't carry the chosen locations or form data over: leaving via
-    // back starts the next order from a clean state.
-    useLocationPickerStore.getState().clearSelection("send-pickup");
-    useLocationPickerStore.getState().clearSelection("send-destination");
+    // Jika lokasi jemput digeser/diubah user (bukan lagi lokasi terkini), reset
+    // dan langsung ambil posisi terkini — jadi saat halaman dibuka lagi lokasi
+    // jemput sudah terisi lokasi sekarang tanpa nunggu. Lokasi jemput yang
+    // masih lokasi terkini (tidak digeser) tetap dipertahankan. Lokasi antar
+    // selalu direset.
+    const state = useLocationPickerStore.getState();
+    const pickup = state.selections["send-pickup"];
+    const current = state.currentLocation;
+    const moved =
+      !!pickup &&
+      (!current ||
+        pickup.coordinate.latitude !== current.coordinate.latitude ||
+        pickup.coordinate.longitude !== current.coordinate.longitude);
+    if (moved) {
+      state.clearSelection("send-pickup");
+      void state.refreshCurrentLocation();
+    }
+    state.clearSelection("send-destination");
     reset();
     router.back();
   };
