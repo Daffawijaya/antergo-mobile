@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -9,21 +9,77 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { AppIcon } from "@/components/app-icon";
-import { BackButton, StatusState } from "@/components/ui";
+import { FaChevronRightIcon } from "@/components/brand-icons";
+import { Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { HeroHeader, LocationCard } from "./components";
 
 type Sort = "latest" | "price-low" | "price-high";
+
+// Per-service hero icon. Each require() must stay a static literal so
+// Metro can bundle it; the selection happens on the resolved modules.
+const SERVICE_ICONS = {
+  food: require("../../../../../assets/images/icon/food.png"),
+  shopping: require("../../../../../assets/images/icon/shopping.png"),
+} as const;
+
+// Food hero gradient: dark purple on the left, vivid purple on the right —
+// same shape/contrast as the Bike hero gradient, just purple instead of
+// the brand yellow.
+const FOOD_GRADIENT = {
+  light: { from: "#3B0764", to: "#8B5CF6" },
+  dark: { from: "#2E1065", to: "#5B21B6" },
+} as const;
+
+// Bottom edge of the brand hero: a single smooth wave, mirroring the
+// reference SVG `M0,100 C150,200 350,0 500,100` — one cubic curve across
+// the full width that dips on the left, crosses the middle at the center
+// and rises on the right, so the two halves stay symmetric.
+// (Reference: https://stackoverflow.com/a/56012973, CC BY-SA 4.0)
+function buildWavePath(
+  width: number,
+  heroHeight: number,
+  fillBottom: number,
+): string {
+  const amplitude = Math.min(20, Math.max(12, width * 0.044));
+  // Lift the wave a little above the hero's bottom edge so it floats
+  // instead of touching the very bottom of the hero.
+  const lift = 14;
+  const middle = heroHeight - amplitude - lift;
+  // The white fill runs from the wave all the way down to the bottom of
+  // the hero so no purple shows below the wave.
+  const bottom = fillBottom;
+  // A single cubic only reaches ~29% of its control-point offset, so the
+  // control points sit ~3.46× farther than the visible amplitude — the
+  // reference does the same (its controls sit far outside the visible band).
+  const controlAmplitude = amplitude * 3.464;
+  return [
+    `M 0,${bottom}`,
+    `L ${width},${bottom}`,
+    `L ${width},${middle}`,
+    `C ${width * 0.7},${middle - controlAmplitude}, ${width * 0.3},${middle + controlAmplitude}, 0,${middle}`,
+    "Z",
+  ].join(" ");
+}
+
 export default function CommerceCatalogScreen() {
   const router = useRouter();
-  const { colors } = useAppTheme();
+  const { mode, colors } = useAppTheme();
   const { service: rawService } = useLocalSearchParams<{ service?: string }>();
   const service = rawService === "shopping" ? "shopping" : "food";
+  const serviceLabel = service === "shopping" ? "Shopping" : "Food";
+  // Promo copy mirrors the Bike hero's three-line structure ("Perjalanan
+  // Hemat / Driver siap jemput / di lokasi kamu"), adapted for the catalog.
+  const promoTitle = service === "shopping" ? "Belanja Hemat" : "Pesanan Hemat";
+  const promoSubtitle = "Driver siap antar";
+  const promoSubtitle2 = "sampai lokasi kamu";
   const destination = useLocationPickerStore(
     (state) => state.selections["food-destination"],
   );
@@ -31,6 +87,30 @@ export default function CommerceCatalogScreen() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<Sort>("latest");
   const [page, setPage] = useState(1);
+  // Fill the delivery address instantly from the stored current location when
+  // this screen gains focus with an empty address — the same concept as the
+  // Delivery/Bike/Car create screens filling their pickup. The current
+  // location is captured at app startup and refreshed whenever the user
+  // leaves with a moved address, so re-entering shows it immediately.
+  useFocusEffect(
+    useCallback(() => {
+      if (useLocationPickerStore.getState().selections["food-destination"])
+        return;
+      let cancelled = false;
+      void (async () => {
+        const state = useLocationPickerStore.getState();
+        const point =
+          state.currentLocation ?? (await state.refreshCurrentLocation());
+        if (cancelled || !point) return;
+        useLocationPickerStore
+          .getState()
+          .setSelection("food-destination", point);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
   const merchants = useQuery({
     queryKey: ["merchants", "food", page],
     queryFn: () => listMerchants(page, "food"),
@@ -75,41 +155,143 @@ export default function CommerceCatalogScreen() {
         returnTo: `/(customer)/food?service=${service}`,
       },
     });
+  const openPicker = () =>
+    router.push({
+      pathname: "/(customer)/location-search" as never,
+      params: {
+        purpose: "food-destination",
+        returnTo: `/(customer)/food?service=${service}`,
+      },
+    });
+  // Sticky header: once the hero header has scrolled off the top, show a
+  // bar that stays pinned to the top of the screen — white with black
+  // text in light mode, theme-dark with white text in dark mode.
+  const insets = useSafeAreaInsets();
+  const [heroHeaderBottom, setHeroHeaderBottom] = useState(0);
+  const [sticky, setSticky] = useState(false);
+  const [heroWidth, setHeroWidth] = useState(0);
+  const [heroHeight, setHeroHeight] = useState(0);
+  const handleBack = () => {
+    // Jika alamat pengantaran digeser/diubah user (bukan lagi lokasi terkini),
+    // reset dan langsung ambil posisi terkini — jadi saat halaman dibuka lagi
+    // alamat sudah terisi lokasi sekarang tanpa nunggu. Alamat yang masih
+    // lokasi terkini (tidak digeser) tetap dipertahankan.
+    const state = useLocationPickerStore.getState();
+    const destination = state.selections["food-destination"];
+    const current = state.currentLocation;
+    const moved =
+      !!destination &&
+      (!current ||
+        destination.coordinate.latitude !== current.coordinate.latitude ||
+        destination.coordinate.longitude !== current.coordinate.longitude);
+    if (moved) {
+      state.clearSelection("food-destination");
+      void state.refreshCurrentLocation();
+    }
+    router.replace("/(customer)" as never);
+  };
+  const gradient = FOOD_GRADIENT[mode];
+  // White reads best on the (darker) purple hero.
+  const heroColor = "#FFFFFF";
+
   return (
-    <SafeAreaView
-      className="flex-1 bg-background"
-      edges={["top", "left", "right"]}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        contentContainerClassName="px-4 pb-8 pt-2"
-      >
-        <View className="flex-row items-center gap-2">
-          <BackButton onPress={() => router.replace("/(customer)" as never)} />
-          <Pressable
-            className="flex-1"
-            onPress={() =>
-              router.push({
-                pathname: "/(customer)/location-search" as never,
-                params: {
-                  purpose: "food-destination",
-                  returnTo: `/(customer)/food?service=${service}`,
-                },
-              })
-            }
+    <Screen
+      padded={false}
+      className="gap-0 bg-background"
+      onScroll={(event) => {
+        const y = event.nativeEvent.contentOffset.y;
+        const shouldStick = heroHeaderBottom > 0 && y >= heroHeaderBottom;
+        setSticky((prev) => (prev === shouldStick ? prev : shouldStick));
+      }}
+      header={
+        sticky ? (
+          <View
+            className="px-5 py-5"
+            style={{
+              position: "absolute",
+              top: insets.top,
+              left: 0,
+              right: 0,
+              backgroundColor: colors.background,
+            }}
           >
-            <Text className="text-xs text-muted">Antar sekarang</Text>
-            <Text
-              numberOfLines={1}
-              className="font-bold text-lg text-foreground"
+            <View className="flex-row items-center">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Kembali"
+                onPress={handleBack}
+                className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+              >
+                <AppIcon
+                  name="back"
+                  size={26}
+                  color={mode === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </Pressable>
+              <Text
+                className="font-bold text-[22px] leading-7"
+                style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
+              >
+                {serviceLabel}
+              </Text>
+            </View>
+          </View>
+        ) : null
+      }
+    >
+      <View
+        className="px-5 pb-6 pt-2"
+        onLayout={(event) => {
+          setHeroWidth(event.nativeEvent.layout.width);
+          // The wave is the hero's bottom edge, so it must sit below all of
+          // the hero's content (header, location card, search, promo).
+          setHeroHeight(event.nativeEvent.layout.height);
+        }}
+      >
+        <Svg
+          width="100%"
+          height={heroHeight || 300}
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+        >
+          <Defs>
+            <LinearGradient
+              id="food-hero"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
             >
-              {destination?.address ?? "Pilih alamat pengantaran"}
-            </Text>
-          </Pressable>
-          <AppIcon name="down" size={20} color={colors.text} />
+              <Stop offset="0%" stopColor={gradient.from} />
+              <Stop offset="100%" stopColor={gradient.to} />
+            </LinearGradient>
+          </Defs>
+          {/* The purple only covers the hero itself; everything below the
+              wave is the white fill running to the bottom of the hero. */}
+          <Rect width="100%" height={heroHeight || 300} fill="url(#food-hero)" />
+          {heroWidth > 0 ? (
+            <Path
+              d={buildWavePath(heroWidth, heroHeight || 300, heroHeight || 300)}
+              fill={colors.background}
+            />
+          ) : null}
+        </Svg>
+        <View
+          onLayout={(event) =>
+            setHeroHeaderBottom(
+              event.nativeEvent.layout.y + event.nativeEvent.layout.height,
+            )
+          }
+        >
+          <HeroHeader title={serviceLabel} onBack={handleBack} />
         </View>
-        <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4">
+        <LocationCard
+          location={{
+            value: destination?.address,
+            placeholder: "Pilih alamat pengantaran",
+            onPress: openPicker,
+          }}
+        />
+        <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
           <AppIcon name="search" size={23} color={colors.muted} />
           <TextInput
             value={query}
@@ -134,6 +316,47 @@ export default function CommerceCatalogScreen() {
             </Pressable>
           ) : null}
         </View>
+        <View className="relative mt-3 min-h-[104px] justify-start pr-24">
+          <Text
+            className="mt-2 font-semibold text-[19px] leading-6"
+            style={{ color: heroColor }}
+          >
+            {promoTitle}
+          </Text>
+          <View className="mt-1 flex-row items-center gap-2">
+            <Text
+              className="font-normal text-[15px] leading-5"
+              style={{ color: heroColor }}
+            >
+              {promoSubtitle}
+              {"\n"}
+              {promoSubtitle2}
+            </Text>
+            <View className="h-[18px] w-[18px] items-center justify-center rounded-full bg-white">
+              <FaChevronRightIcon size={10} color="#000000" />
+            </View>
+          </View>
+          <View
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: 88,
+              height: 88,
+              // Drop shadow follows the PNG's transparency, not the image box.
+              filter: "drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18))",
+            }}
+          >
+            <Image
+              source={SERVICE_ICONS[service]}
+              style={{ width: 88, height: 88 }}
+              resizeMode="contain"
+              accessibilityLabel={serviceLabel}
+            />
+          </View>
+        </View>
+      </View>
+      <View className="gap-4 px-5">
         {service === "shopping" ? (
           <ScrollView
             horizontal
@@ -156,10 +379,8 @@ export default function CommerceCatalogScreen() {
               onPress={() => setSort("price-high")}
             />
           </ScrollView>
-        ) : (
-          <View className="h-4" />
-        )}
-        <Text className="mb-2 font-bold text-xl text-foreground">
+        ) : null}
+        <Text className="font-extrabold text-[17px] text-foreground">
           {service === "food" ? "UMKM makanan & minuman" : "Produk untuk kamu"}
         </Text>
         {activeQuery.isLoading ? (
@@ -293,10 +514,11 @@ export default function CommerceCatalogScreen() {
             </Pressable>
           </View>
         ) : null}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Screen>
   );
 }
+
 function Filter({
   label,
   selected,
