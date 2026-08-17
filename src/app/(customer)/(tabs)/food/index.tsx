@@ -19,7 +19,7 @@ import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
-import { HeroHeader, LocationCard } from "./components";
+import { LocationHeader } from "@/components/food-location-header";
 
 type Sort = "latest" | "price-low" | "price-high";
 
@@ -282,15 +282,15 @@ export default function CommerceCatalogScreen() {
             )
           }
         >
-          <HeroHeader title={serviceLabel} onBack={handleBack} />
+          <LocationHeader
+            location={{
+              value: destination?.address,
+              placeholder: "Pilih alamat pengantaran",
+              onPress: openPicker,
+            }}
+            onBack={handleBack}
+          />
         </View>
-        <LocationCard
-          location={{
-            value: destination?.address,
-            placeholder: "Pilih alamat pengantaran",
-            onPress: openPicker,
-          }}
-        />
         <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
           <AppIcon name="search" size={23} color={colors.muted} />
           <TextInput
