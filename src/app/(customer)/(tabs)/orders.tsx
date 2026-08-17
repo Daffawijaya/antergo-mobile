@@ -23,7 +23,7 @@ const terminal = new Set(["completed", "cancelled", "rejected"]);
 function orderPath(order: Order) {
   if (order.type === "food")
     return {
-      pathname: "/(customer)/food/order/[id]" as const,
+      pathname: "/(customer)/(tabs)/food/order/[id]" as const,
       params: { id: String(order.id) },
     };
   if (order.type === "send")
@@ -32,7 +32,7 @@ function orderPath(order: Order) {
       params: { id: String(order.id) },
     };
   return {
-    pathname: "/(customer)/ride/[id]" as const,
+    pathname: "/(customer)/(tabs)/ride/[id]" as const,
     params: { id: String(order.id) },
   };
 }

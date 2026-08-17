@@ -195,7 +195,7 @@ export default function CreateSendScreen() {
   );
   const openPicker = (purpose: "send-pickup" | "send-destination") =>
     router.push({
-      pathname: "/(customer)/location-search" as never,
+      pathname: "/(customer)/location-search",
       params: { purpose, returnTo: "/(customer)/send/create" },
     });
   const swapLocations = () => {

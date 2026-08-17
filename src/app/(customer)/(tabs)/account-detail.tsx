@@ -11,7 +11,9 @@ export default function AccountDetailScreen() {
   return (
     <Screen className="gap-5 px-4 pt-2">
       <View className="flex-row items-center justify-between">
-        <BackButton onPress={() => router.replace("/(customer)/profile")} />
+        <BackButton
+          onPress={() => router.replace("/(customer)/(tabs)/profile")}
+        />
         <Text className="font-bold text-lg text-foreground">Detail akun</Text>
         <View className="h-10 w-10" />
       </View>

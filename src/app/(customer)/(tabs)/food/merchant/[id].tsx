@@ -72,7 +72,7 @@ export default function MerchantDetailScreen() {
           style={styles.cart}
           onPress={() =>
             router.push({
-              pathname: "/(customer)/food/cart",
+              pathname: "/(customer)/(tabs)/food/cart",
               params: { service },
             })
           }

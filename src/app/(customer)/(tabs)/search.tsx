@@ -63,7 +63,7 @@ export default function SearchScreen() {
   };
   const openProduct = (merchantId: number, type: "food" | "goods") =>
     router.push({
-      pathname: "/(customer)/food/merchant/[id]",
+      pathname: "/(customer)/(tabs)/food/merchant/[id]",
       params: {
         id: String(merchantId),
         service: type === "goods" ? "shopping" : "food",
@@ -85,10 +85,10 @@ export default function SearchScreen() {
             style={styles.locationCopy}
             onPress={() =>
               router.push({
-                pathname: "/(customer)/location-search" as never,
+                pathname: "/(customer)/location-search",
                 params: {
                   purpose: "ride-pickup",
-                  returnTo: "/(customer)/search",
+                  returnTo: "/(customer)/(tabs)/search",
                 },
               })
             }
@@ -162,7 +162,7 @@ export default function SearchScreen() {
               style={styles.rideRow}
               onPress={() =>
                 router.push({
-                  pathname: "/(customer)/ride/create",
+                  pathname: "/(customer)/(tabs)/ride/create",
                   params: { service: "bike" },
                 })
               }
@@ -183,7 +183,7 @@ export default function SearchScreen() {
               style={styles.rideRow}
               onPress={() =>
                 router.push({
-                  pathname: "/(customer)/ride/create",
+                  pathname: "/(customer)/(tabs)/ride/create",
                   params: { service: "car" },
                 })
               }

@@ -1,4 +1,4 @@
-import { AppIcon, type AppIconName } from "@/components/app-icon";
+import { AppIcon } from "@/components/app-icon";
 import { FaWhatsappIcon } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -96,7 +96,7 @@ export function ProfileScreen() {
       >
         <View className="bg-surface-muted px-4 pt-4">
           <Pressable
-            onPress={() => router.push("/(customer)/account-detail" as never)}
+            onPress={() => router.push("/(customer)/(tabs)/account-detail")}
             className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"
             style={{
               shadowColor: "#111827",
@@ -248,8 +248,8 @@ export function ProfileScreen() {
                   ? undefined
                   : () =>
                       router.push({
-                        pathname: "/(customer)/driver-register",
-                        params: { returnTo: "/(customer)/profile" },
+                        pathname: "/(customer)/(tabs)/driver-register",
+                        params: { returnTo: "/(customer)/(tabs)/profile" },
                       })
               }
             />
@@ -258,7 +258,7 @@ export function ProfileScreen() {
             <SettingsRow
               icon="directions_car"
               title="Kendaraan Saya"
-              onPress={() => router.push("/(driver)/vehicles" as never)}
+              onPress={() => router.push("/(driver)/vehicles")}
             />
           ) : null}
           {!user?.roles.includes("merchant") ? (
@@ -267,8 +267,8 @@ export function ProfileScreen() {
               title="Daftar sebagai merchant"
               onPress={() =>
                 router.push({
-                  pathname: "/(customer)/merchant-register",
-                  params: { returnTo: "/(customer)/profile" },
+                  pathname: "/(customer)/(tabs)/merchant-register",
+                  params: { returnTo: "/(customer)/(tabs)/profile" },
                 })
               }
             />

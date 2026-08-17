@@ -164,7 +164,7 @@ export default function CreateRideScreen() {
     onSuccess: async ({ order }) => {
       await queryClient.invalidateQueries({ queryKey: orderKeys.all });
       router.replace({
-        pathname: "/(customer)/ride/[id]",
+        pathname: "/(customer)/(tabs)/ride/[id]",
         params: { id: String(order.id) },
       });
     },
@@ -199,10 +199,10 @@ export default function CreateRideScreen() {
   );
   const openPicker = (purpose: "ride-pickup" | "ride-destination") =>
     router.push({
-      pathname: "/(customer)/location-search" as never,
+      pathname: "/(customer)/location-search",
       params: {
         purpose,
-        returnTo: `/(customer)/ride/create?service=${service}`,
+        returnTo: `/(customer)/(tabs)/ride/create?service=${service}`,
       },
     });
   const swapLocations = () => {

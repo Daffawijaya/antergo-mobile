@@ -30,12 +30,19 @@ const SERVICE_ICONS = {
   shopping: require("../../../../../assets/images/icon/shopping.png"),
 } as const;
 
-// Food hero gradient: dark purple on the left, vivid purple on the right —
-// same shape/contrast as the Bike hero gradient, just purple instead of
-// the brand yellow.
-const FOOD_GRADIENT = {
-  light: { from: "#3B0764", to: "#8B5CF6" },
-  dark: { from: "#2E1065", to: "#5B21B6" },
+// Per-service hero gradient: slightly darker shade on the left, vivid brand
+// color on the right — same shape/contrast as the Bike hero gradient. Food
+// is purple, Shopping is pink. The left side stays a bit darker for depth
+// but is kept light enough for the white text to read well.
+const SERVICE_GRADIENTS = {
+  food: {
+    light: { from: "#6D28D9", to: "#8B5CF6" },
+    dark: { from: "#4C1D95", to: "#5B21B6" },
+  },
+  shopping: {
+    light: { from: "#BE185D", to: "#EC4899" },
+    dark: { from: "#9D174D", to: "#BE185D" },
+  },
 } as const;
 
 // Bottom edge of the brand hero: a single smooth wave, mirroring the
@@ -148,19 +155,19 @@ export default function CommerceCatalogScreen() {
   };
   const openMerchant = (id: number) =>
     router.push({
-      pathname: "/(customer)/food/merchant/[id]",
+      pathname: "/(customer)/(tabs)/food/merchant/[id]",
       params: {
         id: String(id),
         service,
-        returnTo: `/(customer)/food?service=${service}`,
+        returnTo: `/(customer)/(tabs)/food?service=${service}`,
       },
     });
   const openPicker = () =>
     router.push({
-      pathname: "/(customer)/location-search" as never,
+      pathname: "/(customer)/location-search",
       params: {
         purpose: "food-destination",
-        returnTo: `/(customer)/food?service=${service}`,
+        returnTo: `/(customer)/(tabs)/food?service=${service}`,
       },
     });
   // Sticky header: once the hero header has scrolled off the top, show a
@@ -188,9 +195,9 @@ export default function CommerceCatalogScreen() {
       state.clearSelection("food-destination");
       void state.refreshCurrentLocation();
     }
-    router.replace("/(customer)" as never);
+    router.replace("/(customer)/(tabs)");
   };
-  const gradient = FOOD_GRADIENT[mode];
+  const gradient = SERVICE_GRADIENTS[service][mode];
   // White reads best on the (darker) purple hero.
   const heroColor = "#FFFFFF";
 
@@ -255,7 +262,7 @@ export default function CommerceCatalogScreen() {
         >
           <Defs>
             <LinearGradient
-              id="food-hero"
+              id="catalog-hero"
               x1="0%"
               y1="0%"
               x2="100%"
@@ -267,7 +274,7 @@ export default function CommerceCatalogScreen() {
           </Defs>
           {/* The purple only covers the hero itself; everything below the
               wave is the white fill running to the bottom of the hero. */}
-          <Rect width="100%" height={heroHeight || 300} fill="url(#food-hero)" />
+          <Rect width="100%" height={heroHeight || 300} fill="url(#catalog-hero)" />
           {heroWidth > 0 ? (
             <Path
               d={buildWavePath(heroWidth, heroHeight || 300, heroHeight || 300)}

@@ -52,7 +52,7 @@ export default function FoodCheckoutScreen() {
         client.invalidateQueries({ queryKey: foodKeys.merchants }),
       ]);
       router.replace({
-        pathname: "/(customer)/food/order/[id]",
+        pathname: "/(customer)/(tabs)/food/order/[id]",
         params: { id: String(order.id) },
       });
     },
@@ -88,7 +88,7 @@ export default function FoodCheckoutScreen() {
           action={
             <Button
               title="Cari makanan"
-              onPress={() => router.replace("/(customer)/food")}
+              onPress={() => router.replace("/(customer)/(tabs)/food")}
             />
           }
         />
@@ -110,10 +110,10 @@ export default function FoodCheckoutScreen() {
           placeholder="Pilih alamat pengantaran"
           onPress={() =>
             router.push({
-              pathname: "/(customer)/location-search" as never,
+              pathname: "/(customer)/location-search",
               params: {
                 purpose: "food-destination",
-                returnTo: `/(customer)/food/checkout?service=${service}`,
+                returnTo: `/(customer)/(tabs)/food/checkout?service=${service}`,
               },
             })
           }

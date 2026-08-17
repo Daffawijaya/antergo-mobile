@@ -48,7 +48,7 @@ export default function CartScreen() {
               title="Cari Merchant"
               onPress={() =>
                 router.replace({
-                  pathname: "/(customer)/food",
+                  pathname: "/(customer)/(tabs)/food",
                   params: { service },
                 })
               }
@@ -100,7 +100,7 @@ export default function CartScreen() {
             title="Lanjut Checkout"
             onPress={() =>
               router.push({
-                pathname: "/(customer)/food/checkout",
+                pathname: "/(customer)/(tabs)/food/checkout",
                 params: { service },
               })
             }

@@ -45,10 +45,10 @@ async function openNotification(data: Record<string, unknown>) {
   setTimeout(() => {
     switch (data.route) {
       case "customer_ride_detail":
-        router.push({ pathname: "/(customer)/ride/[id]", params });
+        router.push({ pathname: "/(customer)/(tabs)/ride/[id]", params });
         break;
       case "customer_food_detail":
-        router.push({ pathname: "/(customer)/food/order/[id]", params });
+        router.push({ pathname: "/(customer)/(tabs)/food/order/[id]", params });
         break;
       case "customer_send_detail":
         router.push({ pathname: "/(customer)/send/[id]", params });
@@ -63,7 +63,7 @@ async function openNotification(data: Record<string, unknown>) {
         router.push({ pathname: "/(driver)/send/[id]", params });
         break;
       case "customer_chat":
-        router.push({ pathname: "/(customer)/chat/[id]", params });
+        router.push({ pathname: "/(customer)/(tabs)/chat/[id]", params });
         break;
       case "driver_chat":
         router.push({ pathname: "/(driver)/chat/[id]", params });
