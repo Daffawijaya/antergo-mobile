@@ -5,6 +5,8 @@ import {
   ScrollView,
   Text,
   TextInput,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   type StyleProp,
   type TextInputProps,
   type ViewStyle,
@@ -34,12 +36,16 @@ export function Screen({
   className = "",
   padded = true,
   scrollBottomPadding = true,
+  onScroll,
+  header,
 }: PropsWithChildren<{
   scroll?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
   className?: string;
   padded?: boolean;
   scrollBottomPadding?: boolean;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  header?: ReactNode;
 }>) {
   const content = (
     <View
@@ -59,12 +65,16 @@ export function Screen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerClassName={scrollBottomPadding ? "grow pb-4" : "grow"}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
           {content}
         </ScrollView>
       ) : (
         content
       )}
+      {/* Overlay rendered above the scroll content (e.g. a sticky header). */}
+      {header}
     </SafeAreaView>
   );
 }

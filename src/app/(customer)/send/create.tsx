@@ -1,4 +1,4 @@
-import { AppIcon, type AppIconName } from "@/components/app-icon";
+import { AppIcon } from "@/components/app-icon";
 import {
   FaDotCircleIcon,
   HiLocationMarkerIcon,
@@ -31,7 +31,15 @@ import {
   type ReactNode,
 } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  type ImageSourcePropType,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 const defaults: CreateSendForm = {
@@ -221,7 +229,21 @@ export default function CreateSendScreen() {
       address: order.destination_address,
     });
   };
-  const { mode } = useAppTheme();
+  const { mode, colors } = useAppTheme();
+  // Sticky header: once the hero header has scrolled off the top, show a
+  // bar that stays pinned to the top of the screen — white with black
+  // text in light mode, theme-dark with white text in dark mode.
+  const insets = useSafeAreaInsets();
+  const [heroHeaderBottom, setHeroHeaderBottom] = useState(0);
+  const [sticky, setSticky] = useState(false);
+  const handleBack = () => {
+    // Don't carry the chosen locations or form data over: leaving via
+    // back starts the next order from a clean state.
+    useLocationPickerStore.getState().clearSelection("send-pickup");
+    useLocationPickerStore.getState().clearSelection("send-destination");
+    reset();
+    router.back();
+  };
   const locationError =
     errors.pickup_address?.message ||
     errors.pickup_latitude?.message ||
@@ -229,7 +251,50 @@ export default function CreateSendScreen() {
     errors.destination_latitude?.message;
 
   return (
-    <Screen padded={false} className="gap-0 bg-background">
+    <Screen
+      padded={false}
+      className="gap-0 bg-background"
+      onScroll={(event) => {
+        const y = event.nativeEvent.contentOffset.y;
+        const shouldStick = heroHeaderBottom > 0 && y >= heroHeaderBottom;
+        setSticky((prev) => (prev === shouldStick ? prev : shouldStick));
+      }}
+      header={
+        sticky ? (
+          <View
+            className="px-5 py-5"
+            style={{
+              position: "absolute",
+              top: insets.top,
+              left: 0,
+              right: 0,
+              backgroundColor: colors.background,
+            }}
+          >
+            <View className="flex-row items-center">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Kembali"
+                onPress={handleBack}
+                className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+              >
+                <AppIcon
+                  name="back"
+                  size={26}
+                  color={mode === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </Pressable>
+              <Text
+                className="font-bold text-[22px] leading-7"
+                style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
+              >
+                Delivery
+              </Text>
+            </View>
+          </View>
+        ) : null
+      }
+    >
         <View className="px-5 pb-14 pt-2">
           <Svg
             width="100%"
@@ -256,19 +321,15 @@ export default function CreateSendScreen() {
             </Defs>
             <Rect width="100%" height="100%" fill="url(#delivery-hero)" />
           </Svg>
-          <HeroHeader
-            mode={mode}
-            onBack={() => {
-              // Don't carry the chosen locations or form data over: leaving via
-              // back starts the next order from a clean state.
-              useLocationPickerStore.getState().clearSelection("send-pickup");
-              useLocationPickerStore
-                .getState()
-                .clearSelection("send-destination");
-              reset();
-              router.back();
-            }}
-          />
+          <View
+            onLayout={(event) =>
+              setHeroHeaderBottom(
+                event.nativeEvent.layout.y + event.nativeEvent.layout.height,
+              )
+            }
+          >
+            <HeroHeader mode={mode} onBack={handleBack} />
+          </View>
           <View className="relative mt-3 min-h-[104px] justify-start pr-24">
             <Text
               className="font-semibold text-[16px] leading-5"
@@ -333,7 +394,7 @@ export default function CreateSendScreen() {
           {locationError ? (
             <Notice tone="danger">{locationError}</Notice>
           ) : null}
-          <View className="gap-4 px-2 pt-4">
+          <View className="gap-4 pt-4">
             <Text className="font-extrabold text-[17px] text-foreground">
               Detail pengiriman
             </Text>
@@ -585,14 +646,17 @@ function SuggestionRow({
   );
 }
 
+const VEHICLE_IMAGES = {
+  motorcycle: require("../../../../assets/images/icon/bikee.png"),
+  car: require("../../../../assets/images/icon/carr.png"),
+} as const;
+
 const VEHICLES: {
   type: "motorcycle" | "car";
   label: string;
-  sub: string;
-  icon: AppIconName;
 }[] = [
-  { type: "motorcycle", label: "Motor", sub: "Cepat & hemat", icon: "bike" },
-  { type: "car", label: "Mobil", sub: "Barang besar & banyak", icon: "car" },
+  { type: "motorcycle", label: "Motor" },
+  { type: "car", label: "Mobil" },
 ];
 
 function VehicleSelector({
@@ -612,8 +676,7 @@ function VehicleSelector({
           <VehicleCard
             key={vehicle.type}
             label={vehicle.label}
-            sub={vehicle.sub}
-            icon={vehicle.icon}
+            image={VEHICLE_IMAGES[vehicle.type]}
             selected={value === vehicle.type}
             onPress={() => onChange(vehicle.type)}
           />
@@ -625,14 +688,12 @@ function VehicleSelector({
 
 function VehicleCard({
   label,
-  sub,
-  icon,
+  image,
   selected,
   onPress,
 }: {
   label: string;
-  sub: string;
-  icon: AppIconName;
+  image: ImageSourcePropType;
   selected: boolean;
   onPress: () => void;
 }) {
@@ -641,31 +702,28 @@ function VehicleCard({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      className={`flex-1 rounded-[18px] border px-4 pb-3.5 pt-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
-      style={
-        selected
-          ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }
-          : null
-      }
+      className="flex-1 flex-row items-center justify-between rounded-[18px] px-4 py-4 active:opacity-80"
+      style={{
+        backgroundColor: selected
+          ? mode === "dark"
+            ? "#453600"
+            : "#ffec8e"
+          : mode === "dark"
+            ? "#242525"
+            : "#F3F3F3",
+      }}
     >
-      <View className="flex-row items-start justify-between">
-        <View className="h-11 w-11 items-center justify-center rounded-full bg-surface elevation-sm">
-          <AppIcon
-            name={icon}
-            size={24}
-            color={selected ? "#92400E" : "#9CA3AF"}
-          />
-        </View>
-        {selected ? (
-          <View className="h-5 w-5 items-center justify-center rounded-full bg-[#FFB900]">
-            <AppIcon name="check" size={12} color="#FFFFFF" strokeWidth={3} />
-          </View>
-        ) : null}
-      </View>
-      <Text className="mt-2.5 font-extrabold text-[15px] leading-5 text-foreground">
+      <Text
+        className="font-extrabold text-[15px] leading-5"
+        style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
+      >
         {label}
-      </Text>
-      <Text className="mt-0.5 text-[12px] leading-4 text-muted">{sub}</Text>
+      </Text>        <Image
+          source={image}
+          style={{ width: 44, height: 44 }}
+          resizeMode="contain"
+          accessibilityLabel={label}
+        />
     </Pressable>
   );
 }

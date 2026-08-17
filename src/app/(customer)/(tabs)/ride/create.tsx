@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Image, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { AppIcon } from "@/components/app-icon";
 import {
@@ -232,6 +233,19 @@ export default function CreateRideScreen() {
   // yellow peeks out between the wave and the button.
   const [formBottom, setFormBottom] = useState(0);
   const waveFillBottom = formBottom > 0 ? formBottom : heroHeight || 300;
+  // Sticky header: once the hero header has scrolled off the top, show a
+  // white bar with black text that stays pinned to the top of the screen.
+  const insets = useSafeAreaInsets();
+  const [heroHeaderBottom, setHeroHeaderBottom] = useState(0);
+  const [sticky, setSticky] = useState(false);
+  const handleBack = () => {
+    // Don't carry the chosen locations or form data over: leaving via
+    // back starts the next order from a clean state.
+    useLocationPickerStore.getState().clearSelection("ride-pickup");
+    useLocationPickerStore.getState().clearSelection("ride-destination");
+    reset();
+    router.back();
+  };
   const locationError =
     errors.pickup_address?.message ||
     errors.pickup_latitude?.message ||
@@ -242,7 +256,50 @@ export default function CreateRideScreen() {
   const heroColor = "#FFFFFF";
 
   return (
-    <Screen padded={false} className="gap-0 bg-background">
+    <Screen
+      padded={false}
+      className="gap-0 bg-background"
+      onScroll={(event) => {
+        const y = event.nativeEvent.contentOffset.y;
+        const shouldStick = heroHeaderBottom > 0 && y >= heroHeaderBottom;
+        setSticky((prev) => (prev === shouldStick ? prev : shouldStick));
+      }}
+      header={
+        sticky ? (
+          <View
+            className="px-5 py-5"
+            style={{
+              position: "absolute",
+              top: insets.top,
+              left: 0,
+              right: 0,
+              backgroundColor: colors.background,
+            }}
+          >
+            <View className="flex-row items-center">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Kembali"
+                onPress={handleBack}
+                className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+              >
+                <AppIcon
+                  name="back"
+                  size={26}
+                  color={mode === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </Pressable>
+              <Text
+                className="font-bold text-[22px] leading-7"
+                style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
+              >
+                {serviceLabel}
+              </Text>
+            </View>
+          </View>
+        ) : null
+      }
+    >
       <View
         className="px-5 pb-6 pt-2"
         onLayout={(event) => {
@@ -279,19 +336,15 @@ export default function CreateRideScreen() {
             />
           ) : null}
         </Svg>
-        <HeroHeader
-          title={serviceLabel}
-          onBack={() => {
-            // Don't carry the chosen locations or form data over: leaving via
-            // back starts the next order from a clean state.
-            useLocationPickerStore.getState().clearSelection("ride-pickup");
-            useLocationPickerStore
-              .getState()
-              .clearSelection("ride-destination");
-            reset();
-            router.back();
-          }}
-        />
+        <View
+          onLayout={(event) =>
+            setHeroHeaderBottom(
+              event.nativeEvent.layout.y + event.nativeEvent.layout.height,
+            )
+          }
+        >
+          <HeroHeader title={serviceLabel} onBack={handleBack} />
+        </View>
         <LocationCard
           pickup={{
             value: pickup?.address,
