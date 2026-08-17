@@ -37,7 +37,6 @@ export function LocationHeader({
           {location.value || location.placeholder}
         </Text>
       </Pressable>
-      <AppIcon name="back" size={20} color="#FFFFFF" />
     </View>
   );
 }

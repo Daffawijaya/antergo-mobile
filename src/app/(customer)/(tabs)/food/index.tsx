@@ -240,7 +240,7 @@ export default function CommerceCatalogScreen() {
       }
     >
       <View
-        className="px-5 pb-6 pt-2"
+        className="px-4 pb-6 pt-2"
         onLayout={(event) => {
           setHeroWidth(event.nativeEvent.layout.width);
           // The wave is the hero's bottom edge, so it must sit below all of
@@ -356,7 +356,7 @@ export default function CommerceCatalogScreen() {
           </View>
         </View>
       </View>
-      <View className="gap-4 px-5">
+      <View className="gap-4 px-4">
         {service === "shopping" ? (
           <ScrollView
             horizontal
