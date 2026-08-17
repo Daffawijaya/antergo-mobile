@@ -36,6 +36,17 @@
       --app-border: #343535;
     }
   }
+  /* Keep browser autofill from overriding the input background/text with
+     white or light-blue; make it follow the active theme instead. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--app-surface) inset;
+    -webkit-text-fill-color: var(--app-foreground);
+    caret-color: var(--app-foreground);
+    transition: background-color 999999s ease-in-out 0s;
+  }
 }
 
 @theme inline {
