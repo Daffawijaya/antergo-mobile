@@ -146,15 +146,19 @@ export default function LocationPickerScreen() {
     // screen it started from.
     const other = OTHER_PURPOSES[purpose];
     if (other && !selections[other]) {
-      router.replace({
+      // Both screens are pushed on the customer stack: pop back to the
+      // existing search screen with the counterpart field active instead of
+      // pushing a duplicate (POP_TO also updates the target route's params).
+      router.dismissTo({
         pathname: "/(customer)/location-search",
         params: { purpose: other, returnTo: params.returnTo },
       });
       return;
     }
-    // Uses replace, not dismissTo: dismissTo dispatches a POP_TO action that
-    // tab routers don't handle, so on web the confirm silently does nothing.
-    if (params.returnTo) router.replace(params.returnTo as never);
+    // Pop back to the screen the flow started from — this screen and the
+    // search screen above it are both stack pushes, so dismissing to the
+    // target removes them both.
+    if (params.returnTo) router.dismissTo(params.returnTo as never);
     else router.back();
   };
   return (
@@ -167,24 +171,10 @@ export default function LocationPickerScreen() {
         <View className="absolute left-5 right-5 top-5 flex-row items-center gap-2">
           <BackButton
             floating
-            // Back returns to the location search screen with the same flow
-            // params (purpose/returnTo). Navigates explicitly instead of using
-            // router.back(), because on web the browser history for this flow
-            // doesn't reliably contain the search screen — back can land on the
-            // app root instead.
-            onPress={() => {
-              if (params.purpose) {
-                router.replace({
-                  pathname: "/(customer)/location-search",
-                  params: {
-                    purpose: params.purpose,
-                    returnTo: params.returnTo,
-                  },
-                });
-              } else {
-                router.back();
-              }
-            }}
+            // Back pops to the search screen below this one on the customer
+            // stack (it keeps its purpose/returnTo params, so the flow resumes
+            // where it left off).
+            onPress={() => router.back()}
           />
           <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
             {isPickup ? (

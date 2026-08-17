@@ -6,7 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { PaymentSummary } from "@/components/payment-summary";
 import { RatingCard } from "@/components/rating-card";
-import { RideMap } from "../../../components/ride-map";
+import { RideMap } from "../../../../components/ride-map";
 import {
   Button,
   Card,

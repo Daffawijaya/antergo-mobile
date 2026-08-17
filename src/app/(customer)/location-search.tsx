@@ -289,16 +289,13 @@ export default function LocationSearchScreen() {
             accessibilityRole="button"
             accessibilityLabel="Kembali"
             // Return to the screen the flow started from (the caller always
-            // passes returnTo) instead of relying on browser history, which on
-            // web breaks when the page is opened or reloaded directly. Falls
-            // back to router.back() when no returnTo was provided.
-            //
-            // Uses replace, not dismissTo: dismissTo dispatches a POP_TO action
-            // that tab routers don't handle, so on web the press silently does
-            // nothing. replace jumps to the target and drops this screen.
+            // passes returnTo). This screen is pushed on the customer stack, so
+            // dismissTo pops back to the target route and drops this screen; on
+            // web the stack history contains the pushed screen, so the pop is
+            // reliable. Falls back to router.back() when no returnTo was given.
             onPress={() =>
               params.returnTo
-                ? router.replace(params.returnTo as never)
+                ? router.dismissTo(params.returnTo as never)
                 : router.back()
             }
             className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
@@ -317,7 +314,7 @@ export default function LocationSearchScreen() {
                 placeholder={
                   pickupPurpose === "send-pickup"
                     ? "Ambil barang dari mana?"
-                    : "Pilih lokasi jemput"
+                    : "Jemput di mana?"
                 }
                 active={purpose === pickupPurpose}
                 busy={busyPurpose === pickupPurpose}
@@ -339,7 +336,13 @@ export default function LocationSearchScreen() {
                     ? query
                     : (selections[destinationPurpose]?.address ?? "")
                 }
-                placeholder={isFood ? "Alamat pengantaran" : "Antar ke?"}
+                placeholder={
+                  isFood
+                    ? "Alamat pengantaran"
+                    : purpose.startsWith("ride")
+                      ? "Mau ke mana?"
+                      : "Antar ke?"
+                }
                 active={purpose === destinationPurpose}
                 busy={busyPurpose === destinationPurpose}
                 autoFocus={purpose === destinationPurpose}
@@ -369,7 +372,13 @@ export default function LocationSearchScreen() {
                   ? query
                   : (selections[destinationPurpose]?.address ?? "")
               }
-              placeholder={isFood ? "Alamat pengantaran" : "Antar ke?"}
+              placeholder={
+                isFood
+                  ? "Alamat pengantaran"
+                  : purpose.startsWith("ride")
+                    ? "Mau ke mana?"
+                    : "Antar ke?"
+              }
               active={purpose === destinationPurpose}
               busy={busyPurpose === destinationPurpose}
               autoFocus={purpose === destinationPurpose}

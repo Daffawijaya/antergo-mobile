@@ -15,11 +15,11 @@ type Service = {
   onPress: () => void;
 };
 const serviceIcons: Record<ServiceVariant, number> = {
-  food: require("../../../assets/images/icon/food.png"),
-  delivery: require("../../../assets/images/icon/delivery.png"),
-  shopping: require("../../../assets/images/icon/shopping.png"),
-  bike: require("../../../assets/images/icon/bike.png"),
-  car: require("../../../assets/images/icon/car.png"),
+  food: require("../../../../assets/images/icon/food.png"),
+  delivery: require("../../../../assets/images/icon/delivery.png"),
+  shopping: require("../../../../assets/images/icon/shopping.png"),
+  bike: require("../../../../assets/images/icon/bike.png"),
+  car: require("../../../../assets/images/icon/car.png"),
 };
 const onePerMerchant = (products: Product[] = []) => {
   const seen = new Set<number>();

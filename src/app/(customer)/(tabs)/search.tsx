@@ -168,7 +168,7 @@ export default function SearchScreen() {
               }
             >
               <Image
-                source={require("../../../assets/images/icon/bike.png")}
+                source={require("../../../../assets/images/icon/bike.png")}
                 style={styles.rideIcon}
                 resizeMode="contain"
                 accessibilityLabel="Bike"
@@ -189,7 +189,7 @@ export default function SearchScreen() {
               }
             >
               <Image
-                source={require("../../../assets/images/icon/car.png")}
+                source={require("../../../../assets/images/icon/car.png")}
                 style={styles.rideIcon}
                 resizeMode="contain"
                 accessibilityLabel="Car"

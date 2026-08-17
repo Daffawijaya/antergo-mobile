@@ -23,7 +23,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   useCallback,
   useEffect,
@@ -229,22 +228,8 @@ export default function CreateSendScreen() {
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
 
-  const opacity = useSharedValue(0);
-  const translateX = useSharedValue(50);
-
-  useEffect(() => {
-    opacity.value = withTiming(1, { duration: 300 });
-    translateX.value = withTiming(0, { duration: 300 });
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateX: translateX.value }],
-  }));
-
   return (
-    <Animated.View style={[animatedStyle, { flex: 1 }]}>
-      <Screen padded={false} className="gap-0 bg-background">
+    <Screen padded={false} className="gap-0 bg-background">
         <View className="px-5 pb-14 pt-2">
           <Svg
             width="100%"
@@ -448,8 +433,7 @@ export default function CreateSendScreen() {
             <Text className="text-white" />
           </View>
         </View>
-      </Screen>
-    </Animated.View>
+    </Screen>
   );
 }
 

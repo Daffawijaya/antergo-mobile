@@ -1,0 +1,459 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Image, Pressable, Text, View } from "react-native";
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import { AppIcon } from "@/components/app-icon";
+import {
+  FaDotCircleIcon,
+  HiLocationMarkerIcon,
+} from "@/components/brand-icons";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
+import { createRide } from "@/lib/api/rides";
+import { getApiErrorMessage } from "@/lib/api/client";
+import {
+  coordinateFromLocation,
+  getLastKnownCoordinate,
+  requestCurrentLocation,
+  reverseGeocodeLabel,
+} from "@/lib/location";
+import { orderKeys } from "@/lib/query-keys";
+import { createRideSchema, type CreateRideForm } from "@/schemas/ride";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
+import { useAppTheme } from "@/stores/theme-store";
+import type { ApiErrorPayload } from "@/types/api";
+
+const defaults: CreateRideForm = {
+  pickup_address: "",
+  pickup_latitude: "",
+  pickup_longitude: "",
+  destination_address: "",
+  destination_latitude: "",
+  destination_longitude: "",
+  notes: "",
+};
+
+// LocationCard palette copied from the Delivery page (send/create.tsx).
+const PICKUP_BLUE = "#2E9BF5";
+const DEST_RED = "#FA2C19";
+
+// Bike brand gradient: right end is the brand yellow, getting darker toward
+// the left (same shape/contrast as the Delivery hero gradient).
+const BIKE_GRADIENT = {
+  light: { from: "#D99600", to: "#FFB900" },
+  dark: { from: "#332600", to: "#453600" },
+} as const;
+
+// Bottom edge of the brand hero: a single smooth wave, mirroring the
+// reference SVG `M0,100 C150,200 350,0 500,100` — one cubic curve across
+// the full width that dips on the left, crosses the middle at the center
+// and rises on the right, so the two halves stay symmetric.
+// (Reference: https://stackoverflow.com/a/56012973, CC BY-SA 4.0)
+function buildWavePath(width: number, height: number): string {
+  const amplitude = Math.min(26, Math.max(16, width * 0.055));
+  // Lift the wave a little above the hero's bottom edge so it floats
+  // instead of touching the very bottom of the hero.
+  const lift = 14;
+  const middle = height - amplitude - lift;
+  // The white fill runs all the way to the hero's bottom edge so no
+  // yellow strip shows below the wave.
+  const bottom = height;
+  // A single cubic only reaches ~29% of its control-point offset, so the
+  // control points sit ~3.46× farther than the visible amplitude — the
+  // reference does the same (its controls sit far outside the visible band).
+  const controlAmplitude = amplitude * 3.464;
+  return [
+    `M 0,${bottom}`,
+    `L ${width},${bottom}`,
+    `L ${width},${middle}`,
+    `C ${width * 0.7},${middle - controlAmplitude}, ${width * 0.3},${middle + controlAmplitude}, 0,${middle}`,
+    "Z",
+  ].join(" ");
+}
+
+export default function CreateRideScreen() {
+  const router = useRouter();
+  const { service } = useLocalSearchParams<{ service?: string }>();
+  const serviceType = service === "car" ? "car" : "bike";
+  const serviceLabel = serviceType === "car" ? "Car" : "Bike";
+  const queryClient = useQueryClient();
+  const pickup = useLocationPickerStore((s) => s.selections["ride-pickup"]);
+  const destination = useLocationPickerStore(
+    (s) => s.selections["ride-destination"],
+  );
+  // Pre-fill the pickup with the user's current location whenever the screen
+  // gains focus — on first open and on every re-entry after going back. This
+  // screen is a tab, so it stays mounted across visits and a mount-only effect
+  // never re-runs (which is why the pickup went missing on re-entry). Skip it
+  // when a pickup has already been chosen.
+  useFocusEffect(
+    useCallback(() => {
+      if (useLocationPickerStore.getState().selections["ride-pickup"]) return;
+      let cancelled = false;
+      void (async () => {
+        try {
+          const known = await getLastKnownCoordinate();
+          const point =
+            known ?? coordinateFromLocation(await requestCurrentLocation());
+          const address = await reverseGeocodeLabel(point);
+          if (cancelled) return;
+          useLocationPickerStore
+            .getState()
+            .setSelection("ride-pickup", { coordinate: point, address });
+        } catch {
+          // GPS tidak tersedia/ditolak — biarkan lokasi jemput tetap kosong.
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
+  const {
+    control,
+    handleSubmit,
+    setError,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<CreateRideForm>({
+    resolver: zodResolver(createRideSchema),
+    defaultValues: defaults,
+  });
+  useEffect(() => {
+    if (pickup) {
+      setValue("pickup_address", pickup.address, { shouldValidate: true });
+      setValue("pickup_latitude", String(pickup.coordinate.latitude), {
+        shouldValidate: true,
+      });
+      setValue("pickup_longitude", String(pickup.coordinate.longitude), {
+        shouldValidate: true,
+      });
+    }
+  }, [pickup, setValue]);
+  useEffect(() => {
+    if (destination) {
+      setValue("destination_address", destination.address, {
+        shouldValidate: true,
+      });
+      setValue(
+        "destination_latitude",
+        String(destination.coordinate.latitude),
+        { shouldValidate: true },
+      );
+      setValue(
+        "destination_longitude",
+        String(destination.coordinate.longitude),
+        { shouldValidate: true },
+      );
+    }
+  }, [destination, setValue]);
+  const mutation = useMutation({
+    mutationFn: createRide,
+    onSuccess: async ({ order }) => {
+      await queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      router.replace({
+        pathname: "/(customer)/ride/[id]",
+        params: { id: String(order.id) },
+      });
+    },
+  });
+  const submit = handleSubmit((values) =>
+    mutation.mutate(
+      {
+        pickup_address: values.pickup_address.trim(),
+        pickup_latitude: Number(values.pickup_latitude),
+        pickup_longitude: Number(values.pickup_longitude),
+        destination_address: values.destination_address.trim(),
+        destination_latitude: Number(values.destination_latitude),
+        destination_longitude: Number(values.destination_longitude),
+        notes: values.notes.trim() || null,
+        service_type: serviceType,
+      },
+      {
+        onError: (error) => {
+          if (!isAxiosError<ApiErrorPayload>(error)) return;
+          Object.entries(error.response?.data?.errors ?? {}).forEach(
+            ([field, messages]) => {
+              if (field in defaults)
+                setError(field as keyof CreateRideForm, {
+                  type: "server",
+                  message: messages[0],
+                });
+            },
+          );
+        },
+      },
+    ),
+  );
+  const openPicker = (purpose: "ride-pickup" | "ride-destination") =>
+    router.push({
+      pathname: "/(customer)/location-search" as never,
+      params: {
+        purpose,
+        returnTo: `/(customer)/ride/create?service=${service}`,
+      },
+    });
+  const swapLocations = () => {
+    const state = useLocationPickerStore.getState();
+    const currentPickup = state.selections["ride-pickup"];
+    const currentDestination = state.selections["ride-destination"];
+    if (!currentPickup || !currentDestination) return;
+    state.setSelection("ride-pickup", currentDestination);
+    state.setSelection("ride-destination", currentPickup);
+  };
+  const { mode, colors } = useAppTheme();
+  const [heroWidth, setHeroWidth] = useState(0);
+  const [heroHeight, setHeroHeight] = useState(0);
+  const locationError =
+    errors.pickup_address?.message ||
+    errors.pickup_latitude?.message ||
+    errors.destination_address?.message ||
+    errors.destination_latitude?.message;
+  const gradient = BIKE_GRADIENT[mode];
+  // White reads best on the (darker) brand-yellow hero.
+  const heroColor = "#FFFFFF";
+
+  return (
+    <Screen padded={false} className="gap-0 bg-background">
+      <View
+        className="px-5 pb-6 pt-2"
+        onLayout={(event) => {
+          setHeroWidth(event.nativeEvent.layout.width);
+          // The wave is the hero's bottom edge, so it must sit below all of
+          // the hero's content (header, location card, promo + bike image).
+          setHeroHeight(event.nativeEvent.layout.height);
+        }}
+      >
+        <Svg
+          width="100%"
+          height={heroHeight || 300}
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+        >
+          <Defs>
+            <LinearGradient
+              id="bike-hero"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <Stop offset="0%" stopColor={gradient.from} />
+              <Stop offset="100%" stopColor={gradient.to} />
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#bike-hero)" />
+          {heroWidth > 0 ? (
+            <Path
+              d={buildWavePath(heroWidth, heroHeight || 300)}
+              fill={colors.background}
+            />
+          ) : null}
+        </Svg>
+        <HeroHeader
+          title={serviceLabel}
+          onBack={() => {
+            // Don't carry the chosen locations or form data over: leaving via
+            // back starts the next order from a clean state.
+            useLocationPickerStore.getState().clearSelection("ride-pickup");
+            useLocationPickerStore
+              .getState()
+              .clearSelection("ride-destination");
+            reset();
+            router.back();
+          }}
+        />
+        <LocationCard
+          pickup={{
+            value: pickup?.address,
+            placeholder: "Jemput di mana?",
+            onPress: () => openPicker("ride-pickup"),
+          }}
+          destination={{
+            value: destination?.address,
+            placeholder: "Mau ke mana?",
+            onPress: () => openPicker("ride-destination"),
+          }}
+          onSwap={swapLocations}
+          swapDisabled={!pickup || !destination}
+        />
+        <View className="relative mt-3 min-h-[104px] justify-start pr-24">
+          <Text
+            className="font-semibold text-[16px] leading-5"
+            style={{ color: heroColor }}
+          >
+            Perjalanan praktis & hemat
+          </Text>
+          <View className="mt-1 flex-row items-center gap-0.5">
+            <Text
+              className="font-normal text-[15px] leading-5"
+              style={{ color: heroColor }}
+            >
+              Driver siap jemput
+            </Text>
+            <AppIcon name="forward" size={16} color={heroColor} />
+          </View>
+          <View
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: 88,
+              height: 88,
+              // Drop shadow follows the PNG's transparency, not the image box.
+              filter: "drop-shadow(0 5px 12px rgba(0, 0, 0, 0.18))",
+            }}
+          >
+            <Image
+              source={require("../../../../../assets/images/icon/bike.png")}
+              style={{ width: 88, height: 88 }}
+              resizeMode="contain"
+              accessibilityLabel={serviceLabel}
+            />
+          </View>
+        </View>
+      </View>
+      <View className="gap-4 px-5 pt-2">
+        {locationError ? (
+          <Notice tone="danger">{locationError}</Notice>
+        ) : null}
+        <View className="gap-4 px-2 pt-4">
+          <Text className="font-extrabold text-[17px] text-foreground">
+            Catatan untuk driver
+          </Text>
+          <Controller
+            control={control}
+            name="notes"
+            render={({ field }) => (
+              <FormField
+                label="Catatan untuk driver (opsional)"
+                placeholder="Contoh: tunggu di depan lobi"
+                multiline
+                numberOfLines={3}
+                value={field.value}
+                onChangeText={field.onChange}
+                error={errors.notes?.message}
+              />
+            )}
+          />
+        </View>
+        {mutation.isError ? (
+          <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
+        ) : null}
+        <Text className="pt-2 text-center text-[13px] text-muted">
+          Biaya perjalanan dihitung otomatis berdasarkan jarak.
+        </Text>
+        <Button
+          title="Cari Driver"
+          loading={mutation.isPending}
+          onPress={submit}
+          className="rounded-full"
+        />
+      </View>
+    </Screen>
+  );
+}
+
+function HeroHeader({
+  title,
+  onBack,
+}: {
+  title: string;
+  onBack: () => void;
+}) {
+  return (
+    <View className="mt-2 flex-row items-center">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Kembali"
+        onPress={onBack}
+        className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+      >
+        <AppIcon name="back" size={26} color="#FFFFFF" />
+      </Pressable>
+      <Text className="font-bold text-[22px] leading-7" style={{ color: "#FFFFFF" }}>
+        {title}
+      </Text>
+    </View>
+  );
+}
+
+function LocationCard({
+  pickup,
+  destination,
+  onSwap,
+  swapDisabled,
+}: {
+  pickup: { value?: string; placeholder: string; onPress: () => void };
+  destination: { value?: string; placeholder: string; onPress: () => void };
+  onSwap: () => void;
+  swapDisabled: boolean;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <View className="mt-4 rounded-2xl bg-surface px-4 py-5">
+      <View className="flex-row">
+        <View className="flex-1">
+          <LocationRow
+            marker={<FaDotCircleIcon size={16} color={PICKUP_BLUE} />}
+            value={pickup.value}
+            placeholder={pickup.placeholder}
+            onPress={pickup.onPress}
+          />
+          <View className="my-1 w-6 items-center gap-[6px] self-start">
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+            <View className="h-[3px] w-[3px] rounded-full bg-[#C9CDD4]" />
+          </View>
+          <LocationRow
+            marker={<HiLocationMarkerIcon size={22} color={DEST_RED} />}
+            value={destination.value}
+            placeholder={destination.placeholder}
+            onPress={destination.onPress}
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Tukar lokasi"
+          onPress={onSwap}
+          disabled={swapDisabled}
+          className="ml-2 h-10 w-10 self-center items-center justify-center rounded-full active:opacity-70"
+          style={swapDisabled ? { opacity: 0.4 } : null}
+        >
+          <AppIcon name="swap" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function LocationRow({
+  marker,
+  value,
+  placeholder,
+  onPress,
+}: {
+  marker: ReactNode;
+  value?: string;
+  placeholder: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="flex-row items-center active:opacity-70"
+    >
+      <View className="w-6 items-center justify-center">{marker}</View>
+      <Text
+        numberOfLines={1}
+        className={`ml-3 flex-1 text-[15px] leading-5 ${value ? "font-bold text-foreground" : "font-medium text-muted"}`}
+      >
+        {value || placeholder}
+      </Text>
+    </Pressable>
+  );
+}

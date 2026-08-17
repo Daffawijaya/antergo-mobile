@@ -1,115 +1,31 @@
-import { Tabs } from "expo-router";
-import {
-  BsChatTextFillIcon,
-  BsChatTextIcon,
-  FaRegUserIcon,
-  FaUserIcon,
-  TbClipboardTextFilledIcon,
-  TbClipboardTextIcon,
-  TiHomeIcon,
-  TiHomeOutlineIcon,
-} from "@/components/brand-icons";
-import { Colors } from "@/constants/colors";
+import { Stack } from "expo-router";
+import { Platform } from "react-native";
 import { useAppTheme } from "@/stores/theme-store";
-const hidden = [
-  "payments",
-  "account-detail",
-  "search",
-  "driver-register",
-  "merchant-register",
-  "location-search",
-  "location-picker",
-  "ride/create",
-  "ride/[id]",
-  "food/index",
-  "food/cart",
-  "food/checkout",
-  "food/merchant/[id]",
-  "food/order/[id]",
-  "send/create",
-  "send/[id]",
-  "chat/[id]",
-];
+
+// The send/location pages are pushed on top of the tab bar as a true "stack of
+// pages": the tab screen below stays still while the new page slides in from
+// the right (simple_push on iOS keeps the previous screen in place; on Android
+// slide_from_right does the same). Location screens slide up from the bottom.
+const PUSH_FROM_RIGHT = Platform.select({
+  ios: "simple_push",
+  default: "slide_from_right",
+}) as "simple_push" | "slide_from_right";
+
 export default function CustomerLayout() {
   const { colors } = useAppTheme();
   return (
-    <Tabs
+    <Stack
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: "#767676",
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          height: 76,
-          paddingTop: 5,
-          paddingBottom: 16,
-          borderTopWidth: 0,
-          backgroundColor: colors.surface,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.05,
-          shadowRadius: 14,
-          elevation: 10,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-          fontFamily: "Outfit_600SemiBold",
-          paddingTop: 4,
-        },
+        animationDuration: 220,
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <TiHomeIcon size={24} color={String(color)} />
-            ) : (
-              <TiHomeOutlineIcon size={24} color={String(color)} />
-            ),
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: "Activities",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <TbClipboardTextFilledIcon size={22} color={String(color)} />
-            ) : (
-              <TbClipboardTextIcon size={22} color={String(color)} />
-            ),
-        }}
-      />
-      <Tabs.Screen
-        name="chat/index"
-        options={{
-          title: "Inbox",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <BsChatTextFillIcon size={22} color={String(color)} />
-            ) : (
-              <BsChatTextIcon size={22} color={String(color)} />
-            ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <FaUserIcon size={21} color={String(color)} />
-            ) : (
-              <FaRegUserIcon size={21} color={String(color)} />
-            ),
-        }}
-      />
-      {hidden.map((name) => (
-        <Tabs.Screen key={name} name={name} options={{ href: null }} />
-      ))}
-    </Tabs>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="send/create" options={{ animation: PUSH_FROM_RIGHT }} />
+      <Stack.Screen name="send/[id]" options={{ animation: PUSH_FROM_RIGHT }} />
+      <Stack.Screen name="location-search" options={{ animation: "slide_from_bottom" }} />
+      <Stack.Screen name="location-picker" options={{ animation: "slide_from_bottom" }} />
+    </Stack>
   );
 }
