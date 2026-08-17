@@ -1,17 +1,25 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
-import { AppIcon } from "@/components/app-icon";
-import { StyleSheet, Text, View } from "react-native";
 import { useState } from "react";
-import { Button, Card, FormField, Notice, Screen } from "@/components/ui";
-import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
+import { Controller, useForm } from "react-hook-form";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
+import { Elevation, Radius, Spacing, Typography } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { type LoginForm, loginSchema } from "@/schemas/auth";
 import { useAuthStore } from "@/stores/auth-store";
+import { useAppTheme } from "@/stores/theme-store";
+
+// Dark logo for light backgrounds, light logo for dark backgrounds.
+const LOGOS = {
+  light: require("../../../assets/logo/antegolight.png"),
+  dark: require("../../../assets/logo/antegodark.png"),
+} as const;
+
 export default function LoginScreen() {
   const login = useAuthStore((state) => state.login);
   const [serverError, setServerError] = useState<string>();
+  const { mode, colors } = useAppTheme();
   const {
     control,
     handleSubmit,
@@ -28,19 +36,26 @@ export default function LoginScreen() {
       setServerError(getApiErrorMessage(error));
     }
   });
+  const linkColor = mode === "dark" ? "#FFB900" : "#92400E";
   return (
     <Screen contentStyle={styles.screen}>
       <View style={styles.brand}>
-        <View style={styles.logo}>
-          <AppIcon name="navigation" size={34} color={Colors.onPrimary} />
-        </View>
-        <Text style={styles.brandName}>AnterGo</Text>
-        <Text style={styles.tagline}>Semua perjalanan dimulai dari sini.</Text>
+        <Image
+          source={LOGOS[mode]}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="AnterGo"
+        />
+        <Text style={[styles.tagline, { color: colors.muted }]}>
+          Semua perjalanan dimulai dari sini.
+        </Text>
       </View>
-      <Card style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.surface }]}>
         <View style={styles.heading}>
-          <Text style={styles.title}>Selamat datang</Text>
-          <Text style={styles.description}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Selamat datang
+          </Text>
+          <Text style={[styles.description, { color: colors.muted }]}>
             Masuk untuk melanjutkan ke akunmu.
           </Text>
         </View>
@@ -76,34 +91,37 @@ export default function LoginScreen() {
           )}
         />
         {serverError ? <Notice tone="danger">{serverError}</Notice> : null}
-        <Button title="Masuk" loading={isSubmitting} onPress={submit} />
-      </Card>
-      <Text style={styles.footer}>
+        <Button
+          title="Masuk"
+          loading={isSubmitting}
+          onPress={submit}
+          className="rounded-full"
+        />
+      </View>
+      <Text style={[styles.footer, { color: colors.muted }]}>
         Belum punya akun?{" "}
-        <Link href="./register" style={styles.link}>
+        <Link href="./register" style={[styles.link, { color: linkColor }]}>
           Daftar sekarang
         </Link>
       </Text>
     </Screen>
   );
 }
+
 const styles = StyleSheet.create({
   screen: { justifyContent: "center", paddingTop: Spacing.xxxl },
-  brand: { alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
-  logo: {
-    width: 70,
-    height: 70,
+  brand: { alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.lg },
+  logo: { width: 220, height: 46 },
+  tagline: { ...Typography.body, textAlign: "center" },
+  card: {
     borderRadius: Radius.xl,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.primary,
+    padding: Spacing.xl,
+    gap: Spacing.lg,
+    ...Elevation.card,
   },
-  brandName: { color: Colors.text, ...Typography.display },
-  tagline: { color: Colors.muted, ...Typography.body },
-  card: { gap: Spacing.lg },
   heading: { gap: Spacing.xs, marginBottom: Spacing.xs },
-  title: { color: Colors.text, ...Typography.pageTitle },
-  description: { color: Colors.muted, ...Typography.body },
-  footer: { textAlign: "center", color: Colors.muted, ...Typography.body },
-  link: { color: Colors.primaryDark, fontWeight: "800" },
+  title: { ...Typography.pageTitle },
+  description: { ...Typography.body },
+  footer: { textAlign: "center", ...Typography.body },
+  link: { fontWeight: "800" },
 });
