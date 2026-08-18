@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Alert, Image, Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
@@ -24,12 +24,20 @@ import { driverDocumentsKey } from "./index";
 const VALID_TYPES: DriverDocumentType[] = ["ktp", "sim_a", "sim_c"];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** KTP does not have an expiry date (valid for life). */
+const HAS_EXPIRY: Record<DriverDocumentType, boolean> = {
+  ktp: false,
+  sim_a: true,
+  sim_c: true,
+};
+
 export default function DocumentDetailScreen() {
   const router = useRouter();
   const client = useQueryClient();
   const { colors } = useAppTheme();
   const { type } = useLocalSearchParams<{ type: string }>();
   const docType = VALID_TYPES.find((t) => t === type);
+  const showExpiry = docType ? HAS_EXPIRY[docType] : true;
 
   /* ---------- editing state ---------- */
   const [photo, setPhoto] = useState<OptimizedPhoto>();
@@ -38,7 +46,6 @@ export default function DocumentDetailScreen() {
   /* ---------- original values (from backend) ---------- */
   const [origPhotoUrl, setOrigPhotoUrl] = useState<string | null>(null);
   const [origExpiresAt, setOrigExpiresAt] = useState("");
-  const [initialized, setInitialized] = useState(false);
 
   /* ---------- fetch document list ---------- */
   const query = useQuery({
@@ -48,20 +55,32 @@ export default function DocumentDetailScreen() {
   });
   const doc = query.data?.find((d) => d.type === docType);
 
-  /* ---------- seed form from backend on first load ---------- */
-  useEffect(() => {
-    if (doc && !initialized) {
-      setOrigPhotoUrl(doc.photo_url ?? null);
-      setOrigExpiresAt(doc.expires_at ?? "");
-      setExpiresAt(doc.expires_at ?? "");
-      setInitialized(true);
-    }
-  }, [doc, initialized]);
+  /* ---------- seed / reset form on screen focus ---------- */
+  useFocusEffect(
+    useCallback(() => {
+      if (doc) {
+        /* Fresh data from backend — seed form fields */
+        setOrigPhotoUrl(doc.photo_url ?? null);
+        setOrigExpiresAt(doc.expires_at ?? "");
+        setExpiresAt(doc.expires_at ?? "");
+        setPhoto(undefined);
+      } else {
+        /* No data yet (or docType changed) — reset to defaults */
+        setOrigPhotoUrl(null);
+        setOrigExpiresAt("");
+        setExpiresAt("");
+        setPhoto(undefined);
+      }
+    }, [doc]),
+  );
 
   /* ---------- change detection (compare against originals) ---------- */
   const photoChanged = photo !== undefined;
-  const dateChanged = expiresAt.trim() !== origExpiresAt;
-  const dateValid = expiresAt.trim() === "" || DATE_RE.test(expiresAt.trim());
+  const dateChanged = showExpiry && expiresAt.trim() !== origExpiresAt;
+  const dateValid =
+    !showExpiry ||
+    expiresAt.trim() === "" ||
+    DATE_RE.test(expiresAt.trim());
   const hasChanges = (photoChanged || dateChanged) && dateValid;
 
   /* ---------- save ---------- */
@@ -141,7 +160,7 @@ export default function DocumentDetailScreen() {
         <StatusState type="error" message={getApiErrorMessage(query.error)} />
       ) : (
         <>
-          {/* ── Foto SIM ── */}
+          {/* ── Foto Dokumen ── */}
           <Pressable onPress={handlePickPhoto} className="relative">
             {displayPhotoUrl ? (
               <View className="overflow-hidden rounded-2xl border border-border bg-surface-muted aspect-[1.58]">
@@ -153,7 +172,9 @@ export default function DocumentDetailScreen() {
               </View>
             ) : (
               <View className="items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted aspect-[1.58]">
-                <Text className="text-sm text-muted">Belum ada foto SIM</Text>
+                <Text className="text-sm text-muted">
+                  Belum ada foto dokumen
+                </Text>
               </View>
             )}
             {/* Pencil overlay – bottom-right */}
@@ -162,20 +183,22 @@ export default function DocumentDetailScreen() {
             </View>
           </Pressable>
 
-          {/* ── Berlaku Sampai ── */}
-          <FormField
-            label="Berlaku Sampai"
-            value={expiresAt}
-            onChangeText={setExpiresAt}
-            placeholder="YYYY-MM-DD (contoh: 2030-12-31)"
-            autoCapitalize="none"
-            autoCorrect={false}
-            error={
-              expiresAt.trim() && !dateValid
-                ? "Format tanggal harus YYYY-MM-DD."
-                : undefined
-            }
-          />
+          {/* ── Berlaku Sampai (hidden for KTP — valid for life) ── */}
+          {showExpiry ? (
+            <FormField
+              label="Berlaku Sampai"
+              value={expiresAt}
+              onChangeText={setExpiresAt}
+              placeholder="YYYY-MM-DD (contoh: 2030-12-31)"
+              autoCapitalize="none"
+              autoCorrect={false}
+              error={
+                expiresAt.trim() && !dateValid
+                  ? "Format tanggal harus YYYY-MM-DD."
+                  : undefined
+              }
+            />
+          ) : null}
 
           {/* ── Error ── */}
           {save.isError ? (
@@ -192,7 +215,10 @@ export default function DocumentDetailScreen() {
               save.mutate({
                 type: docType,
                 photo,
-                expires_at: expiresAt.trim() || undefined,
+                expires_at:
+                  showExpiry && expiresAt.trim()
+                    ? expiresAt.trim()
+                    : undefined,
               })
             }
           />

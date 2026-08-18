@@ -197,6 +197,7 @@ export function Button({
   compact?: boolean;
   className?: string;
 }) {
+  const { colors } = useAppTheme();
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -217,7 +218,15 @@ export function Button({
         />
       ) : (
         <Text
-          className={`font-extrabold text-[15px] leading-5 text-white`}
+          className="font-extrabold text-[15px] leading-5"
+          style={{
+            color:
+              variant === "primary"
+                ? Colors.onPrimary
+                : variant === "danger"
+                  ? Colors.danger
+                  : colors.text,
+          }}
         >
           {title}
         </Text>
