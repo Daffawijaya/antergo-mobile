@@ -1,8 +1,9 @@
 import { AppIcon } from "@/components/app-icon";
-import { FaWhatsappIcon } from "@/components/brand-icons";
+import { FaWhatsappIcon, HiUserCircleIcon } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getDriverApplication } from "@/lib/api/resources";
+import { roleAvatar } from "@/lib/user-avatar";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePushNotificationStore } from "@/stores/push-notification-store";
 import {
@@ -42,6 +43,7 @@ export function ProfileScreen() {
   const setThemeMode = useThemeStore((state) => state.setMode);
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
+  const avatar = roleAvatar(user, activeRole);
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
   const logout = useAuthStore((state) => state.logout);
   const refreshUser = useAuthStore((state) => state.refreshUser);
@@ -107,9 +109,17 @@ export function ProfileScreen() {
             }}
           >
             <View className="flex-row items-center gap-3">
-              <View className="h-16 w-16 items-center justify-center rounded-full bg-brand">
-                <AppIcon name="profile" size={35} color={Colors.onPrimary} />
-              </View>
+              {avatar ? (
+                <View className="h-16 w-16 overflow-hidden rounded-full">
+                  <Image
+                    source={{ uri: avatar }}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                  />
+                </View>
+              ) : (
+                <HiUserCircleIcon size={64} color={colors.muted} />
+              )}
               <View className="min-w-0 flex-1">
                 <Text
                   numberOfLines={1}

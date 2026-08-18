@@ -9,6 +9,7 @@ export type RegisterInput = {
   password: string;
   password_confirmation: string;
 };
+export type UpdateProfileInput = { name: string; email: string; phone: string };
 
 export async function login(input: LoginInput) {
   return (await apiClient.post<AuthResponse>("/auth/login", input)).data;
@@ -20,6 +21,10 @@ export async function register(input: RegisterInput) {
 
 export async function getMe() {
   return (await apiClient.get<MeResponse>("/auth/me")).data.user;
+}
+
+export async function updateProfile(input: UpdateProfileInput) {
+  return (await apiClient.patch<MeResponse>("/auth/me", input)).data.user;
 }
 
 export async function logout() {

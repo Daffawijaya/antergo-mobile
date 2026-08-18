@@ -7,7 +7,12 @@ export type User = {
   email: string;
   phone: string;
   roles: UserRole[];
+  // Photo of the user as a customer.
   avatar: string | null;
+  // Photo of the user as a driver (drivers.avatar).
+  driver_avatar: string | null;
+  // Photo of the user as a merchant (merchants.logo).
+  merchant_avatar: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -1,8 +1,11 @@
 import { AppIcon } from "@/components/app-icon";
+import { HiUserCircleIcon } from "@/components/brand-icons";
 import { Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
+import { roleAvatar } from "@/lib/user-avatar";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -33,6 +36,9 @@ const onePerMerchant = (products: Product[] = []) => {
 };
 export default function CustomerHome() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const activeRole = useAuthStore((state) => state.activeRole);
+  const avatar = roleAvatar(user, activeRole);
   const foodMerchants = useQuery({
     queryKey: ["merchants", "home", "food"],
     queryFn: () => listMerchants(1, "food"),
@@ -123,9 +129,17 @@ export default function CustomerHome() {
         </Pressable>
         <Pressable
           onPress={() => router.push("/(customer)/(tabs)/profile")}
-          className="h-12 w-12 items-center justify-center rounded-full bg-surface"
+          className="h-12 w-12 items-center justify-center overflow-hidden rounded-full active:opacity-70"
         >
-          <AppIcon name="profile" size={25} color={Colors.primary} />
+          {avatar ? (
+            <Image
+              source={{ uri: avatar }}
+              className="h-full w-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <HiUserCircleIcon size={48} color={Colors.muted} />
+          )}
         </Pressable>
       </View>
       <View className="gap-4 px-4 py-5">

@@ -16,7 +16,11 @@ import {
   saveToken,
   setUnauthorizedHandler,
 } from "@/lib/api/session";
-import type { LoginInput, RegisterInput } from "@/lib/api/auth";
+import type {
+  LoginInput,
+  RegisterInput,
+  UpdateProfileInput,
+} from "@/lib/api/auth";
 import type { AppRole, User } from "@/types/api";
 
 const APP_ROLES: AppRole[] = ["customer", "driver", "merchant"];
@@ -40,6 +44,7 @@ type AuthState = {
   isHydrated: boolean;
   restoreSession: () => Promise<void>;
   refreshUser: () => Promise<User | null>;
+  updateProfile: (input: UpdateProfileInput) => Promise<User>;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   setActiveRole: (role: AppRole) => Promise<void>;
@@ -70,6 +75,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   refreshUser: async () => {
     const user = await authApi.getMe();
+    const activeRole = await resolveActiveRole(user, get().activeRole);
+    set({ user, activeRole });
+    return user;
+  },
+  updateProfile: async (input) => {
+    const user = await authApi.updateProfile(input);
     const activeRole = await resolveActiveRole(user, get().activeRole);
     set({ user, activeRole });
     return user;
