@@ -229,21 +229,38 @@ export function Button({
 export function BackButton({
   onPress,
   floating = false,
+  title,
 }: {
   onPress: () => void;
   floating?: boolean;
+  title?: string;
 }) {
-  const { colors } = useAppTheme();
-  return (
+  const { mode } = useAppTheme();
+  const color = mode === "dark" ? "#FFFFFF" : "#000000";
+  const icon = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Kembali"
       onPress={onPress}
-      className={`h-10 w-10 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface elevation-md" : "bg-transparent"}`}
+      className={`h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface elevation-md" : "bg-transparent"}`}
     >
-      <AppIcon name="back" size={22} color={colors.text} />
+      <AppIcon name="back" size={26} color={color} />
     </Pressable>
   );
+  if (title) {
+    return (
+      <View className="flex-row items-center">
+        {icon}
+        <Text
+          className="font-bold text-[22px] leading-7"
+          style={{ color }}
+        >
+          {title}
+        </Text>
+      </View>
+    );
+  }
+  return icon;
 }
 
 export function StatusState({

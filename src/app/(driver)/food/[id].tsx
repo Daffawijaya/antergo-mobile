@@ -80,7 +80,7 @@ export default function DriverFoodDetailScreen() {
         <StatusState
           type="error"
           message="Order ini bukan Food delivery."
-          action={<Button title="Kembali" onPress={() => router.back()} />}
+          action={<Button title="Kembali" onPress={() => router.replace("/(driver)/orders")} />}
         />
       </Screen>
     );
@@ -89,7 +89,7 @@ export default function DriverFoodDetailScreen() {
       <Button
         title="Kembali"
         variant="secondary"
-        onPress={() => router.back()}
+        onPress={() => router.replace("/(driver)/orders")}
       />
       <PageHeader
         eyebrow="Driver Food"

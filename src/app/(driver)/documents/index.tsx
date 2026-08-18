@@ -29,11 +29,10 @@ export default function DocumentsScreen() {
 
   return (
     <Screen className="gap-5 px-4 pt-2">
-      <View className="flex-row items-center justify-between">
-        <BackButton onPress={() => router.back()} />
-        <Text className="font-bold text-lg text-foreground">Dokumen & SIM</Text>
-        <View className="h-10 w-10" />
-      </View>
+      <BackButton
+        onPress={() => router.replace("/(driver)/profile")}
+        title="Dokumen & SIM"
+      />
       {query.isLoading ? (
         <StatusState type="loading" />
       ) : query.isError ? (

@@ -85,7 +85,7 @@ export default function DriverRideDetailScreen() {
             <Button
               title="Kembali"
               variant="secondary"
-              onPress={() => router.back()}
+              onPress={() => router.replace("/(driver)/orders")}
             />
           }
         />
@@ -96,7 +96,7 @@ export default function DriverRideDetailScreen() {
       <Button
         title="Kembali"
         variant="secondary"
-        onPress={() => router.back()}
+        onPress={() => router.replace("/(driver)/orders")}
       />
       <PageHeader
         eyebrow="Driver Ride"

@@ -4,10 +4,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
+  BackButton,
   Button,
   Card,
   KeyValue,
-  PageHeader,
   Screen,
   StatusState,
 } from "@/components/ui";
@@ -57,14 +57,9 @@ export default function MerchantOrderDetailScreen() {
     : undefined;
   return (
     <Screen>
-      <Button
-        title="Kembali"
-        variant="secondary"
+      <BackButton
         onPress={() => router.back()}
-      />
-      <PageHeader
-        eyebrow="Merchant Order"
-        title={query.data?.order_number ?? "Detail pesanan"}
+        title="Detail Pesanan"
       />
       {query.isLoading ? (
         <StatusState type="loading" />

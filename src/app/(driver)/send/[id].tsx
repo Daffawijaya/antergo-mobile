@@ -93,7 +93,7 @@ export default function DriverSendDetail() {
       <Button
         title="Kembali"
         variant="secondary"
-        onPress={() => router.back()}
+        onPress={() => router.replace("/(driver)/orders")}
       />
       <PageHeader
         eyebrow="Driver Delivery"
