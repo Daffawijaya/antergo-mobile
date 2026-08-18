@@ -31,7 +31,12 @@ export type Vehicle = {
   color: string;
   image_uploaded: boolean;
 };
-export type DriverDocumentStatus = { type: "ktp" | "sim_a" | "sim_c"; uploaded: boolean };
+export type DriverDocumentType = "ktp" | "sim_a" | "sim_c";
+export type DriverDocumentStatus = {
+  type: DriverDocumentType;
+  uploaded: boolean;
+  expires_at: string | null;
+};
 
 export type DriverLocation = {
   id: number;

@@ -12,7 +12,7 @@ import {
 import { DriverLocationTracker } from "@/components/driver-location-tracker";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
-const hidden = ["ride/[id]", "food/[id]", "send/[id]", "chat/[id]", "vehicles"];
+const hidden = ["ride/[id]", "food/[id]", "send/[id]", "chat/[id]", "vehicles", "documents"];
 export default function DriverLayout() {
   const { colors } = useAppTheme();
   return (

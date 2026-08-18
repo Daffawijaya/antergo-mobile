@@ -14,6 +14,11 @@ import {
   selectActiveVehicle,
 } from "@/lib/api/resources";
 import { driverKeys } from "@/lib/driver-query-keys";
+import {
+  DOC_LABELS,
+  SIM_FOR_VEHICLE,
+  vehicleSimExpired,
+} from "@/lib/driver-documents";
 import type { OptimizedPhoto } from "@/lib/image-upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -34,9 +39,11 @@ export default function VehiclesScreen() {
   const [color, setColor] = useState("");
   const [image, setImage] = useState<OptimizedPhoto>();
   const [sim, setSim] = useState<OptimizedPhoto>();
-  const docs = query.data?.documents?.map((d) => d.type) ?? [];
+  const docs = query.data?.documents ?? [];
   const needsSim =
-    type === "car" ? !docs.includes("sim_a") : !docs.includes("sim_c");
+    type === "car"
+      ? !docs.some((d) => d.type === "sim_a")
+      : !docs.some((d) => d.type === "sim_c");
   const refresh = async () =>
     client.invalidateQueries({ queryKey: driverKeys.profile });
   const add = useMutation({
@@ -78,35 +85,52 @@ export default function VehiclesScreen() {
         <StatusState type="error" message={getApiErrorMessage(query.error)} />
       ) : (
         <View className="gap-4">
-          {query.data?.vehicles?.map((v) => (
-            <View key={v.id} className="gap-2 border-b border-border pb-4">
-              <View className="flex-row justify-between">
-                <View>
-                  <Text className="font-bold text-lg text-foreground">
-                    {v.type === "car" ? "Mobil" : "Motor"}
-                  </Text>
-                  <Text className="text-muted">
-                    {v.brand} {v.model}
-                  </Text>
-                  <Text className="text-muted">
-                    {v.plate_number} · {v.color}
-                  </Text>
+          {query.data?.vehicles?.map((v) => {
+            const simExpired = vehicleSimExpired(docs, v.type);
+            const simLabel = DOC_LABELS[SIM_FOR_VEHICLE[v.type]];
+            return (
+              <View key={v.id} className="gap-2 border-b border-border pb-4">
+                <View className="flex-row justify-between">
+                  <View>
+                    <Text className="font-bold text-lg text-foreground">
+                      {v.type === "car" ? "Mobil" : "Motor"}
+                    </Text>
+                    <Text className="text-muted">
+                      {v.brand} {v.model}
+                    </Text>
+                    <Text className="text-muted">
+                      {v.plate_number} · {v.color}
+                    </Text>
+                  </View>
+                  {query.data?.active_vehicle_id === v.id ? (
+                    <Text className="font-semibold text-brand-dark">Aktif</Text>
+                  ) : null}
                 </View>
-                {query.data?.active_vehicle_id === v.id ? (
-                  <Text className="font-semibold text-brand-dark">Aktif</Text>
+                {simExpired ? (
+                  <View className="gap-2">
+                    <Notice tone="danger">
+                      {simLabel} sudah kedaluwarsa. Perbarui {simLabel} di
+                      Dokumen &amp; SIM untuk menggunakan kendaraan ini.
+                    </Notice>
+                    <Button
+                      compact
+                      variant="secondary"
+                      title={`Perbarui ${simLabel}`}
+                      onPress={() => router.push("/(driver)/documents")}
+                    />
+                  </View>
+                ) : query.data?.active_vehicle_id !== v.id ? (
+                  <Button
+                    compact
+                    variant="secondary"
+                    title="Gunakan Kendaraan Ini"
+                    loading={active.isPending}
+                    onPress={() => active.mutate(v.id)}
+                  />
                 ) : null}
               </View>
-              {query.data?.active_vehicle_id !== v.id ? (
-                <Button
-                  compact
-                  variant="secondary"
-                  title="Gunakan Kendaraan Ini"
-                  loading={active.isPending}
-                  onPress={() => active.mutate(v.id)}
-                />
-              ) : null}
-            </View>
-          ))}
+            );
+          })}
           <Button
             title={show ? "Tutup Form" : "+ Tambah Kendaraan"}
             variant="secondary"

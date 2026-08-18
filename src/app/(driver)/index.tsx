@@ -1,7 +1,7 @@
 import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { AppState, StyleSheet, Text, View } from "react-native";
+import { Alert, AppState, StyleSheet, Text, View } from "react-native";
 
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { orderService, serviceLabel } from "@/components/service-icon";
@@ -22,6 +22,11 @@ import {
 } from "@/lib/api/driver-rides";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { driverKeys } from "@/lib/driver-query-keys";
+import {
+  DOC_LABELS,
+  SIM_FOR_VEHICLE,
+  vehicleSimExpired,
+} from "@/lib/driver-documents";
 import { formatRupiah } from "@/lib/format";
 import {
   setDriverTrackingMode,
@@ -136,8 +141,37 @@ export default function DriverHome() {
     },
   });
 
+  const activeVehicle = profile.data?.vehicle ?? null;
+  const simExpired = activeVehicle
+    ? vehicleSimExpired(profile.data?.documents, activeVehicle.type)
+    : false;
+  const expiredSimLabel = activeVehicle
+    ? DOC_LABELS[SIM_FOR_VEHICLE[activeVehicle.type]]
+    : "SIM";
+
   const requestOnline = () => setShowPermissionExplanation(true);
   const confirmOnline = () => availability.mutate(true);
+  const handleOnlinePress = () => {
+    if (profile.data!.is_online) {
+      availability.mutate(false);
+      return;
+    }
+    if (simExpired) {
+      Alert.alert(
+        `${expiredSimLabel} sudah kedaluwarsa`,
+        "Perbarui SIM Anda di menu Dokumen & SIM sebelum dapat online.",
+        [
+          {
+            text: "Perbarui SIM",
+            onPress: () => router.push("/(driver)/documents"),
+          },
+          { text: "Batal", style: "cancel" },
+        ],
+      );
+      return;
+    }
+    requestOnline();
+  };
   const isTrackingError = [
     "permission_required",
     "unavailable",
@@ -188,13 +222,15 @@ export default function DriverHome() {
                 }
                 variant={profile.data.is_online ? "secondary" : "primary"}
                 loading={availability.isPending}
-                onPress={() =>
-                  profile.data!.is_online
-                    ? availability.mutate(false)
-                    : requestOnline()
-                }
+                onPress={handleOnlinePress}
               />
             )}
+            {simExpired ? (
+              <Text style={styles.warning}>
+                {expiredSimLabel} sudah kedaluwarsa. Perbarui {expiredSimLabel}{" "}
+                di Dokumen &amp; SIM untuk dapat online.
+              </Text>
+            ) : null}
             {showPermissionExplanation && !profile.data.is_online ? (
               <View style={styles.permissionBox}>
                 <Text style={styles.sectionTitle}>

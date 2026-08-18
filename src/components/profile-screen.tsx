@@ -274,11 +274,18 @@ export function ProfileScreen() {
             />
           ) : null}
           {activeRole === "driver" ? (
-            <SettingsRow
-              icon="directions_car"
-              title="Kendaraan Saya"
-              onPress={() => router.push("/(driver)/vehicles")}
-            />
+            <>
+              <SettingsRow
+                icon="directions_car"
+                title="Kendaraan Saya"
+                onPress={() => router.push("/(driver)/vehicles")}
+              />
+              <SettingsRow
+                icon="documents"
+                title="Dokumen & SIM"
+                onPress={() => router.push("/(driver)/documents")}
+              />
+            </>
           ) : null}
           {!user?.roles.includes("merchant") ? (
             <SettingsRow
@@ -325,7 +332,8 @@ function SettingsRow({
     | "logout"
     | "two_wheeler"
     | "storefront"
-    | "directions_car";
+    | "directions_car"
+    | "documents";
   title: string;
   value?: string;
   onPress?: () => void;
@@ -347,7 +355,9 @@ function SettingsRow({
                     ? "bike"
                     : icon === "directions_car"
                       ? "car"
-                      : "store"
+                      : icon === "documents"
+                        ? "clipboard"
+                        : "store"
           }
           size={21}
           color={danger ? Colors.danger : colors.text}
