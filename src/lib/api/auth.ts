@@ -1,4 +1,6 @@
+import type { ImagePickerAsset } from "expo-image-picker";
 import type { AuthResponse, MeResponse } from "@/types/api";
+import { appendPhoto, optimizePhoto } from "@/lib/image-upload";
 import { apiClient } from "./client";
 
 export type LoginInput = { email: string; password: string };
@@ -25,6 +27,17 @@ export async function getMe() {
 
 export async function updateProfile(input: UpdateProfileInput) {
   return (await apiClient.patch<MeResponse>("/auth/me", input)).data.user;
+}
+
+export async function updateCustomerPhoto(asset: ImagePickerAsset) {
+  const photo = await optimizePhoto(asset, "avatar");
+  const formData = new FormData();
+  await appendPhoto(formData, "photo", photo);
+  return (
+    await apiClient.post("/auth/update-customer-photo", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+  ).data;
 }
 
 export async function logout() {

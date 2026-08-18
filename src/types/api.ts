@@ -8,11 +8,11 @@ export type User = {
   phone: string;
   roles: UserRole[];
   // Photo of the user as a customer.
-  avatar: string | null;
-  // Photo of the user as a driver (drivers.avatar).
-  driver_avatar: string | null;
-  // Photo of the user as a merchant (merchants.logo).
-  merchant_avatar: string | null;
+  customer_photo: string | null;
+  // Photo of the user as a driver.
+  driver_photo: string | null;
+  // Photo of the user as a merchant.
+  merchant_photo: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -50,6 +50,7 @@ export type Driver = {
   is_online: boolean;
   rating: string;
   total_completed_orders: number;
+  photo_url_full: string | null;
   user: User;
   active_vehicle_id?: number | null;
   vehicle: Vehicle | null;
@@ -323,7 +324,7 @@ export type ChatMessage = {
   read_at: string | null;
   created_at: string;
   updated_at: string;
-  sender: Pick<User, "id" | "name" | "avatar">;
+  sender: Pick<User, "id" | "name"> & { photo: string | null };
 };
 export type ChatConversation = Order & {
   unread_count: number;

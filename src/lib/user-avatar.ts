@@ -7,7 +7,7 @@ export function roleAvatar(
   activeRole: AppRole | null,
 ): string | null {
   if (!user) return null;
-  if (activeRole === "driver") return user.driver_avatar;
-  if (activeRole === "merchant") return user.merchant_avatar;
-  return user.avatar;
+  if (activeRole === "driver") return user.driver_photo;
+  if (activeRole === "merchant") return user.merchant_photo;
+  return user.customer_photo;
 }

@@ -43,7 +43,6 @@ export function ProfileScreen() {
   const setThemeMode = useThemeStore((state) => state.setMode);
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
-  const avatar = roleAvatar(user, activeRole);
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
   const logout = useAuthStore((state) => state.logout);
   const refreshUser = useAuthStore((state) => state.refreshUser);
@@ -52,6 +51,16 @@ export function ProfileScreen() {
   const pushStatus = usePushNotificationStore((state) => state.status);
   const pushMessage = usePushNotificationStore((state) => state.message);
   const retryPush = usePushNotificationStore((state) => state.retry);
+  
+  // Fetch driver profile to get photo_url_full
+  const { data: driverProfile } = useQuery({
+    queryKey: ["driver-profile"],
+    queryFn: () => getDriverApplication(), // Reusing this or similar endpoint to get driver details
+    enabled: activeRole === "driver",
+  });
+
+  const avatar = activeRole === "driver" ? driverProfile?.photo_url_full : roleAvatar(user, activeRole);
+
   const { data: driverApplication, refetch } = useQuery({
     queryKey: ["driver-application"],
     queryFn: getDriverApplication,
