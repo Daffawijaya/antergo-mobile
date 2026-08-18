@@ -32,7 +32,6 @@ import {
   coordinateFromLocation,
   getLastKnownCoordinate,
   requestCurrentLocation,
-  reverseGeocodeLabel,
   searchLocations,
   type Coordinate,
 } from "@/lib/location";
@@ -64,7 +63,9 @@ export default function LocationSearchScreen() {
   const router = useRouter();
   const { mode, colors } = useAppTheme();
   const HERO_TEXT = mode === "dark" ? "#FFFFFF" : "#1F1400";
-  const PIN_TEAL = Colors.primary;
+  // Pin marker for search results: theme gray instead of the brand yellow —
+  // gray in both light and dark mode (per design request).
+  const PIN_GRAY = colors.muted;
   const MINT_BG = mode === "dark" ? "#1A3A30" : "#E3F5E9";
   const params = useLocalSearchParams<{
     purpose?: string;
@@ -163,21 +164,25 @@ export default function LocationSearchScreen() {
       },
     });
   };
-  // For pickup purposes the bottom action jumps straight to the user's current
-  // location on the map; otherwise it opens the map with no preset marker.
-  const isPickupPurpose =
-    purpose === "ride-pickup" || purpose === "send-pickup";
-  const openCurrentLocation = async () => {
-    setBusyLocation(true);
-    try {
-      const point = coordinateFromLocation(await requestCurrentLocation());
-      const address = await reverseGeocodeLabel(point);
-      openMap({ coordinate: point, address });
-    } catch {
-      openMap();
-    } finally {
-      setBusyLocation(false);
+  // The bottom action is the same for every purpose — "Pilih di peta". It
+  // jumps straight to the current location already captured when the app
+  // opened (no GPS/search round-trip), so the map pin lands there instantly.
+  // Only when no fix was ever stored does it fetch one once.
+  const openMapAtCurrentLocation = () => {
+    const state = useLocationPickerStore.getState();
+    const point = state.currentLocation;
+    if (point) {
+      openMap({ coordinate: point.coordinate, address: point.address });
+      return;
     }
+    setBusyLocation(true);
+    void state
+      .refreshCurrentLocation()
+      .then((fresh) => {
+        if (fresh) openMap({ coordinate: fresh.coordinate, address: fresh.address });
+        else openMap();
+      })
+      .finally(() => setBusyLocation(false));
   };
   const search = async (raw?: string) => {
     const value = (raw ?? query).trim();
@@ -425,7 +430,7 @@ export default function LocationSearchScreen() {
                 className={`flex-row items-start gap-3 py-4 active:opacity-70 ${index < list.length - 1 ? "border-b border-border" : ""}`}
               >
                 <View className="mt-1">
-                  <HiLocationMarkerIcon size={22} color={PIN_TEAL} />
+                  <HiLocationMarkerIcon size={22} color={PIN_GRAY} />
                 </View>
                 <View className="flex-1 gap-1">
                   <View className="flex-row items-center gap-2">
@@ -442,7 +447,7 @@ export default function LocationSearchScreen() {
                     {item.source === "merchant" ? (
                       <Text
                         className="rounded-full px-2 py-0.5 font-bold text-[10px]"
-                        style={{ backgroundColor: MINT_BG, color: PIN_TEAL }}
+                        style={{ backgroundColor: MINT_BG, color: Colors.primary }}
                       >
                         Merchant
                       </Text>
@@ -462,19 +467,17 @@ export default function LocationSearchScreen() {
       </ScrollView>
       <View className="absolute bottom-0 left-0 right-0 items-center px-5 pb-5 pt-3">
         <Pressable
-          onPress={
-            isPickupPurpose ? () => void openCurrentLocation() : () => openMap()
-          }
+          onPress={openMapAtCurrentLocation}
           className="flex-row items-center justify-center gap-1 self-center rounded-full px-3 py-1 active:opacity-80"
           style={{ backgroundColor: mode === "dark" ? "#423500" : "#FFF9E6" }}
         >
           <AppIcon
-            name={isPickupPurpose ? "locate" : "map"}
+            name="map"
             size={16}
             color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark}
           />
           <Text className="text-sm" style={{ color: mode === "dark" ? "#FFFFFF" : Colors.primaryDark }}>
-            {isPickupPurpose ? "Pilih lokasi terkini" : "Pilih di Maps"}
+            Pilih di peta
           </Text>
           {busyLocation ? (
             <ActivityIndicator size="small" color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark} />

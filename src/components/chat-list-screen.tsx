@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppIcon } from "./app-icon";
-import { CustomerPageHeader } from "./customer-page";
 import { orderService, ServiceIcon } from "./service-icon";
 import { Screen } from "./ui";
 import { Colors } from "@/constants/colors";
@@ -21,11 +20,14 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
     refetchInterval: 5_000,
   });
   return (
-    <Screen contentStyle={styles.screen}>
-      <CustomerPageHeader
-        title="Inbox"
-        subtitle="Pesan terkait order AnterGo"
-      />
+    <Screen contentStyle={styles.screen} padded={false}>
+      {/* Header style follows the send/create hero title: same padding
+          and 22px bold title, without the gradient background. */}
+      <View className="mt-2">
+        <Text className="font-bold text-[22px] leading-7 text-foreground">
+          Inbox
+        </Text>
+      </View>
       {query.isLoading ? (
         <Text style={styles.state}>Memuat pesan…</Text>
       ) : query.isError ? (
@@ -94,7 +96,12 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
   );
 }
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  screen: { backgroundColor: colors.background, gap: 12 },
+  screen: {
+    backgroundColor: colors.background,
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
   list: { borderTopWidth: 1, borderTopColor: colors.border },
   row: {
     minHeight: 78,

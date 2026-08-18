@@ -43,11 +43,14 @@ const SERVICE_ICONS = {
   bike: require("../../../../../assets/images/icon/bikee.png"),
 } as const;
 
-// Bike brand gradient: right end is the brand yellow, getting darker toward
-// the left (same shape/contrast as the Delivery hero gradient).
+// Ride brand gradient (shared by Bike and Car): right end is the brand
+// yellow, getting darker toward the left (same shape/contrast as the
+// Delivery hero gradient). Dark mode follows the Food catalog's dark
+// intensity — from ~35% to ~42% lightness — so the hero stays clearly
+// yellow instead of vanishing into the dark background.
 const BIKE_GRADIENT = {
   light: { from: "#D99600", to: "#FFB900" },
-  dark: { from: "#332600", to: "#453600" },
+  dark: { from: "#B37C00", to: "#D99600" },
 } as const;
 
 // Bottom edge of the brand hero: a single smooth wave, mirroring the

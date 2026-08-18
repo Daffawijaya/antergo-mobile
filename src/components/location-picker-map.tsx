@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { type Region } from "react-native-maps";
 import { AppIcon } from "@/components/app-icon";
-import { Colors, Elevation, Radius } from "@/constants/colors";
+import { Elevation, Radius } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
+import { useAppTheme } from "@/stores/theme-store";
 const JAKARTA = {
   latitude: -6.2,
   longitude: 106.816666,
@@ -18,6 +19,12 @@ export function LocationPickerMap({
   onChange: (value: Coordinate) => void;
 }) {
   const ref = useRef<MapView>(null);
+  const { mode } = useAppTheme();
+  // Center pin: gray in both modes (per design request) — medium gray with a
+  // white icon in light mode, lighter gray with a dark icon in dark mode so
+  // it stays visible on the dark map.
+  const pinColor = mode === "dark" ? "#9CA3AF" : "#6B7280";
+  const pinIconColor = mode === "dark" ? "#1F1400" : "#FFFFFF";
   useEffect(() => {
     if (coordinate)
       ref.current?.animateToRegion(
@@ -41,10 +48,10 @@ export function LocationPickerMap({
         onRegionChangeComplete={changed}
       />
       <View pointerEvents="none" style={styles.pin}>
-        <View style={styles.pinBubble}>
-          <AppIcon name="pin" size={28} color={Colors.onPrimary} />
+        <View style={[styles.pinBubble, { backgroundColor: pinColor }]}>
+          <AppIcon name="pin" size={28} color={pinIconColor} />
         </View>
-        <View style={styles.tip} />
+        <View style={[styles.tip, { backgroundColor: pinColor }]} />
       </View>
     </View>
   );
@@ -72,13 +79,11 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.primary,
     ...Elevation.floating,
   },
   tip: {
     width: 4,
     height: 12,
     borderRadius: 2,
-    backgroundColor: Colors.primary,
   },
 });

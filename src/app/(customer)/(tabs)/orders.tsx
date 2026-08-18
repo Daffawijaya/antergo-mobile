@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { CustomerChip, CustomerPageHeader } from "@/components/customer-page";
+import { CustomerChip } from "@/components/customer-page";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   orderService,
@@ -60,11 +60,14 @@ export default function CustomerOrders() {
     [query.data?.data, filter],
   );
   return (
-    <Screen contentStyle={styles.screen}>
-      <CustomerPageHeader
-        title="Activities"
-        subtitle="Pesanan dan perjalananmu"
-      />
+    <Screen contentStyle={styles.screen} padded={false}>
+      {/* Header style follows the send/create hero title: same padding
+          and 22px bold title, without the gradient background. */}
+      <View className="mt-2">
+        <Text className="font-bold text-[22px] leading-7 text-foreground">
+          Activities
+        </Text>
+      </View>
       <View style={styles.filters}>
         <CustomerChip
           label="Semua"
@@ -173,7 +176,12 @@ export default function CustomerOrders() {
   );
 }
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  screen: { backgroundColor: colors.background, gap: 12 },
+  screen: {
+    backgroundColor: colors.background,
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
   filters: { flexDirection: "row", gap: 7 },
   list: { borderTopWidth: 1, borderTopColor: colors.border },
   orderRow: {

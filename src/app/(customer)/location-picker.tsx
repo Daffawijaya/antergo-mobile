@@ -20,6 +20,7 @@ import {
   type LocationPurpose,
   useLocationPickerStore,
 } from "@/stores/location-picker-store";
+import { useAppTheme } from "@/stores/theme-store";
 
 const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
   "ride-pickup": { title: "Lokasi jemput", cta: "Pilih lokasi jemput" },
@@ -38,11 +39,23 @@ const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
   "food-destination": { title: "Alamat pengantaran", cta: "Pilih alamat ini" },
 };
 
+// Top-bar label mirrors the search field the user tapped ("Antar ke?",
+// "Jemput di mana?", …). It stays put even while the map is being dragged —
+// no "Mencari alamat…" loading text up here; the address itself is shown in
+// the bottom sheet.
+const TOP_LABELS: Record<LocationPurpose, string> = {
+  "ride-pickup": "Jemput di mana?",
+  "ride-destination": "Mau ke mana?",
+  "send-pickup": "Ambil barang dari mana?",
+  "send-destination": "Antar ke?",
+  "food-destination": "Alamat pengantaran",
+};
+
 // Marker colors/icons matching the search fields and result list on the
-// location search screen.
+// location search screen. The picked-location pin is theme gray (gray in
+// both light and dark mode, per design request).
 const PICKUP_BLUE = "#2E9BF5";
 const DEST_RED = "#FA2C19";
-const PIN_TEAL = "#184840";
 
 // The counterpart location of a pickup/destination purpose, so after confirming
 // one side the flow can move on to the other. Food has no counterpart.
@@ -54,6 +67,7 @@ const OTHER_PURPOSES: Partial<Record<LocationPurpose, LocationPurpose>> = {
 };
 export default function LocationPickerScreen() {
   const router = useRouter();
+  const { mode, colors } = useAppTheme();
   const params = useLocalSearchParams<{
     purpose?: string;
     returnTo?: string;
@@ -183,11 +197,7 @@ export default function LocationPickerScreen() {
               <HiLocationMarkerIcon size={22} color={DEST_RED} />
             )}
             <Text numberOfLines={1} className="flex-1 text-sm text-muted">
-              {busy
-                ? "Mencari alamat…"
-                : purpose === "send-pickup"
-                  ? "Ambil barang dari mana?"
-                  : address}
+              {TOP_LABELS[purpose]}
             </Text>
           </View>
         </View>
@@ -195,11 +205,15 @@ export default function LocationPickerScreen() {
           onPress={() => void gps()}
           className="absolute bottom-42 right-5 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
         >
-          <AppIcon name="locate" size={23} color="#000000" />
+          <AppIcon
+            name="locate"
+            size={23}
+            color={mode === "dark" ? "#FFFFFF" : "#000000"}
+          />
         </Pressable>
         <View className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-surface px-5 pb-5 pt-4 elevation-lg">
           <View className="mb-4 flex-row items-center gap-3">
-            <HiLocationMarkerIcon size={28} color={PIN_TEAL} />
+            <HiLocationMarkerIcon size={28} color={colors.muted} />
             <View className="flex-1">
               <Text className="font-bold text-base text-foreground">
                 {address.split(",")[0]}
