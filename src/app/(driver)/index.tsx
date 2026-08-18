@@ -163,7 +163,7 @@ export default function DriverHome() {
         [
           {
             text: "Perbarui SIM",
-            onPress: () => router.push("/(driver)/documents"),
+            onPress: () => router.push("/(driver)/documents/index"),
           },
           { text: "Batal", style: "cancel" },
         ],

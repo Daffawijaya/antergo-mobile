@@ -1,4 +1,4 @@
-import type { Driver, DriverDocumentType, LaravelPaginator, Merchant, MerchantCategory, Order, Product, Vehicle, VehicleType } from "@/types/api";
+import type { Driver, DriverDocument, DriverDocumentType, LaravelPaginator, Merchant, MerchantCategory, Order, Product, Vehicle, VehicleType } from "@/types/api";
 import { appendPhoto, type OptimizedPhoto } from "@/lib/image-upload";
 import { apiClient } from "./client";
 export const getDriverProfile=async()=> (await apiClient.get<{driver:Driver}>("/driver/profile")).data.driver;
@@ -15,5 +15,7 @@ export async function applyAsDriver(input:{nik:string;avatar:OptimizedPhoto;ktp:
 export async function addDriverVehicle(input:VehicleDraft&{sim?:OptimizedPhoto}){const f=new FormData();for(const k of ["type","brand","model","plate_number","color"] as const)f.append(k,input[k]);await appendPhoto(f,"image",input.image);if(input.sim)await appendPhoto(f,"sim",input.sim);return(await apiClient.post<{vehicle:Vehicle;driver:Driver}>("/driver/vehicles",f,{headers:{"Content-Type":"multipart/form-data"}})).data;}
 export const selectActiveVehicle=async(id:number)=>(await apiClient.post<{driver:Driver}>(`/driver/vehicles/${id}/active`)).data.driver;
 export async function updateDriverDocument(input:{type:DriverDocumentType;photo?:OptimizedPhoto;expires_at?:string}){const f=new FormData();f.append("type",input.type);if(input.photo)await appendPhoto(f,"photo",input.photo);if(input.expires_at)f.append("expires_at",input.expires_at);return(await apiClient.post<{driver:Driver}>("/driver/documents",f,{headers:{"Content-Type":"multipart/form-data"}})).data.driver;}
+export const listDriverDocuments=async()=> (await apiClient.get<{documents:DriverDocument[]}>("/driver/documents")).data.documents;
+export const deleteDriverDocument=async(type:DriverDocumentType)=>(await apiClient.delete<{driver:Driver}>(`/driver/documents/${type}`)).data.driver;
 export const listMerchantCategories=async()=>(await apiClient.get<{categories:MerchantCategory[]}>("/merchant-categories")).data.categories;
 export async function registerMerchant(input:{category_id:number;name:string;description?:string;phone:string;address:string;latitude:number;longitude:number;image:OptimizedPhoto}){const f=new FormData();for(const [k,v] of Object.entries(input)){if(k!=="image"&&v!==undefined)f.append(k,String(v));}await appendPhoto(f,"image",input.image);return(await apiClient.post<{merchant:Merchant}>("/merchant",f,{headers:{"Content-Type":"multipart/form-data"}})).data.merchant;}

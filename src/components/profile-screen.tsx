@@ -283,7 +283,7 @@ export function ProfileScreen() {
               <SettingsRow
                 icon="documents"
                 title="Dokumen & SIM"
-                onPress={() => router.push("/(driver)/documents")}
+                onPress={() => router.push("/(driver)/documents/index")}
               />
             </>
           ) : null}

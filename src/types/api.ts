@@ -37,6 +37,9 @@ export type DriverDocumentStatus = {
   uploaded: boolean;
   expires_at: string | null;
 };
+export type DriverDocument = DriverDocumentStatus & {
+  photo_url: string | null;
+};
 
 export type DriverLocation = {
   id: number;
