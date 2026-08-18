@@ -116,7 +116,7 @@ export default function VehiclesScreen() {
                       compact
                       variant="secondary"
                       title={`Perbarui ${simLabel}`}
-                      onPress={() => router.push("/(driver)/documents/index")}
+                      onPress={() => router.push("/(driver)/documents")}
                     />
                   </View>
                 ) : query.data?.active_vehicle_id !== v.id ? (
