@@ -165,11 +165,17 @@ export default function LocationSearchScreen() {
     });
   };
   // The bottom action is the same for every purpose — "Pilih di peta". It
-  // jumps straight to the current location already captured when the app
-  // opened (no GPS/search round-trip), so the map pin lands there instantly.
-  // Only when no fix was ever stored does it fetch one once.
+  // jumps straight to the map: when this purpose already has a saved
+  // location, the pin lands there (no reset to the current location);
+  // otherwise it uses the location captured at app startup, and only fetches
+  // a fresh fix when none was ever stored.
   const openMapAtCurrentLocation = () => {
     const state = useLocationPickerStore.getState();
+    const saved = state.selections[purpose];
+    if (saved) {
+      openMap({ coordinate: saved.coordinate, address: saved.address });
+      return;
+    }
     const point = state.currentLocation;
     if (point) {
       openMap({ coordinate: point.coordinate, address: point.address });
