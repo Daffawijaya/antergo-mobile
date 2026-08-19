@@ -1,14 +1,14 @@
-import { useMemo as useThemeMemo , useState } from "react";
+import { useMemo as useThemeMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Alert, AppState, StyleSheet, Text, View } from "react-native";
+import { Alert, AppState, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AppIcon } from "@/components/app-icon";
 import { OrderStatusBadge } from "@/components/order-status-badge";
-import { orderService, serviceLabel } from "@/components/service-icon";
+import { orderService, ServiceLabel } from "@/components/service-icon";
 import {
   Button,
   Card,
-  KeyValue,
   PageHeader,
   Screen,
   StatusState,
@@ -17,16 +17,13 @@ import { Colors } from "@/constants/colors";
 import {
   getActiveRide,
   getDriverProfile,
+  listAvailableRides,
   setDriverAvailability,
   updateDriverLocation,
 } from "@/lib/api/driver-rides";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { driverKeys } from "@/lib/driver-query-keys";
-import {
-  DOC_LABELS,
-  SIM_FOR_VEHICLE,
-  vehicleSimExpired,
-} from "@/lib/driver-documents";
+import { DOC_LABELS, SIM_FOR_VEHICLE, vehicleSimExpired } from "@/lib/driver-documents";
 import { formatRupiah } from "@/lib/format";
 import {
   setDriverTrackingMode,
@@ -60,9 +57,7 @@ function activeOrderPath(order: Order) {
     params: { id: String(order.id) },
   };
 }
-function activeOrderLabel(order: Order) {
-  return `${serviceLabel(orderService(order))} aktif`;
-}
+
 export default function DriverHome() {
   const { styles } = useScreenStyles();
   const router = useRouter();
@@ -74,16 +69,27 @@ export default function DriverHome() {
   const setLocationState = useDriverLocationStore(
     (state) => state.setLocationState,
   );
+
   const profile = useQuery({
     queryKey: driverKeys.profile,
     queryFn: getDriverProfile,
   });
+
   const activeRide = useQuery({
     queryKey: driverKeys.active,
     queryFn: getActiveRide,
     enabled: !!profile.data,
     refetchInterval: ({ state }) =>
       state.data ? 5_000 : profile.data?.is_online ? 10_000 : false,
+  });
+
+  const canReceive = profile.data?.status === "approved" && profile.data.is_online;
+
+  const available = useQuery({
+    queryKey: driverKeys.available,
+    queryFn: listAvailableRides,
+    enabled: canReceive && !activeRide.data,
+    refetchInterval: canReceive && !activeRide.data ? 5_000 : false,
   });
 
   const availability = useMutation({
@@ -151,6 +157,7 @@ export default function DriverHome() {
 
   const requestOnline = () => setShowPermissionExplanation(true);
   const confirmOnline = () => availability.mutate(true);
+
   const handleOnlinePress = () => {
     if (profile.data!.is_online) {
       availability.mutate(false);
@@ -172,6 +179,7 @@ export default function DriverHome() {
     }
     requestOnline();
   };
+
   const isTrackingError = [
     "permission_required",
     "unavailable",
@@ -182,9 +190,10 @@ export default function DriverHome() {
     <Screen>
       <PageHeader
         eyebrow="Driver"
-        title={profile.data?.user.name ?? "Dashboard driver"}
+        title={profile.data?.user.name ?? "Beranda driver"}
         description="Kelola kesiapan dan perjalanan aktif."
       />
+
       {profile.isLoading ? (
         <StatusState type="loading" />
       ) : profile.isError ? (
@@ -202,35 +211,41 @@ export default function DriverHome() {
         />
       ) : profile.data ? (
         <>
+          {/* ── Online / Offline Toggle ── */}
           <Card>
-            <KeyValue label="Nama" value={profile.data.user.name} />
-            <KeyValue label="Rating" value={profile.data.rating} />
-            <KeyValue label="Approval" value={profile.data.status} />
-            <KeyValue
-              label="Ketersediaan"
-              value={profile.data.is_online ? "Online" : "Offline"}
-            />
-            {profile.data.status !== "approved" ? (
-              <Text style={styles.warning}>
-                Akun driver belum approved. Anda belum dapat online atau
-                menerima order.
-              </Text>
-            ) : (
-              <Button
-                title={
-                  profile.data.is_online ? "Jadikan Offline" : "Jadikan Online"
-                }
-                variant={profile.data.is_online ? "secondary" : "primary"}
-                loading={availability.isPending}
-                onPress={handleOnlinePress}
-              />
-            )}
-            {simExpired ? (
-              <Text style={styles.warning}>
-                {expiredSimLabel} sudah kedaluwarsa. Perbarui {expiredSimLabel}{" "}
-                di Dokumen &amp; SIM untuk dapat online.
-              </Text>
-            ) : null}
+            <View style={styles.statusRow}>
+              <View style={styles.statusInfo}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    profile.data.is_online ? styles.dotOnline : styles.dotOffline,
+                  ]}
+                />
+                <View>
+                  <Text style={styles.statusLabel}>
+                    {profile.data.is_online ? "Online" : "Offline"}
+                  </Text>
+                  <Text style={styles.statusSub}>
+                    {profile.data.is_online
+                      ? "Siap menerima pesanan"
+                      : "Aktifkan untuk menerima pesanan"}
+                  </Text>
+                </View>
+              </View>
+              {profile.data.status !== "approved" ? (
+                <Text style={styles.warning}>
+                  Akun belum disetujui. Anda belum dapat online.
+                </Text>
+              ) : (
+                <Button
+                  title={profile.data.is_online ? "Offline" : "Online"}
+                  variant={profile.data.is_online ? "secondary" : "primary"}
+                  loading={availability.isPending}
+                  onPress={handleOnlinePress}
+                />
+              )}
+            </View>
+
             {showPermissionExplanation && !profile.data.is_online ? (
               <View style={styles.permissionBox}>
                 <Text style={styles.sectionTitle}>
@@ -239,7 +254,7 @@ export default function DriverHome() {
                 <Text style={styles.muted}>
                   AnterGo menggunakan lokasi agar driver tetap dapat menerima
                   dan menjalankan pesanan ketika aplikasi berada di background
-                  atau layar mati. Lokasi hanya dikirim saat status Anda Online.
+                  atau layar mati.
                 </Text>
                 <Button
                   title="Izinkan & Online"
@@ -253,11 +268,13 @@ export default function DriverHome() {
                 />
               </View>
             ) : null}
+
             {locationStatus !== "idle" ? (
               <Text style={[styles.location, isTrackingError && styles.error]}>
                 {locationMessage ?? `Status lokasi: ${locationStatus}`}
               </Text>
             ) : null}
+
             {profile.data.is_online && isTrackingError ? (
               <Button
                 title="Retry Tracking"
@@ -266,59 +283,17 @@ export default function DriverHome() {
                 onPress={requestOnline}
               />
             ) : null}
-            {showPermissionExplanation && profile.data.is_online ? (
-              <View style={styles.permissionBox}>
-                <Text style={styles.sectionTitle}>
-                  Aktifkan kembali tracking
-                </Text>
-                <Text style={styles.muted}>
-                  Izinkan lokasi sepanjang waktu agar tracking tetap berjalan
-                  saat aplikasi di background.
-                </Text>
-                <Button
-                  title="Izinkan & Retry"
-                  loading={availability.isPending}
-                  onPress={confirmOnline}
-                />
-                <Button
-                  title="Batal"
-                  variant="secondary"
-                  onPress={() => setShowPermissionExplanation(false)}
-                />
-              </View>
-            ) : null}
           </Card>
+
+          {/* ── Order Aktif ── */}
           <Card>
-            <Text style={styles.sectionTitle}>Kendaraan</Text>
-            <Button
-              title="Kelola Kendaraan Saya"
-              variant="secondary"
-              onPress={() => router.push("/(driver)/vehicles")}
-            />
-            <KeyValue
-              label="Kendaraan"
-              value={
-                profile.data.vehicle
-                  ? `${profile.data.vehicle.brand} ${profile.data.vehicle.model}`
-                  : "Belum tersedia"
-              }
-            />
-            <KeyValue
-              label="Plat nomor"
-              value={profile.data.vehicle?.plate_number ?? "-"}
-            />
-            <KeyValue label="Tipe" value={profile.data.vehicle?.type ?? "-"} />
-            <KeyValue
-              label="Warna"
-              value={profile.data.vehicle?.color ?? "-"}
-            />
-          </Card>
-          <Card>
-            <Text style={styles.sectionTitle}>
-              {activeRide.data
-                ? activeOrderLabel(activeRide.data)
-                : "Order aktif"}
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Order Aktif</Text>
+              {activeRide.data ? (
+                <OrderStatusBadge status={activeRide.data.status} />
+              ) : null}
+            </View>
+
             {activeRide.isLoading ? (
               <StatusState type="loading" />
             ) : activeRide.isError ? (
@@ -334,30 +309,115 @@ export default function DriverHome() {
                 }
               />
             ) : activeRide.data ? (
-              <>
-                <OrderStatusBadge status={activeRide.data.status} />
-                <KeyValue label="Order" value={activeRide.data.order_number} />
-                <KeyValue
-                  label="Jemput"
-                  value={activeRide.data.pickup_address ?? "-"}
-                />
-                <KeyValue
-                  label="Tujuan"
-                  value={activeRide.data.destination_address ?? "-"}
-                />
-                <KeyValue
-                  label="Total"
-                  value={formatRupiah(activeRide.data.total_price)}
-                />
-                <Button
-                  title="Buka Order Aktif"
-                  onPress={() => router.push(activeOrderPath(activeRide.data!))}
-                />
-              </>
+              <Pressable
+                onPress={() => router.push(activeOrderPath(activeRide.data!))}
+                style={({ pressed }) => [
+                  styles.activeOrderCard,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.activeOrderTop}>
+                  <ServiceLabel type={orderService(activeRide.data)} />
+                  <Text style={styles.activePrice}>
+                    {formatRupiah(activeRide.data.total_price)}
+                  </Text>
+                </View>
+
+                <View style={styles.routeSection}>
+                  <View style={styles.routeRow}>
+                    <View style={[styles.routeDot, styles.pickupDot]} />
+                    <Text style={styles.routeLabel}>Pickup</Text>
+                  </View>
+                  <Text style={styles.routeAddress} numberOfLines={1}>
+                    {activeRide.data.pickup_address ?? "—"}
+                  </Text>
+
+                  <View style={styles.routeArrow}>
+                    <AppIcon name="down" size={14} color={Colors.primaryDark} />
+                  </View>
+
+                  <View style={styles.routeRow}>
+                    <View style={[styles.routeDot, styles.destDot]} />
+                    <Text style={styles.routeLabel}>Tujuan</Text>
+                  </View>
+                  <Text style={styles.routeAddress} numberOfLines={1}>
+                    {activeRide.data.destination_address ?? "—"}
+                  </Text>
+                </View>
+
+                <View style={styles.activeOrderBottom}>
+                  <Text style={styles.customerName} numberOfLines={1}>
+                    {activeRide.data.user?.name ?? "Customer"}
+                  </Text>
+                  <Button
+                    compact
+                    title="Lanjutkan"
+                    onPress={() => router.push(activeOrderPath(activeRide.data!))}
+                  />
+                </View>
+              </Pressable>
             ) : (
-              <Text style={styles.muted}>Tidak ada order aktif.</Text>
+              <Text style={styles.muted}>Tidak ada pesanan aktif.</Text>
             )}
           </Card>
+
+          {/* ── Preview Order Tersedia ── */}
+          {canReceive && !activeRide.data ? (
+            <Card>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Pesanan Tersedia</Text>
+                <Pressable
+                  onPress={() => router.push("/(driver)/orders")}
+                  style={({ pressed }) => pressed && styles.pressed}
+                >
+                  <Text style={styles.seeAll}>Lihat Semua</Text>
+                </Pressable>
+              </View>
+
+              {available.isLoading ? (
+                <StatusState type="loading" />
+              ) : available.isError ? (
+                <StatusState
+                  type="error"
+                  message={getApiErrorMessage(available.error)}
+                />
+              ) : !available.data?.length ? (
+                <Text style={styles.muted}>Belum ada pesanan di sekitar.</Text>
+              ) : (
+                available.data.slice(0, 3).map((order) => (
+                  <Pressable
+                    key={order.id}
+                    onPress={() => router.push(
+                      order.type === "food"
+                        ? { pathname: "/(driver)/food/[id]", params: { id: String(order.id) } }
+                        : order.type === "send"
+                          ? { pathname: "/(driver)/send/[id]", params: { id: String(order.id) } }
+                          : { pathname: "/(driver)/ride/[id]", params: { id: String(order.id) } }
+                    )}
+                    style={({ pressed }) => [
+                      styles.previewCard,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.previewTop}>
+                      <ServiceLabel type={orderService(order)} />
+                      <Text style={styles.previewPrice}>
+                        {formatRupiah(order.total_price)}
+                      </Text>
+                    </View>
+                    <Text style={styles.previewRoute} numberOfLines={1}>
+                      {order.pickup_address ?? "Pickup"} → {order.destination_address ?? "Tujuan"}
+                    </Text>
+                    {order.pickup_distance != null && order.pickup_distance > 0 ? (
+                      <Text style={styles.previewDistance}>
+                        {order.pickup_distance} km dari Anda
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                ))
+              )}
+            </Card>
+          ) : null}
         </>
       ) : null}
     </Screen>
@@ -368,16 +428,187 @@ function useScreenStyles() {
   const { colors } = useAppTheme();
   return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
 }
-const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
-  muted: { color: colors.muted, lineHeight: 20 },
-  warning: { color: Colors.warning, lineHeight: 20 },
-  location: { color: Colors.primaryDark, lineHeight: 20 },
-  error: { color: Colors.danger, lineHeight: 20 },
-  permissionBox: {
-    gap: 10,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: Colors.primarySoft,
-  },
-});
+
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
+  StyleSheet.create({
+    /* Status toggle */
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    statusInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+    },
+    statusDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+    },
+    dotOnline: {
+      backgroundColor: Colors.success,
+    },
+    dotOffline: {
+      backgroundColor: colors.muted,
+    },
+    statusLabel: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    statusSub: {
+      color: colors.muted,
+      fontSize: 13,
+    },
+    warning: {
+      color: Colors.warning,
+      lineHeight: 20,
+      fontSize: 13,
+    },
+
+    /* Section */
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "800",
+    },
+    seeAll: {
+      color: Colors.primaryDark,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
+    /* Active order card */
+    activeOrderCard: {
+      gap: 10,
+      padding: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: Colors.primary,
+      backgroundColor: colors.surfaceMuted,
+    },
+    activeOrderTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    activePrice: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "800",
+    },
+    routeSection: {
+      gap: 4,
+    },
+    routeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    routeDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    pickupDot: {
+      backgroundColor: Colors.primary,
+    },
+    destDot: {
+      backgroundColor: Colors.danger,
+    },
+    routeLabel: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "700",
+      textTransform: "uppercase",
+    },
+    routeAddress: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+      marginLeft: 14,
+    },
+    routeArrow: {
+      marginLeft: 2,
+      marginVertical: 2,
+    },
+    activeOrderBottom: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 4,
+      paddingTop: 8,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    customerName: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+      flex: 1,
+    },
+
+    /* Preview order card */
+    previewCard: {
+      gap: 6,
+      padding: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 8,
+    },
+    previewTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    previewPrice: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    previewRoute: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    previewDistance: {
+      color: colors.muted,
+      fontSize: 12,
+    },
+
+    /* Shared */
+    muted: {
+      color: colors.muted,
+      lineHeight: 20,
+    },
+    location: {
+      color: Colors.primaryDark,
+      lineHeight: 20,
+      fontSize: 13,
+    },
+    error: {
+      color: Colors.danger,
+      lineHeight: 20,
+    },
+    permissionBox: {
+      gap: 10,
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: Colors.primarySoft,
+      marginTop: 10,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });

@@ -1,4 +1,4 @@
-import { useMemo as useThemeMemo , useState } from "react";
+import { useMemo as useThemeMemo, useState } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -7,13 +7,14 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   orderService,
   serviceLabel,
   ServiceLabel,
 } from "@/components/service-icon";
-import { Button, Card, PageHeader, Screen, StatusState } from "@/components/ui";
+import { Button, PageHeader, Screen, StatusState } from "@/components/ui";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
 import {
   acceptRide,
@@ -27,7 +28,9 @@ import { driverKeys } from "@/lib/driver-query-keys";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import type { Order } from "@/types/api";
 import { useAppTheme } from "@/stores/theme-store";
+
 type Segment = "available" | "active" | "history";
+
 function orderPath(order: Order) {
   if (order.type === "food")
     return {
@@ -44,79 +47,120 @@ function orderPath(order: Order) {
     params: { id: String(order.id) },
   };
 }
-function acceptLabel(order: Order) {
-  return `Terima ${serviceLabel(orderService(order))}`;
-}
+
 function OrderCard({
   order,
   action,
   onPress,
   loading,
   disabled,
+  compact,
 }: {
   order: Order;
   action?: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
+  compact?: boolean;
 }) {
   const { styles } = useScreenStyles();
   return (
-    <Card>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.orderCard,
+        compact && styles.orderCardCompact,
+        pressed && styles.pressed,
+      ]}
+    >
+      {/* Top row: service + price */}
       <View style={styles.cardTop}>
         <ServiceLabel type={orderService(order)} />
-        <OrderStatusBadge status={order.status} />
+        <Text style={styles.cardPrice}>{formatRupiah(order.total_price)}</Text>
       </View>
-      <Text style={styles.route} numberOfLines={1}>
-        {order.pickup_address ?? "Pickup"} →{" "}
-        {order.destination_address ?? "Tujuan"}
-      </Text>
-      <View style={styles.cardBottom}>
-        <View>
-          <Text style={styles.meta}>{formatDateTime(order.created_at)}</Text>
-          <Text style={styles.price}>{formatRupiah(order.total_price)}</Text>
+
+      {/* Route: pickup → destination */}
+      <View style={styles.routeSection}>
+        <View style={styles.routeRow}>
+          <View style={[styles.routeDot, styles.pickupDot]} />
+          <Text style={styles.routeAddress} numberOfLines={1}>
+            {order.pickup_address ?? "Pickup"}
+          </Text>
         </View>
-        <Button
-          compact
-          title={action ?? "Lihat detail"}
-          loading={loading}
-          disabled={disabled}
-          onPress={onPress}
-        />
+
+        <View style={styles.routeArrow}>
+          <AppIcon name="down" size={12} color={Colors.primaryDark} />
+        </View>
+
+        <View style={styles.routeRow}>
+          <View style={[styles.routeDot, styles.destDot]} />
+          <Text style={styles.routeAddress} numberOfLines={1}>
+            {order.destination_address ?? "Tujuan"}
+          </Text>
+        </View>
       </View>
-    </Card>
+
+      {/* Bottom row: metadata + action */}
+      <View style={styles.cardBottom}>
+        <View style={styles.cardMeta}>
+          {order.pickup_distance != null && order.pickup_distance > 0 ? (
+            <Text style={styles.metaText}>{order.pickup_distance} km</Text>
+          ) : null}
+          <Text style={styles.metaText}>{formatDateTime(order.created_at)}</Text>
+        </View>
+        {action ? (
+          <Button
+            compact
+            title={action}
+            loading={loading}
+            disabled={disabled}
+            onPress={onPress}
+          />
+        ) : (
+          <OrderStatusBadge status={order.status} />
+        )}
+      </View>
+    </Pressable>
   );
 }
+
 export default function DriverOrders() {
   const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
   const [page, setPage] = useState(1);
   const [segment, setSegment] = useState<Segment>("available");
+
   const profile = useQuery({
     queryKey: driverKeys.profile,
     queryFn: getDriverProfile,
   });
+
   const canReceive =
     profile.data?.status === "approved" && profile.data.is_online;
+
   const active = useQuery({
     queryKey: driverKeys.active,
     queryFn: getActiveRide,
     enabled: !!profile.data,
     refetchInterval: ({ state }) => (state.data ? 5_000 : false),
   });
+
   const available = useQuery({
     queryKey: driverKeys.available,
     queryFn: listAvailableRides,
     enabled: canReceive,
     refetchInterval: canReceive ? 5_000 : false,
   });
+
   const history = useQuery({
     queryKey: driverKeys.history(page),
     queryFn: () => listDriverRideHistory(page),
     enabled: !!profile.data,
     placeholderData: keepPreviousData,
   });
+
   const accept = useMutation({
     mutationFn: acceptRide,
     onSuccess: async (order) => {
@@ -131,25 +175,31 @@ export default function DriverOrders() {
       await client.invalidateQueries({ queryKey: driverKeys.available });
     },
   });
+
+  const segments: [Segment, string][] = [
+    ["available", "Tersedia"],
+    ["active", "Aktif"],
+    ["history", "Riwayat"],
+  ];
+
   return (
     <Screen>
       <PageHeader
         eyebrow="DRIVER"
         title="Pesanan"
-        description="Order tersedia, aktif, dan riwayat dalam satu tempat."
+        description="Order tersedia, aktif, dan riwayat."
       />
+
+      {/* Segmented tabs */}
       <View style={styles.segments}>
-        {(
-          [
-            ["available", "Tersedia"],
-            ["active", "Aktif"],
-            ["history", "Riwayat"],
-          ] as [Segment, string][]
-        ).map(([key, label]) => (
+        {segments.map(([key, label]) => (
           <Pressable
             key={key}
             onPress={() => setSegment(key)}
-            style={[styles.segment, segment === key && styles.segmentActive]}
+            style={[
+              styles.segment,
+              segment === key && styles.segmentActive,
+            ]}
           >
             <Text
               style={[
@@ -163,6 +213,8 @@ export default function DriverOrders() {
           </Pressable>
         ))}
       </View>
+
+      {/* Content */}
       {profile.isLoading ? (
         <StatusState type="loading" />
       ) : profile.isError ? (
@@ -199,14 +251,31 @@ export default function DriverOrders() {
           />
         ) : (
           <>
+            {active.data ? (
+              <View style={styles.activeNotice}>
+                <Text style={styles.activeNoticeText}>
+                  Selesaikan pesanan aktif terlebih dahulu sebelum menerima pesanan baru.
+                </Text>
+              </View>
+            ) : null}
             {available.data.map((order) => (
               <OrderCard
                 key={order.id}
                 order={order}
-                action={acceptLabel(order)}
+                action={
+                  active.data
+                    ? "Selesaikan aktif"
+                    : `Terima ${serviceLabel(orderService(order))}`
+                }
                 loading={accept.isPending && accept.variables === order.id}
                 disabled={accept.isPending || !!active.data}
-                onPress={() => accept.mutate(order.id)}
+                onPress={() => {
+                  if (active.data) {
+                    router.push(orderPath(active.data));
+                  } else {
+                    accept.mutate(order.id);
+                  }
+                }}
               />
             ))}
             {accept.isError ? (
@@ -241,16 +310,11 @@ export default function DriverOrders() {
       ) : (
         <>
           {history.data.data.map((order) => (
-            <Pressable
+            <OrderCard
               key={order.id}
+              order={order}
               onPress={() => router.push(orderPath(order))}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <OrderCard
-                order={order}
-                onPress={() => router.push(orderPath(order))}
-              />
-            </Pressable>
+            />
           ))}
           {history.data.last_page > 1 ? (
             <View style={styles.pagination}>
@@ -261,7 +325,7 @@ export default function DriverOrders() {
                 disabled={page <= 1}
                 onPress={() => setPage((v) => v - 1)}
               />
-              <Text style={styles.meta}>
+              <Text style={styles.pageInfo}>
                 {page}/{history.data.last_page}
               </Text>
               <Button
@@ -278,53 +342,145 @@ export default function DriverOrders() {
     </Screen>
   );
 }
+
 function useScreenStyles() {
   const { colors } = useAppTheme();
   return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
 }
-const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  segments: {
-    flexDirection: "row",
-    gap: 4,
-    padding: 4,
-    borderRadius: Radius.lg,
-    backgroundColor: colors.surfaceMuted,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 42,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: Radius.md,
-  },
-  segmentActive: { backgroundColor: colors.surface },
-  segmentText: {
-    color: colors.muted,
-    ...Typography.metadata,
-    fontWeight: "700",
-  },
-  segmentTextActive: { color: Colors.primaryDark },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  route: { color: colors.text, ...Typography.body, fontWeight: "700" },
-  cardBottom: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    gap: Spacing.md,
-  },
-  meta: { color: colors.muted, ...Typography.caption },
-  price: { color: colors.text, ...Typography.cardTitle },
-  error: { color: Colors.danger, ...Typography.body },
-  pressed: { opacity: 0.72 },
-  pagination: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-  },
-});
+
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
+  StyleSheet.create({
+    /* Segments */
+    segments: {
+      flexDirection: "row",
+      gap: 4,
+      padding: 4,
+      borderRadius: Radius.lg,
+      backgroundColor: colors.surfaceMuted,
+    },
+    segment: {
+      flex: 1,
+      minHeight: 42,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: Radius.md,
+    },
+    segmentActive: {
+      backgroundColor: colors.surface,
+    },
+    segmentText: {
+      color: colors.muted,
+      ...Typography.metadata,
+      fontWeight: "700",
+    },
+    segmentTextActive: {
+      color: Colors.primaryDark,
+    },
+
+    /* Order card */
+    orderCard: {
+      gap: 10,
+      padding: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      marginBottom: 10,
+    },
+    orderCardCompact: {
+      padding: 12,
+    },
+    cardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    cardPrice: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "800",
+    },
+
+    /* Route */
+    routeSection: {
+      gap: 3,
+    },
+    routeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    routeDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+    },
+    pickupDot: {
+      backgroundColor: Colors.primary,
+    },
+    destDot: {
+      backgroundColor: Colors.danger,
+    },
+    routeArrow: {
+      marginLeft: 2,
+    },
+    routeAddress: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+      flex: 1,
+    },
+
+    /* Card bottom */
+    cardBottom: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingTop: 8,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    cardMeta: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    metaText: {
+      color: colors.muted,
+      ...Typography.caption,
+    },
+
+    /* Active notice */
+    activeNotice: {
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: Colors.primarySoft,
+      marginBottom: 10,
+    },
+    activeNoticeText: {
+      color: Colors.primaryDark,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+
+    /* Pagination */
+    pagination: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.sm,
+      marginTop: 4,
+    },
+    pageInfo: {
+      color: colors.muted,
+      ...Typography.caption,
+    },
+
+    /* Shared */
+    error: {
+      color: Colors.danger,
+      ...Typography.body,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });

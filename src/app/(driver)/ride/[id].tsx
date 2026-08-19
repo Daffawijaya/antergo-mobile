@@ -1,16 +1,17 @@
 import { useMemo as useThemeMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AppIcon } from "@/components/app-icon";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { PaymentSummary } from "@/components/payment-summary";
 import { RideMap } from "../../../components/ride-map";
 import {
+  BackButton,
   Button,
   Card,
   KeyValue,
-  PageHeader,
   Screen,
   StatusState,
 } from "@/components/ui";
@@ -43,6 +44,7 @@ export default function DriverRideDetailScreen() {
   const validId = Number.isInteger(orderId) && orderId > 0;
   const router = useRouter();
   const client = useQueryClient();
+
   const detail = useQuery({
     queryKey: driverKeys.detail(orderId),
     queryFn: () => getDriverRideDetail(orderId),
@@ -50,6 +52,7 @@ export default function DriverRideDetailScreen() {
     refetchInterval: ({ state }) =>
       state.data && TERMINAL.has(state.data.status) ? false : 5_000,
   });
+
   const transition = useMutation({
     mutationFn: ({ status }: { status: DriverRideStatusUpdate }) =>
       updateRideStatus(orderId, status),
@@ -63,6 +66,7 @@ export default function DriverRideDetailScreen() {
       ]);
     },
   });
+
   const settle = useMutation({
     mutationFn: () => settleCashPayment(orderId),
     onSuccess: async (order) => {
@@ -73,7 +77,9 @@ export default function DriverRideDetailScreen() {
       ]);
     },
   });
+
   const next = detail.data ? TRANSITIONS[detail.data.status] : undefined;
+  const order = detail.data;
 
   if (!validId)
     return (
@@ -91,18 +97,14 @@ export default function DriverRideDetailScreen() {
         />
       </Screen>
     );
+
   return (
     <Screen>
-      <Button
-        title="Kembali"
-        variant="secondary"
+      <BackButton
         onPress={() => router.replace("/(driver)/orders")}
+        title={order?.order_number ?? "Detail Ride"}
       />
-      <PageHeader
-        eyebrow="Driver Ride"
-        title={detail.data?.order_number ?? "Detail Ride"}
-        description="Status customer dan driver disinkronkan melalui Laravel API."
-      />
+
       {detail.isLoading ? (
         <StatusState type="loading" />
       ) : detail.isError ? (
@@ -117,123 +119,140 @@ export default function DriverRideDetailScreen() {
             />
           }
         />
-      ) : detail.data ? (
+      ) : order ? (
         <>
+          {/* ── Status & Pendapatan ── */}
           <Card>
-            <OrderStatusBadge status={detail.data.status} />
-            <KeyValue label="Nomor order" value={detail.data.order_number} />
-            <KeyValue
-              label="Jarak"
-              value={detail.data.distance ? `${detail.data.distance} km` : "-"}
-            />
-            <KeyValue
-              label="Total perjalanan"
-              value={formatRupiah(detail.data.total_price)}
-            />
+            <View style={styles.heroRow}>
+              <OrderStatusBadge status={order.status} />
+              <Text style={styles.heroPrice}>
+                {formatRupiah(order.total_price)}
+              </Text>
+            </View>
+
+            {/* Pickup → Destination */}
+            <View style={styles.routeSection}>
+              <View style={styles.routeRow}>
+                <View style={[styles.routeDot, styles.pickupDot]} />
+                <View style={styles.routeCopy}>
+                  <Text style={styles.routeLabel}>Pickup</Text>
+                  <Text style={styles.routeAddress} numberOfLines={2}>
+                    {order.pickup_address ?? "—"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.routeArrowLine}>
+                <View style={styles.routeLine} />                  <AppIcon name="down" size={14} color={Colors.primaryDark} />
+                <View style={styles.routeLine} />
+              </View>
+
+              <View style={styles.routeRow}>
+                <View style={[styles.routeDot, styles.destDot]} />
+                <View style={styles.routeCopy}>
+                  <Text style={styles.routeLabel}>Tujuan</Text>
+                  <Text style={styles.routeAddress} numberOfLines={2}>
+                    {order.destination_address ?? "—"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {order.distance ? (
+              <Text style={styles.distance}>{order.distance} km</Text>
+            ) : null}
+
+            {order.notes ? (
+              <View style={styles.notesBox}>
+                <Text style={styles.notesLabel}>Catatan</Text>
+                <Text style={styles.notesText}>{order.notes}</Text>
+              </View>
+            ) : null}
           </Card>
-          <PaymentSummary order={detail.data} />
+
+          {/* ── Customer ── */}
           <Card>
             <Text style={styles.sectionTitle}>Customer</Text>
-            <KeyValue label="Nama" value={detail.data.user?.name ?? "-"} />
-            <KeyValue label="Telepon" value={detail.data.user?.phone ?? "-"} />
+            <KeyValue label="Nama" value={order.user?.name ?? "—"} />
+            {order.user?.phone ? (
+              <KeyValue label="Telepon" value={order.user.phone} />
+            ) : null}
+            {/* Chat button */}
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/(driver)/chat/[id]",
+                  params: { id: String(order.id) },
+                })
+              }
+              style={({ pressed }) => [
+                styles.chatButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppIcon name="chat" size={18} color={Colors.primaryDark} />
+              <Text style={styles.chatButtonText}>Chat Customer</Text>
+            </Pressable>
           </Card>
+
+          {/* ── Payment ── */}
+          <PaymentSummary order={order} />
+
+          {/* ── Map ── */}
           <RideMap
             pickup={parseCoordinate(
-              detail.data.pickup_latitude,
-              detail.data.pickup_longitude,
+              order.pickup_latitude,
+              order.pickup_longitude,
             )}
             destination={parseCoordinate(
-              detail.data.destination_latitude,
-              detail.data.destination_longitude,
+              order.destination_latitude,
+              order.destination_longitude,
             )}
             driver={parseCoordinate(
-              detail.data.driver?.location?.latitude,
-              detail.data.driver?.location?.longitude,
+              order.driver?.location?.latitude,
+              order.driver?.location?.longitude,
             )}
             focus={
-              detail.data.status === "in_progress" ||
-              detail.data.status === "completed"
+              order.status === "in_progress" || order.status === "completed"
                 ? "destination"
                 : "pickup"
             }
           />
-          <Card>
-            <Text style={styles.sectionTitle}>Rute</Text>
-            <View style={styles.route}>
-              <Text style={styles.routeLabel}>Jemput</Text>
-              <Text style={styles.body}>
-                {detail.data.pickup_address ?? "-"}
-              </Text>
-            </View>
-            <View style={styles.route}>
-              <Text style={styles.routeLabel}>Tujuan</Text>
-              <Text style={styles.body}>
-                {detail.data.destination_address ?? "-"}
-              </Text>
-            </View>
-            <KeyValue label="Catatan" value={detail.data.notes || "-"} />
-          </Card>
-          {detail.data.driver?.vehicle ? (
+
+          {/* ── Status History ── */}
+          {order.status_histories?.length ? (
             <Card>
-              <Text style={styles.sectionTitle}>Kendaraan</Text>
-              <KeyValue
-                label="Kendaraan"
-                value={`${(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).brand} ${(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).model}`}
-              />
-              <KeyValue
-                label="Plat nomor"
-                value={(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).plate_number}
-              />
-              <KeyValue
-                label="Warna"
-                value={(detail.data.vehicle_snapshot ?? detail.data.driver.vehicle).color}
-              />
-            </Card>
-          ) : null}
-          <Card>
-            <Text style={styles.sectionTitle}>Riwayat status</Text>
-            {!detail.data.status_histories?.length ? (
-              <Text style={styles.muted}>Belum ada riwayat status.</Text>
-            ) : (
-              detail.data.status_histories.map((history) => (
-                <View key={history.id} style={styles.history}>
+              <Text style={styles.sectionTitle}>Riwayat Status</Text>
+              {order.status_histories.map((history) => (
+                <View key={history.id} style={styles.historyItem}>
                   <OrderStatusBadge status={history.status} />
-                  <Text style={styles.date}>
+                  <Text style={styles.historyDate}>
                     {formatDateTime(history.created_at)}
                   </Text>
                   {history.note ? (
-                    <Text style={styles.body}>{history.note}</Text>
+                    <Text style={styles.historyNote}>{history.note}</Text>
                   ) : null}
                 </View>
-              ))
-            )}
-          </Card>
-          {detail.data.status === "cancelled" ? (
-            <StatusState
-              type="error"
-              title="Ride dibatalkan customer"
-              message={
-                detail.data.cancelled_reason ||
-                "Perjalanan ini tidak dapat dilanjutkan."
-              }
-            />
-          ) : detail.data.status === "completed" ? (
+              ))}
+            </Card>
+          ) : null}
+
+          {/* ── Cash Settlement ── */}
+          {order.status === "completed" ? (
             <Card>
-              <Text style={styles.sectionTitle}>Ride selesai</Text>
-              {detail.data.payment_status === "paid" ? (
+              <Text style={styles.sectionTitle}>Pembayaran Tunai</Text>
+              {order.payment_status === "paid" ? (
                 <>
-                  <Text style={styles.body}>
-                    Pembayaran tunai sudah diterima.
-                  </Text>
+                  <Text style={styles.muted}>Pembayaran sudah diterima.</Text>
                   <Button
-                    title="Kembali ke Order"
+                    title="Kembali ke Pesanan"
                     onPress={() => router.replace("/(driver)/orders")}
                   />
                 </>
               ) : (
                 <>
-                  <Text style={styles.body}>
-                    Total diterima: {formatRupiah(detail.data.total_price)}
+                  <Text style={styles.priceHighlight}>
+                    Total diterima: {formatRupiah(order.total_price)}
                   </Text>
                   {settle.isError ? (
                     <Text style={styles.error}>
@@ -248,9 +267,23 @@ export default function DriverRideDetailScreen() {
                 </>
               )}
             </Card>
-          ) : next ? (
+          ) : null}
+
+          {/* ── Cancelled ── */}
+          {order.status === "cancelled" ? (
+            <StatusState
+              type="error"
+              title="Ride dibatalkan"
+              message={
+                order.cancelled_reason ||
+                "Perjalanan ini tidak dapat dilanjutkan."
+              }
+            />
+          ) : null}
+
+          {/* ── Primary CTA ── */}
+          {next ? (
             <Card>
-              <Text style={styles.sectionTitle}>Aksi perjalanan</Text>
               {transition.isError ? (
                 <Text style={styles.error}>
                   {getApiErrorMessage(transition.error)}
@@ -275,23 +308,152 @@ function useScreenStyles() {
   const { colors } = useAppTheme();
   return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
 }
-const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
-  route: { gap: 3 },
-  routeLabel: {
-    color: Colors.primaryDark,
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "uppercase",
-  },
-  body: { color: colors.text, lineHeight: 21 },
-  muted: { color: colors.muted, lineHeight: 20 },
-  history: {
-    gap: 6,
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  date: { color: colors.muted, fontSize: 12 },
-  error: { color: Colors.danger, lineHeight: 20 },
-});
+
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
+  StyleSheet.create({
+    /* Hero */
+    heroRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    heroPrice: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: "800",
+    },
+
+    /* Route */
+    routeSection: {
+      gap: 4,
+    },
+    routeRow: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    routeDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginTop: 4,
+    },
+    pickupDot: {
+      backgroundColor: Colors.primary,
+    },
+    destDot: {
+      backgroundColor: Colors.danger,
+    },
+    routeCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    routeLabel: {
+      color: colors.muted,
+      fontSize: 11,
+      fontWeight: "700",
+      textTransform: "uppercase",
+    },
+    routeAddress: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: "600",
+      lineHeight: 20,
+    },
+    routeArrowLine: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 2,
+      marginLeft: 15,
+    },
+    routeLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    distance: {
+      color: colors.muted,
+      fontSize: 13,
+      marginTop: 8,
+    },
+    notesBox: {
+      marginTop: 10,
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceMuted,
+    },
+    notesLabel: {
+      color: colors.muted,
+      fontSize: 12,
+      fontWeight: "700",
+      marginBottom: 2,
+    },
+    notesText: {
+      color: colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    /* Chat */
+    chatButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Colors.primary,
+      backgroundColor: Colors.primarySoft,
+    },
+    chatButtonText: {
+      color: Colors.primaryDark,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+
+    /* Section */
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "800",
+      marginBottom: 6,
+    },
+
+    /* History */
+    historyItem: {
+      gap: 4,
+      paddingVertical: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    historyDate: {
+      color: colors.muted,
+      fontSize: 12,
+    },
+    historyNote: {
+      color: colors.text,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    /* Price highlight */
+    priceHighlight: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    muted: {
+      color: colors.muted,
+      lineHeight: 20,
+    },
+    error: {
+      color: Colors.danger,
+      lineHeight: 20,
+    },
+    pressed: {
+      opacity: 0.72,
+    },
+  });

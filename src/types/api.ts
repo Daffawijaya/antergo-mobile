@@ -72,6 +72,7 @@ export type Product = {
   id: number;
   merchant_id: number;
   product_type: "food" | "goods";
+  category: string | null;
   name: string;
   description: string | null;
   price: string;
@@ -94,10 +95,13 @@ export type Merchant = {
   latitude: string | null;
   longitude: string | null;
   logo: string | null;
+  cover_image: string | null;
   is_open: boolean;
   is_active: boolean;
   products?: Product[];
   category?: { id: number; name: string; slug?: string } | null;
+  average_rating: number;
+  rating_count: number;
   created_at?: string;
   updated_at?: string;
 };

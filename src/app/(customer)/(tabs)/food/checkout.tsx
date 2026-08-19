@@ -1,6 +1,6 @@
-import { useMemo as useThemeMemo , useState } from "react";
+import { useMemo as useThemeMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { LocationField } from "@/components/location-field";
 import {
@@ -24,18 +24,27 @@ import { orderKeys } from "@/lib/query-keys";
 import { useCartStore } from "@/stores/cart-store";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+
 export default function FoodCheckoutScreen() {
   const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
-  const merchant = useCartStore((s) => s.merchant);
-  const items = useCartStore((s) => s.items);
-  const clear = useCartStore((s) => s.clear);
+  const { merchantId: merchantIdParam } = useLocalSearchParams<{
+    merchantId?: string;
+  }>();
+  const merchantId = Number(merchantIdParam);
+
+  const cart = useCartStore((s) => s.carts[merchantId]);
+  const merchant = cart?.merchant;
+  const items = cart?.items ?? [];
+  const clearMerchant = useCartStore((s) => s.clearMerchant);
+
   const destination = useLocationPickerStore(
     (s) => s.selections["food-destination"],
   );
   const [notes, setNotes] = useState("");
   const [validation, setValidation] = useState("");
+
   const service =
     items[0]?.product.product_type === "goods" ? "shopping" : "food";
   const subtotal = items.reduce(
@@ -43,10 +52,11 @@ export default function FoodCheckoutScreen() {
     0,
   );
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
   const mutation = useMutation({
     mutationFn: createFoodOrder,
     onSuccess: async ({ order }) => {
-      clear();
+      clearMerchant(merchantId);
       await Promise.all([
         client.invalidateQueries({ queryKey: orderKeys.all }),
         client.invalidateQueries({ queryKey: foodKeys.merchants }),
@@ -57,6 +67,7 @@ export default function FoodCheckoutScreen() {
       });
     },
   });
+
   const submit = () => {
     if (!merchant || !items.length) return;
     if (!destination) {
@@ -78,6 +89,7 @@ export default function FoodCheckoutScreen() {
       service_type: service,
     });
   };
+
   if (!merchant || !items.length)
     return (
       <Screen>
@@ -94,6 +106,7 @@ export default function FoodCheckoutScreen() {
         />
       </Screen>
     );
+
   return (
     <Screen>
       <PageHeader
@@ -113,7 +126,7 @@ export default function FoodCheckoutScreen() {
               pathname: "/(customer)/location-search",
               params: {
                 purpose: "food-destination",
-                returnTo: `/(customer)/(tabs)/food/checkout?service=${service}`,
+                returnTo: `/(customer)/(tabs)/food/checkout?service=${service}&merchantId=${merchantId}`,
               },
             })
           }
@@ -164,20 +177,23 @@ export default function FoodCheckoutScreen() {
     </Screen>
   );
 }
+
 function useScreenStyles() {
   const { colors } = useAppTheme();
   return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
 }
-const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  section: { gap: Spacing.md },
-  merchant: { color: colors.text, ...Typography.cardTitle },
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: Spacing.md,
-  },
-  itemName: { flex: 1, color: colors.muted, ...Typography.body },
-  itemPrice: { color: colors.text, ...Typography.metadata, fontWeight: "700" },
-  divider: { height: 1, backgroundColor: colors.border },
-  helper: { color: colors.muted, ...Typography.metadata, textAlign: "center" },
-});
+
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
+  StyleSheet.create({
+    section: { gap: Spacing.md },
+    merchant: { color: colors.text, ...Typography.cardTitle },
+    item: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: Spacing.md,
+    },
+    itemName: { flex: 1, color: colors.muted, ...Typography.body },
+    itemPrice: { color: colors.text, ...Typography.metadata, fontWeight: "700" },
+    divider: { height: 1, backgroundColor: colors.border },
+    helper: { color: colors.muted, ...Typography.metadata, textAlign: "center" },
+  });

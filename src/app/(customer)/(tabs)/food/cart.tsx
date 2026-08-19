@@ -1,5 +1,5 @@
 import { useMemo as useThemeMemo } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import {
   Button,
@@ -16,10 +16,17 @@ import { useAppTheme } from "@/stores/theme-store";
 export default function CartScreen() {
   const { styles } = useScreenStyles();
   const router = useRouter();
-  const merchant = useCartStore((s) => s.merchant);
-  const items = useCartStore((s) => s.items);
+  const { merchantId: merchantIdParam } = useLocalSearchParams<{
+    merchantId?: string;
+  }>();
+  const merchantId = Number(merchantIdParam);
+
+  const cart = useCartStore((s) => s.carts[merchantId]);
+  const merchant = cart?.merchant;
+  const items = cart?.items ?? [];
   const setQuantity = useCartStore((s) => s.setQuantity);
-  const clear = useCartStore((s) => s.clear);
+  const clearMerchant = useCartStore((s) => s.clearMerchant);
+
   const service =
     items[0]?.product.product_type === "goods" ? "shopping" : "food";
   const title = service === "shopping" ? "Shopping Cart" : "Food Cart";
@@ -27,6 +34,7 @@ export default function CartScreen() {
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0,
   );
+
   return (
     <Screen>
       <Button
@@ -71,7 +79,7 @@ export default function CartScreen() {
                     title="−"
                     variant="secondary"
                     onPress={() =>
-                      setQuantity(item.product.id, item.quantity - 1)
+                      setQuantity(merchantId, item.product.id, item.quantity - 1)
                     }
                   />
                 </View>
@@ -82,7 +90,7 @@ export default function CartScreen() {
                     variant="secondary"
                     disabled={item.quantity >= item.product.stock}
                     onPress={() =>
-                      setQuantity(item.product.id, item.quantity + 1)
+                      setQuantity(merchantId, item.product.id, item.quantity + 1)
                     }
                   />
                 </View>
@@ -101,30 +109,37 @@ export default function CartScreen() {
             onPress={() =>
               router.push({
                 pathname: "/(customer)/(tabs)/food/checkout",
-                params: { service },
+                params: { service, merchantId: String(merchantId) },
               })
             }
           />
-          <Button title="Kosongkan Cart" variant="danger" onPress={clear} />
+          <Button
+            title="Kosongkan Cart"
+            variant="danger"
+            onPress={() => clearMerchant(merchantId)}
+          />
         </>
       )}
     </Screen>
   );
 }
+
 function useScreenStyles() {
   const { colors } = useAppTheme();
   return { styles: useThemeMemo(() => createStyles(colors), [colors]) };
 }
-const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
-  title: { color: colors.text, fontWeight: "800", fontSize: 17 },
-  muted: { color: colors.muted, lineHeight: 20 },
-  row: { flexDirection: "row", alignItems: "center", gap: 12 },
-  flex: { flex: 1 },
-  quantity: {
-    minWidth: 32,
-    textAlign: "center",
-    color: colors.text,
-    fontWeight: "800",
-    fontSize: 18,
-  },
-});
+
+const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
+  StyleSheet.create({
+    title: { color: colors.text, fontWeight: "800", fontSize: 17 },
+    muted: { color: colors.muted, lineHeight: 20 },
+    row: { flexDirection: "row", alignItems: "center", gap: 12 },
+    flex: { flex: 1 },
+    quantity: {
+      minWidth: 32,
+      textAlign: "center",
+      color: colors.text,
+      fontWeight: "800",
+      fontSize: 18,
+    },
+  });

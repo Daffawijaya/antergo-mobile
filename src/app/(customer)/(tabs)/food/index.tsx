@@ -3,6 +3,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   Image,
+  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -17,6 +18,7 @@ import { Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
+import { useCartStore } from "@/stores/cart-store";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
 import { LocationHeader } from "@/components/food-location-header";
@@ -200,6 +202,16 @@ export default function CommerceCatalogScreen() {
   const gradient = SERVICE_GRADIENTS[service][mode];
   // White reads best on the (darker) purple hero.
   const heroColor = "#FFFFFF";
+
+  const carts = useCartStore((s) => s.carts);
+  const totalCartItems = useCartStore((s) => s.totalItems());
+  const totalCartPrice = Object.values(carts).reduce(
+    (sum, cart) =>
+      sum + cart.items.reduce((s, item) => s + Number(item.product.price) * item.quantity, 0),
+    0,
+  );
+  const [cartModalVisible, setCartModalVisible] = useState(false);
+  const cartMerchantEntries = Object.values(carts).filter((c) => c.items.length > 0);
 
   return (
     <Screen
@@ -522,6 +534,102 @@ export default function CommerceCatalogScreen() {
           </View>
         ) : null}
       </View>
+
+      {/* ---- Floating cart FAB ---- */}
+      {totalCartItems > 0 ? (
+        <View
+          className="absolute bottom-22 right-4"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+          }}
+        >
+          <Pressable
+            onPress={() => setCartModalVisible(true)}
+            className="h-14 w-14 items-center justify-center rounded-2xl bg-white"
+          >
+            <AppIcon name="cart" size={24} color={Colors.primary} />
+            {/* Badge */}
+            <View className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full bg-brand px-1">
+              <Text className="font-bold text-[11px] text-white">
+                {totalCartItems}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {/* ---- Cart modal ---- */}
+      <Modal
+        visible={cartModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCartModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end bg-black/40"
+          onPress={() => setCartModalVisible(false)}
+        >
+          <Pressable
+            className="rounded-t-3xl bg-surface px-5 pt-5 pb-8"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="font-bold text-lg text-foreground">Keranjang</Text>
+              <Pressable onPress={() => setCartModalVisible(false)}>
+                <AppIcon name="close" size={22} color={colors.muted} />
+              </Pressable>
+            </View>
+            {cartMerchantEntries.map((cart) => (
+              <Pressable
+                key={cart.merchant.id}
+                onPress={() => {
+                  setCartModalVisible(false);
+                  router.push({
+                    pathname: "/(customer)/(tabs)/food/cart",
+                    params: { service, merchantId: String(cart.merchant.id) },
+                  });
+                }}
+                className="mb-3 flex-row items-center gap-3 rounded-2xl border border-border p-3 active:opacity-75"
+              >
+                {cart.merchant.logo ? (
+                  <Image
+                    source={{ uri: cart.merchant.logo }}
+                    className="h-12 w-12 rounded-xl"
+                  />
+                ) : (
+                  <View className="h-12 w-12 items-center justify-center rounded-xl bg-surface-muted">
+                    <AppIcon name="store" size={22} color={Colors.primary} />
+                  </View>
+                )}
+                <View className="flex-1">
+                  <Text numberOfLines={1} className="font-bold text-sm text-foreground">
+                    {cart.merchant.name}
+                  </Text>
+                  <Text numberOfLines={1} className="text-xs text-muted">
+                    {cart.items.map((i) => `${i.quantity}× ${i.product.name}`).join(", ")}
+                  </Text>
+                </View>
+                <Text className="font-semibold text-sm text-foreground">
+                  {formatRupiah(
+                    cart.items.reduce((s, i) => s + Number(i.product.price) * i.quantity, 0),
+                  )}
+                </Text>
+              </Pressable>
+            ))}
+            {/* Total */}
+            <View className="mt-2 flex-row items-center justify-between border-t border-border pt-3">
+              <Text className="font-bold text-sm text-foreground">Total</Text>
+              <Text className="font-bold text-base text-brand-dark">
+                {formatRupiah(totalCartPrice)}
+              </Text>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Screen>
   );
 }

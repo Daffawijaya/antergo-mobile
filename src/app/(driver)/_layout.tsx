@@ -37,7 +37,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="index"
           options={{
-          title: "Home",
+          title: "Beranda",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TiHomeIcon size={23} color={String(color)} />
@@ -49,7 +49,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="orders"
           options={{
-          title: "Orders",
+          title: "Pesanan",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TbClipboardTextFilledIcon size={23} color={String(color)} />
@@ -61,7 +61,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="chat/index"
           options={{
-          title: "Chat",
+          title: "Pesan",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <BsChatTextFillIcon size={23} color={String(color)} />
