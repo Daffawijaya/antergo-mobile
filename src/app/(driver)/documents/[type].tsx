@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Image, Pressable, Text, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import { Image, Pressable, Text, View } from "react-native";
 
-import { PencilIcon } from "@/components/brand-icons";
+import { ActionSheet } from "@/components/action-sheet";
+import { HiMiniCameraIcon } from "@/components/brand-icons";
 import {
   BackButton,
   Button,
@@ -16,7 +16,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api/client";
 import { listDriverDocuments, updateDriverDocument } from "@/lib/api/resources";
 import { DOC_LABELS } from "@/lib/driver-documents";
-import { optimizePhoto, type OptimizedPhoto } from "@/lib/image-upload";
+import type { OptimizedPhoto } from "@/lib/image-upload";
 import type { DriverDocumentType } from "@/types/api";
 import { useAppTheme } from "@/stores/theme-store";
 import { driverDocumentsKey } from "./index";
@@ -42,6 +42,7 @@ export default function DocumentDetailScreen() {
   /* ---------- editing state ---------- */
   const [photo, setPhoto] = useState<OptimizedPhoto>();
   const [expiresAt, setExpiresAt] = useState("");
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
 
   /* ---------- original values (from backend) ---------- */
   const [origPhotoUrl, setOrigPhotoUrl] = useState<string | null>(null);
@@ -102,34 +103,9 @@ export default function DocumentDetailScreen() {
     },
   });
 
-  /* ---------- pick photo ---------- */
-  const handlePickPhoto = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Izin galeri diperlukan",
-          "Aktifkan izin galeri untuk memilih foto.",
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 1,
-      });
-
-      if (result.canceled || !result.assets[0]) return;
-
-      const optimized = await optimizePhoto(result.assets[0], "document");
-      setPhoto(optimized);
-    } catch (error) {
-      Alert.alert(
-        "Foto gagal diproses",
-        error instanceof Error ? error.message : "Coba lagi.",
-      );
-    }
+  /* ---------- photo picked via ActionSheet photoMode ---------- */
+  const handlePhotoPicked = (optimized: OptimizedPhoto) => {
+    setPhoto(optimized);
   };
 
   const displayPhotoUrl = photo?.uri ?? origPhotoUrl;
@@ -161,7 +137,7 @@ export default function DocumentDetailScreen() {
       ) : (
         <>
           {/* ── Foto Dokumen ── */}
-          <Pressable onPress={handlePickPhoto} className="relative">
+          <Pressable onPress={() => setPhotoSheetVisible(true)} className="relative">
             {displayPhotoUrl ? (
               <View className="overflow-hidden rounded-2xl border border-border bg-surface-muted aspect-[1.58]">
                 <Image
@@ -177,9 +153,9 @@ export default function DocumentDetailScreen() {
                 </Text>
               </View>
             )}
-            {/* Pencil overlay – bottom-right */}
+            {/* HiMiniCamera overlay – bottom-right */}
             <View className="absolute bottom-2 right-2 rounded-full bg-surface p-2 shadow-sm">
-              <PencilIcon size={16} color={colors.text} />
+              <HiMiniCameraIcon size={16} color={colors.text} />
             </View>
           </Pressable>
 
@@ -224,6 +200,18 @@ export default function DocumentDetailScreen() {
           />
         </>
       )}
+
+      <ActionSheet
+        visible={photoSheetVisible}
+        onClose={() => setPhotoSheetVisible(false)}
+        photoMode={{
+          kind: "document",
+          onPicked: handlePhotoPicked,
+          remove: photo
+            ? { label: "Hapus Foto", onRemove: () => setPhoto(undefined) }
+            : undefined,
+        }}
+      />
     </Screen>
   );
 }
