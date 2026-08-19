@@ -14,7 +14,7 @@ import {
   StatusState,
 } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { listDriverDocuments, updateDriverDocument } from "@/lib/api/resources";
+import { getDriverDocumentUrl, listDriverDocuments, updateDriverDocument } from "@/lib/api/resources";
 import { DOC_LABELS } from "@/lib/driver-documents";
 import type { OptimizedPhoto } from "@/lib/image-upload";
 import type { DriverDocumentType } from "@/types/api";
@@ -56,23 +56,31 @@ export default function DocumentDetailScreen() {
   });
   const doc = query.data?.find((d) => d.type === docType);
 
+  /* ---------- fetch photo URL on demand ---------- */
+  const photoQuery = useQuery({
+    queryKey: ["driver", "document", "url", docType],
+    queryFn: () => getDriverDocumentUrl(docType!),
+    enabled: !!docType && !!doc?.uploaded,
+    staleTime: 300_000,
+  });
+  const serverPhotoUrl = photoQuery.data ?? null;
+
   /* ---------- seed / reset form on screen focus ---------- */
   useFocusEffect(
     useCallback(() => {
       if (doc) {
-        /* Fresh data from backend — seed form fields */
-        setOrigPhotoUrl(doc.photo_url ?? null);
+        /* Use server photo URL from the on-demand query */
+        setOrigPhotoUrl(serverPhotoUrl);
         setOrigExpiresAt(doc.expires_at ?? "");
         setExpiresAt(doc.expires_at ?? "");
         setPhoto(undefined);
       } else {
-        /* No data yet (or docType changed) — reset to defaults */
         setOrigPhotoUrl(null);
         setOrigExpiresAt("");
         setExpiresAt("");
         setPhoto(undefined);
       }
-    }, [doc]),
+    }, [doc, serverPhotoUrl]),
   );
 
   /* ---------- change detection (compare against originals) ---------- */
@@ -108,7 +116,7 @@ export default function DocumentDetailScreen() {
     setPhoto(optimized);
   };
 
-  const displayPhotoUrl = photo?.uri ?? origPhotoUrl;
+  const displayPhotoUrl = photo?.uri ?? origPhotoUrl ?? serverPhotoUrl;
 
   /* ---------- invalid type guard ---------- */
   if (!docType) {
