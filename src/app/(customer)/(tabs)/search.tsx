@@ -1,7 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
   Image,
@@ -17,10 +16,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
 import { listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
 
 type Filter = "all" | "food" | "shopping" | "ride";
-const HISTORY_KEY = "antergo_search_history";
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -29,14 +28,28 @@ export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [history, setHistory] = useState<string[]>([]);
-  useEffect(() => {
-    void AsyncStorage.getItem(HISTORY_KEY)
-      .then((value) => {
-        if (value) setHistory(JSON.parse(value) as string[]);
-      })
-      .catch(() => undefined);
-  }, []);
+  const destination = useLocationPickerStore(
+    (state) => state.selections["food-destination"],
+  );
+  useFocusEffect(
+    useCallback(() => {
+      if (useLocationPickerStore.getState().selections["food-destination"])
+        return;
+      let cancelled = false;
+      void (async () => {
+        const state = useLocationPickerStore.getState();
+        const point =
+          state.currentLocation ?? (await state.refreshCurrentLocation());
+        if (cancelled || !point) return;
+        useLocationPickerStore
+          .getState()
+          .setSelection("food-destination", point);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
   const productType =
     filter === "food" ? "food" : filter === "shopping" ? "goods" : undefined;
   const results = useQuery({
@@ -50,12 +63,6 @@ export default function SearchScreen() {
     setQuery(term);
     setSubmitted(term);
     Keyboard.dismiss();
-    const next = [
-      term,
-      ...history.filter((item) => item.toLowerCase() !== term.toLowerCase()),
-    ].slice(0, 6);
-    setHistory(next);
-    void AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(next));
   };
   const chooseFilter = (next: Filter) => {
     setFilter(next);
@@ -79,7 +86,7 @@ export default function SearchScreen() {
       >
         <View style={styles.locationRow}>
           <Pressable onPress={() => router.back()} style={styles.back}>
-            <AppIcon name="back" size={28} color={colors.text} />
+            <AppIcon name="back" size={26} color={colors.text} />
           </Pressable>
           <Pressable
             style={styles.locationCopy}
@@ -87,22 +94,22 @@ export default function SearchScreen() {
               router.push({
                 pathname: "/(customer)/location-search",
                 params: {
-                  purpose: "ride-pickup",
+                  purpose: "food-destination",
                   returnTo: "/(customer)/(tabs)/search",
                 },
               })
             }
           >
-            <Text style={styles.locationLabel}>Lokasimu</Text>
+            <Text style={styles.locationLabel}>Antar sekarang</Text>
             <Text numberOfLines={1} style={styles.locationValue}>
-              Pilih lokasi jemput
+              {destination?.address || "Pilih alamat pengantaran"}
             </Text>
           </Pressable>
           <AppIcon name="down" size={22} color={colors.text} />
         </View>
 
         <View style={styles.searchBox}>
-          <AppIcon name="search" size={25} color={colors.muted} />
+          <AppIcon name="search" size={23} color={colors.muted} />
           <TextInput
             autoFocus
             value={query}
@@ -110,7 +117,7 @@ export default function SearchScreen() {
             onSubmitEditing={() => submit()}
             returnKeyType="search"
             placeholder="Cari makanan atau produk"
-            placeholderTextColor="#B8B8B8"
+            placeholderTextColor={colors.muted}
             style={styles.input}
           />
           {query ? (
@@ -120,7 +127,7 @@ export default function SearchScreen() {
                 setSubmitted("");
               }}
             >
-              <AppIcon name="close" size={21} color={colors.muted} />
+              <AppIcon name="close" size={20} color={colors.muted} />
             </Pressable>
           ) : null}
         </View>
@@ -249,27 +256,10 @@ export default function SearchScreen() {
           </View>
         ) : (
           <View style={styles.section}>
-            <Text style={styles.heading}>
-              {history.length ? "Pencarian terakhir" : "Cari di AnterGo"}
+            <Text style={styles.heading}>Cari di AnterGo</Text>
+            <Text style={styles.empty}>
+              Cari makanan, minuman, atau produk dari UMKM AnterGo.
             </Text>
-            {history.length ? (
-              <View style={styles.historyWrap}>
-                {history.map((term) => (
-                  <Pressable
-                    key={term}
-                    style={styles.historyChip}
-                    onPress={() => submit(term)}
-                  >
-                    <AppIcon name="clock" size={19} color={colors.muted} />
-                    <Text style={styles.historyText}>{term}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.empty}>
-                Cari makanan, minuman, atau produk dari UMKM AnterGo.
-              </Text>
-            )}
           </View>
         )}
       </ScrollView>
@@ -304,8 +294,8 @@ function FilterChip({
                 ? "bag"
                 : "car"
           }
-          size={19}
-          color={selected ? Colors.onPrimary : Colors.primaryDark}
+          size={18}
+          color={selected ? Colors.onPrimary : colors.text}
         />
       ) : null}
       <Text style={[styles.filterText, selected && styles.filterTextSelected]}>
@@ -317,60 +307,64 @@ function FilterChip({
 
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 30 },
+  scroll: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 30 },
   locationRow: {
-    minHeight: 72,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   back: {
-    width: 45,
-    height: 45,
+    width: 40,
+    height: 40,
+    marginLeft: -12,
     alignItems: "center",
     justifyContent: "center",
   },
-  locationCopy: { flex: 1 },
+  locationCopy: { flex: 1, marginLeft: 4 },
   locationLabel: {
     color: colors.text,
-    fontSize: 13,
-    fontFamily: "Outfit_400Regular",
+    fontSize: 12,
+    fontFamily: "Outfit_500Medium",
   },
   locationValue: {
     color: colors.text,
-    fontSize: 19,
+    fontSize: 18,
     fontFamily: "Outfit_700Bold",
   },
   searchBox: {
-    height: 58,
-    marginTop: 5,
+    minHeight: 48,
+    marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
-    borderRadius: 17,
+    borderRadius: 16,
     backgroundColor: colors.surfaceMuted,
   },
   input: {
     flex: 1,
     color: colors.text,
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: "Outfit_400Regular",
   },
-  filters: { gap: 10, paddingVertical: 28 },
+  filters: { gap: 8, paddingVertical: 12 },
   filter: {
-    minHeight: 48,
+    minHeight: 36,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    backgroundColor: Colors.primarySoft,
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  filterSelected: { backgroundColor: Colors.primary },
+  filterSelected: { borderColor: Colors.primary, backgroundColor: Colors.primary },
   filterText: {
-    color: Colors.primaryDark,
-    fontSize: 15,
+    color: colors.text,
+    fontSize: 14,
     fontFamily: "Outfit_600SemiBold",
   },
   filterTextSelected: { color: Colors.onPrimary },
@@ -381,21 +375,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
     fontFamily: "Outfit_700Bold",
     marginBottom: 20,
   },
-  historyWrap: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  historyChip: {
-    minHeight: 44,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    backgroundColor: colors.surfaceMuted,
-  },
-  historyText: {
-    color: colors.text,
-    fontSize: 15,
-    fontFamily: "Outfit_400Regular",
-  },
+
   resultRow: {
     minHeight: 84,
     flexDirection: "row",
