@@ -138,7 +138,7 @@ function ProductRow({
                 onPress={onAdd}
                 className="h-8 w-8 items-center justify-center rounded-full bg-brand"
               >
-                <Text className="font-bold text-lg leading-none text-on-brand">
+                <Text className="font-bold text-lg leading-none text-white">
                   +
                 </Text>
               </Pressable>
@@ -408,8 +408,8 @@ export default function MerchantDetailScreen() {
             }
           >
             {/* Left: Keranjang • N pesanan */}
-            <Text className="font-bold text-sm text-white">
-              Keranjang • {totalCartItems} pesanan
+            <Text className="text-sm text-white">
+              <a className="font-bold">Keranjang •</a> {totalCartItems} Pesanan
             </Text>
 
             {/* Right: price */}
