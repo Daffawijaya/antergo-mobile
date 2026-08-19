@@ -80,7 +80,7 @@ export default function DriverHome() {
     queryFn: getActiveRide,
     enabled: !!profile.data,
     refetchInterval: ({ state }) =>
-      state.data ? 5_000 : profile.data?.is_online ? 10_000 : false,
+      state.data ? 10_000 : profile.data?.is_online ? 15_000 : false,
   });
 
   const canReceive = profile.data?.status === "approved" && profile.data.is_online;
@@ -89,7 +89,7 @@ export default function DriverHome() {
     queryKey: driverKeys.available,
     queryFn: listAvailableRides,
     enabled: canReceive && !activeRide.data,
-    refetchInterval: canReceive && !activeRide.data ? 5_000 : false,
+    refetchInterval: canReceive && !activeRide.data ? 10_000 : false,
   });
 
   const availability = useMutation({

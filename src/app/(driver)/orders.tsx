@@ -144,14 +144,14 @@ export default function DriverOrders() {
     queryKey: driverKeys.active,
     queryFn: getActiveRide,
     enabled: !!profile.data,
-    refetchInterval: ({ state }) => (state.data ? 5_000 : false),
+    refetchInterval: ({ state }) => (state.data ? 10_000 : false),
   });
 
   const available = useQuery({
     queryKey: driverKeys.available,
     queryFn: listAvailableRides,
-    enabled: canReceive,
-    refetchInterval: canReceive ? 5_000 : false,
+    enabled: canReceive && !active.data,
+    refetchInterval: canReceive && !active.data ? 10_000 : false,
   });
 
   const history = useQuery({

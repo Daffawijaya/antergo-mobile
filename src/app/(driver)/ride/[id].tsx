@@ -50,7 +50,7 @@ export default function DriverRideDetailScreen() {
     queryFn: () => getDriverRideDetail(orderId),
     enabled: validId,
     refetchInterval: ({ state }) =>
-      state.data && TERMINAL.has(state.data.status) ? false : 5_000,
+      state.data && TERMINAL.has(state.data.status) ? false : 10_000,
   });
 
   const transition = useMutation({

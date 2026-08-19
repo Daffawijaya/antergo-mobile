@@ -50,7 +50,7 @@ export default function DriverFoodDetailScreen() {
     refetchInterval: ({ state }) =>
       state.data && ["completed", "cancelled"].includes(state.data.status)
         ? false
-        : 5_000,
+        : 10_000,
   });
 
   const transition = useMutation({

@@ -53,7 +53,7 @@ export default function DriverSendDetail() {
     refetchInterval: ({ state }) =>
       state.data && ["completed", "cancelled"].includes(state.data.status)
         ? false
-        : 5_000,
+        : 10_000,
   });
 
   const invalidate = () =>
