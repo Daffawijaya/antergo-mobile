@@ -272,13 +272,13 @@ export default function MerchantDetailScreen() {
               )}
 
               {/* Header overlay */}
-              <View className="absolute top-0 w-full">
+              <View className="absolute top-0 w-full px-4">
                 <SafeAreaView edges={["top"]}>
-                  <View className="flex-row items-center gap-2 px-8 pb-2 pt-4">
+                  <View className="flex-row items-center gap-2 pb-2 pt-4">
                     <Pressable
                       accessibilityLabel="Kembali"
                       onPress={handleBack}
-                      className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
+                      className="ml-0.5 h-10 w-10 items-center justify-center rounded-full bg-black/30"
                     >
                       <AppIcon name="back" size={22} color="#FFFFFF" />
                     </Pressable>
