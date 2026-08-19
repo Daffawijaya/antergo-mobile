@@ -1,12 +1,20 @@
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { AppIcon } from "@/components/app-icon";
-import { HiUserCircleIcon, PencilIcon } from "@/components/brand-icons";
+import { HiUserCircleIcon } from "@/components/brand-icons";
 import { FormField, Notice, Screen } from "@/components/ui";
+import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { roleAvatar } from "@/lib/user-avatar";
 import { useAppTheme } from "@/stores/theme-store";
@@ -33,10 +41,13 @@ export default function AccountDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [pickedPhoto, setPickedPhoto] = useState<ImagePickerAsset | null>(null);
+  const [pickedPhoto, setPickedPhoto] = useState<ImagePickerAsset | null>(
+    null,
+  );
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
   // While a new photo is picked but not yet saved, show the local preview.
   const avatarSource = pickedPhoto?.uri ?? avatar;
-  
+
   // Re-entering the page resets the form to the saved data: unsaved edits are
   // discarded when the user leaves, so coming back shows the original values.
   useFocusEffect(
@@ -106,7 +117,22 @@ export default function AccountDetailScreen() {
     }
   };
 
-  const handlePickAvatar = async () => {
+  const handleTakePhoto = async () => {
+    setPhotoSheetVisible(false);
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+    if (!result.canceled) {
+      setPickedPhoto(result.assets[0]);
+      setSuccess(false);
+      setError("");
+    }
+  };
+
+  const handlePickFromLibrary = async () => {
+    setPhotoSheetVisible(false);
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -114,12 +140,17 @@ export default function AccountDetailScreen() {
       quality: 0.5,
     });
     if (!result.canceled) {
-      // Preview only — the photo is uploaded (and converted to WebP on the
-      // backend) when the user taps "Simpan".
       setPickedPhoto(result.assets[0]);
       setSuccess(false);
       setError("");
     }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoSheetVisible(false);
+    setPickedPhoto(null);
+    setSuccess(false);
+    setError("");
   };
 
   return (
@@ -127,8 +158,7 @@ export default function AccountDetailScreen() {
       padded={false}
       contentStyle={{ gap: 20, paddingHorizontal: 20, paddingTop: 8 }}
     >
-      {/* Header follows the create pages: same padding, same back icon, and a
-          text-only "Simpan" at the far right that only appears on changes. */}
+      {/* Header */}
       <View className="mt-2 flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
@@ -152,8 +182,13 @@ export default function AccountDetailScreen() {
           </Pressable>
         ) : null}
       </View>
+
+      {/* Avatar with camera icon */}
       <View className="items-center py-3">
-        <Pressable onPress={handlePickAvatar} className="relative">
+        <Pressable
+          onPress={() => setPhotoSheetVisible(true)}
+          className="relative"
+        >
           {avatarSource ? (
             <View className="h-28 w-28 overflow-hidden rounded-full">
               <Image
@@ -166,10 +201,12 @@ export default function AccountDetailScreen() {
             <HiUserCircleIcon size={112} color={colors.muted} />
           )}
           <View className="absolute bottom-1 right-1 rounded-full bg-surface p-2 shadow-sm">
-            <PencilIcon size={16} color={colors.text} />
+            <AppIcon name="camera" size={16} color={colors.text} />
           </View>
         </Pressable>
       </View>
+
+      {/* Form fields */}
       <View className="gap-5">
         <FormField
           label="Nama"
@@ -204,6 +241,94 @@ export default function AccountDetailScreen() {
       <Text className="text-center text-[13px] leading-5 text-muted">
         Perubahan langsung tersimpan ke akun AnterGo-mu.
       </Text>
+
+      {/* ---- Photo action sheet ---- */}
+      <Modal
+        visible={photoSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPhotoSheetVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          onPress={() => setPhotoSheetVisible(false)}
+        >
+          <Pressable
+            className="rounded-t-3xl bg-surface px-5 pt-5 pb-8"
+            onPress={(e: any) => e.stopPropagation()}
+          >
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="font-bold text-lg text-foreground">
+                Foto Profil
+              </Text>
+              <Pressable onPress={() => setPhotoSheetVisible(false)}>
+                <AppIcon name="close" size={22} color={colors.muted} />
+              </Pressable>
+            </View>
+
+            {/* Option: Take photo */}
+            <Pressable
+              onPress={handleTakePhoto}
+              className="mb-3 flex-row items-center gap-3 rounded-2xl border border-border p-4 active:opacity-75"
+            >
+              <View
+                className="h-11 w-11 items-center justify-center rounded-full"
+                style={{ backgroundColor: Colors.primarySoft }}
+              >
+                <AppIcon name="camera" size={22} color={Colors.primary} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-sm text-foreground">
+                  Ambil Foto
+                </Text>
+                <Text className="text-xs text-muted">
+                  Gunakan kamera perangkat
+                </Text>
+              </View>
+            </Pressable>
+
+            {/* Option: Pick from library */}
+            <Pressable
+              onPress={handlePickFromLibrary}
+              className="mb-3 flex-row items-center gap-3 rounded-2xl border border-border p-4 active:opacity-75"
+            >
+              <View
+                className="h-11 w-11 items-center justify-center rounded-full"
+                style={{ backgroundColor: Colors.primarySoft }}
+              >
+                <AppIcon name="bag" size={22} color={Colors.primary} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-sm text-foreground">
+                  Pilih File
+                </Text>
+                <Text className="text-xs text-muted">
+                  Pilih dari galeri perangkat
+                </Text>
+              </View>
+            </Pressable>
+
+            {/* Option: Remove photo */}
+            <Pressable
+              onPress={handleRemovePhoto}
+              className="flex-row items-center gap-3 rounded-2xl border border-border p-4 active:opacity-75"
+            >
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-dangerSoft">
+                <AppIcon name="close" size={22} color={Colors.danger} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-sm text-danger">
+                  Hapus Foto
+                </Text>
+                <Text className="text-xs text-muted">
+                  Hapus foto profil saat ini
+                </Text>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Screen>
   );
 }

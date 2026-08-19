@@ -1,6 +1,7 @@
 import { useMemo as useThemeMemo } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppIcon } from "@/components/app-icon";
 import {
   Button,
   Card,
@@ -9,6 +10,7 @@ import {
   Screen,
   StatusState,
 } from "@/components/ui";
+import { Colors } from "@/constants/colors";
 import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
 import { useAppTheme } from "@/stores/theme-store";
@@ -16,21 +18,47 @@ import { useAppTheme } from "@/stores/theme-store";
 export default function CartScreen() {
   const { styles } = useScreenStyles();
   const router = useRouter();
-  const { merchantId: merchantIdParam } = useLocalSearchParams<{
-    merchantId?: string;
-  }>();
+  const { merchantId: merchantIdParam, service: rawService } =
+    useLocalSearchParams<{
+      merchantId?: string;
+      service?: string;
+    }>();
   const merchantId = Number(merchantIdParam);
+  const service = rawService === "shopping" ? "shopping" : "food";
 
-  const cart = useCartStore((s) => s.carts[merchantId]);
-  const merchant = cart?.merchant;
-  const items = cart?.items ?? [];
+  const carts = useCartStore((s) => s.carts);
   const setQuantity = useCartStore((s) => s.setQuantity);
   const clearMerchant = useCartStore((s) => s.clearMerchant);
+  const clearAll = useCartStore((s) => s.clearAll);
 
-  const service =
-    items[0]?.product.product_type === "goods" ? "shopping" : "food";
-  const title = service === "shopping" ? "Shopping Cart" : "Food Cart";
-  const subtotal = items.reduce(
+  // Single merchant mode (when merchantId is provided)
+  const singleCart = merchantId ? carts[merchantId] : undefined;
+  const singleItems = singleCart?.items ?? [];
+
+  // All merchants mode (when no merchantId)
+  const allMerchantEntries = Object.values(carts).filter(
+    (c) => c.items.length > 0,
+  );
+
+  const isSingleMode = !!merchantId && !!singleCart;
+
+  const totalAllItems = allMerchantEntries.reduce(
+    (sum, cart) => sum + cart.items.reduce((s, i) => s + i.quantity, 0),
+    0,
+  );
+
+  const totalAllPrice = allMerchantEntries.reduce(
+    (sum, cart) =>
+      sum +
+      cart.items.reduce(
+        (s, i) => s + Number(i.product.price) * i.quantity,
+        0,
+      ),
+    0,
+  );
+
+  // Single merchant subtotal
+  const singleSubtotal = singleItems.reduce(
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0,
   );
@@ -42,82 +70,221 @@ export default function CartScreen() {
         variant="secondary"
         onPress={() => router.back()}
       />
-      <PageHeader
-        eyebrow={title}
-        title={merchant?.name ?? "Cart"}
-        description="Subtotal hanya preview. Harga dan stok final divalidasi backend."
-      />
-      {!merchant || !items.length ? (
-        <StatusState
-          type="empty"
-          message="Cart masih kosong."
-          action={
-            <Button
-              title="Cari Merchant"
-              onPress={() =>
-                router.replace({
-                  pathname: "/(customer)/(tabs)/food",
-                  params: { service },
-                })
+
+      {isSingleMode ? (
+        /* ---- Single merchant view ---- */
+        <>
+          <PageHeader
+            eyebrow={
+              singleItems[0]?.product.product_type === "goods"
+                ? "Shopping Cart"
+                : "Food Cart"
+            }
+            title={singleCart!.merchant.name}
+            description="Subtotal hanya preview. Harga dan stok final divalidasi backend."
+          />
+          {!singleItems.length ? (
+            <StatusState
+              type="empty"
+              message="Cart masih kosong."
+              action={
+                <Button
+                  title="Cari Merchant"
+                  onPress={() =>
+                    router.replace({
+                      pathname: "/(customer)/(tabs)/food",
+                      params: { service },
+                    })
+                  }
+                />
               }
             />
-          }
-        />
-      ) : (
-        <>
-          {items.map((item) => (
-            <Card key={item.product.id}>
-              <Text style={styles.title}>{item.product.name}</Text>
-              <KeyValue
-                label="Harga preview"
-                value={formatRupiah(item.product.price)}
+          ) : (
+            <>
+              {singleItems.map((item) => (
+                <Card key={item.product.id}>
+                  <Text style={styles.title}>{item.product.name}</Text>
+                  <KeyValue
+                    label="Harga preview"
+                    value={formatRupiah(item.product.price)}
+                  />
+                  <KeyValue label="Stok diketahui" value={item.product.stock} />
+                  <View style={styles.row}>
+                    <View style={styles.flex}>
+                      <Button
+                        title="−"
+                        variant="secondary"
+                        onPress={() =>
+                          setQuantity(
+                            merchantId,
+                            item.product.id,
+                            item.quantity - 1,
+                          )
+                        }
+                      />
+                    </View>
+                    <Text style={styles.quantity}>{item.quantity}</Text>
+                    <View style={styles.flex}>
+                      <Button
+                        title="+"
+                        variant="secondary"
+                        disabled={item.quantity >= item.product.stock}
+                        onPress={() =>
+                          setQuantity(
+                            merchantId,
+                            item.product.id,
+                            item.quantity + 1,
+                          )
+                        }
+                      />
+                    </View>
+                  </View>
+                </Card>
+              ))}
+              <Card>
+                <KeyValue
+                  label="Subtotal preview"
+                  value={formatRupiah(singleSubtotal)}
+                />
+                <Text style={styles.muted}>
+                  Delivery fee, service fee, harga, dan total final dihitung
+                  Laravel saat checkout.
+                </Text>
+              </Card>
+              <Button
+                title="Lanjut Checkout"
+                onPress={() =>
+                  router.push({
+                    pathname: "/(customer)/(tabs)/food/checkout",
+                    params: { service, merchantId: String(merchantId) },
+                  })
+                }
               />
-              <KeyValue label="Stok diketahui" value={item.product.stock} />
-              <View style={styles.row}>
-                <View style={styles.flex}>
-                  <Button
-                    title="−"
-                    variant="secondary"
-                    onPress={() =>
-                      setQuantity(merchantId, item.product.id, item.quantity - 1)
-                    }
-                  />
-                </View>
-                <Text style={styles.quantity}>{item.quantity}</Text>
-                <View style={styles.flex}>
-                  <Button
-                    title="+"
-                    variant="secondary"
-                    disabled={item.quantity >= item.product.stock}
-                    onPress={() =>
-                      setQuantity(merchantId, item.product.id, item.quantity + 1)
-                    }
-                  />
-                </View>
-              </View>
-            </Card>
-          ))}
-          <Card>
-            <KeyValue label="Subtotal preview" value={formatRupiah(subtotal)} />
-            <Text style={styles.muted}>
-              Delivery fee, service fee, harga, dan total final dihitung Laravel
-              saat checkout.
-            </Text>
-          </Card>
-          <Button
-            title="Lanjut Checkout"
-            onPress={() =>
-              router.push({
-                pathname: "/(customer)/(tabs)/food/checkout",
-                params: { service, merchantId: String(merchantId) },
-              })
-            }
+              <Button
+                title="Kosongkan Cart"
+                variant="danger"
+                onPress={() => clearMerchant(merchantId)}
+              />
+            </>
+          )}
+        </>
+      ) : (
+        /* ---- All merchants view ---- */
+        <>
+          <PageHeader
+            eyebrow="Keranjang"
+            title="Semua Pesanan"
+            description="Gabungan seluruh item dari semua UMKM."
           />
-          <Button
-            title="Kosongkan Cart"
-            variant="danger"
-            onPress={() => clearMerchant(merchantId)}
-          />
+          {!allMerchantEntries.length ? (
+            <StatusState
+              type="empty"
+              message="Cart masih kosong."
+              action={
+                <Button
+                  title="Mulai Belanja"
+                  onPress={() =>
+                    router.replace({
+                      pathname: "/(customer)/(tabs)/food",
+                      params: { service: "food" },
+                    })
+                  }
+                />
+              }
+            />
+          ) : (
+            <>
+              {allMerchantEntries.map((cart) => {
+                const merchantSubtotal = cart.items.reduce(
+                  (s, i) => s + Number(i.product.price) * i.quantity,
+                  0,
+                );
+                const merchantItemCount = cart.items.reduce(
+                  (s, i) => s + i.quantity,
+                  0,
+                );
+                return (
+                  <Pressable
+                    key={cart.merchant.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(customer)/(tabs)/food/cart",
+                        params: {
+                          merchantId: String(cart.merchant.id),
+                          service: "food",
+                        },
+                      })
+                    }
+                    style={styles.merchantCard}
+
+                  >
+                    {/* Merchant header */}
+                    <View style={styles.merchantHeader}>
+                      {cart.merchant.logo ? (
+                        <Image
+                          source={{ uri: cart.merchant.logo }}
+                          style={styles.merchantLogo}
+                        />
+                      ) : (
+                        <View style={styles.merchantLogoPlaceholder}>
+                          <AppIcon
+                            name="store"
+                            size={22}
+                            color={Colors.primary}
+                          />
+                        </View>
+                      )}
+                      <View style={styles.merchantInfo}>
+                        <Text style={styles.merchantName}>
+                          {cart.merchant.name}
+                        </Text>
+                        <Text style={styles.merchantMeta}>
+                          {merchantItemCount} item •{" "}
+                          {formatRupiah(merchantSubtotal)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Items list */}
+                    {cart.items.map((item) => (
+                      <View key={item.product.id} style={styles.itemRow}>
+                        <View style={styles.flex}>
+                          <Text style={styles.itemName} numberOfLines={1}>
+                            {item.quantity}× {item.product.name}
+                          </Text>
+                        </View>
+                        <Text style={styles.itemPrice}>
+                          {formatRupiah(
+                            Number(item.product.price) * item.quantity,
+                          )}
+                        </Text>
+                      </View>
+                    ))}
+                  </Pressable>
+                );
+              })}
+
+              {/* Grand total */}
+              <Card>
+                <KeyValue
+                  label={`Total ${allMerchantEntries.length} UMKM • ${totalAllItems} item`}
+                  value={formatRupiah(totalAllPrice)}
+                />
+                <Text style={styles.muted}>
+                  Delivery fee, service fee, harga, dan total final dihitung
+                  Laravel saat checkout.
+                </Text>
+              </Card>
+
+              <Button
+                title="Kosongkan Semua Cart"
+                variant="danger"
+                onPress={() => {
+                  if (confirm("Hapus semua item dari cart?")) clearAll();
+                }}
+              />
+            </>
+          )}
         </>
       )}
     </Screen>
@@ -141,5 +308,61 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       color: colors.text,
       fontWeight: "800",
       fontSize: 18,
+    },
+    /* All-merchants styles */
+    merchantCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    merchantHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 10,
+    },
+    merchantLogo: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+    },
+    merchantLogoPlaceholder: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    merchantInfo: { flex: 1 },
+    merchantName: {
+      color: colors.text,
+      fontWeight: "800",
+      fontSize: 16,
+    },
+    merchantMeta: {
+      color: colors.muted,
+      fontSize: 13,
+      marginTop: 2,
+    },
+    itemRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 6,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    itemName: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    itemPrice: {
+      color: colors.muted,
+      fontSize: 13,
+      fontWeight: "600",
     },
   });

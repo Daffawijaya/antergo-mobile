@@ -34,6 +34,7 @@ import {
   TriangleAlert,
   User,
   Utensils,
+  Camera,
 } from "lucide-react-native";
 
 const icons = {
@@ -72,6 +73,7 @@ const icons = {
   swap: ArrowUpDown,
   history: History,
   check: Check,
+  camera: Camera,
 } as const;
 
 export type AppIconName = keyof typeof icons;

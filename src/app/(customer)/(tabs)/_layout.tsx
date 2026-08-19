@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { GlobalCartFab } from "@/components/global-cart-fab";
 import {
   BsChatTextFillIcon,
   BsChatTextIcon,
@@ -29,6 +30,7 @@ const hidden = [
 export default function TabsLayout() {
   const { colors } = useAppTheme();
   return (
+    <>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -42,10 +44,10 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           backgroundColor: colors.surface,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.05,
-          shadowRadius: 14,
-          elevation: 10,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          elevation: 4,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -104,8 +106,10 @@ export default function TabsLayout() {
         }}
       />
       {hidden.map((name) => (
-        <Tabs.Screen key={name} name={name} options={{ href: null }} />
+        <Tabs.Screen key={name} name={name} options={{ href: null, tabBarStyle: { display: "none" } }} />
       ))}
     </Tabs>
+      <GlobalCartFab />
+    </>
   );
 }
