@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { AppIcon } from "@/components/app-icon";
 import { Button, Notice, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
@@ -13,6 +11,8 @@ import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
 import { useAppTheme } from "@/stores/theme-store";
 import type { Product } from "@/types/api";
+import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 /* ------------------------------------------------------------------ */
 /*  Category helpers                                                  */
@@ -227,10 +227,7 @@ export default function MerchantDetailScreen() {
     returnTo ? router.replace(returnTo as never) : router.back();
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-background"
-      edges={["left", "right"]}
-    >
+    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       {/* ---- Scrollable content ---- */}
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -260,21 +257,17 @@ export default function MerchantDetailScreen() {
               {query.data.cover_image ? (
                 <Image
                   source={{ uri: query.data.cover_image }}
-                  className="h-[120px] w-full"
+                  className="h-[100px] w-full"
                   resizeMode="cover"
                 />
               ) : (
-                <View
-                  className="h-[120px] w-full items-center justify-center bg-surface-muted"
-                >
-                  <AppIcon name="store" size={48} color={colors.muted} />
-                </View>
+                <View className="h-[100px] w-full items-center justify-center bg-surface-muted"></View>
               )}
 
               {/* Header overlay */}
               <View className="absolute top-0 w-full px-4">
                 <SafeAreaView edges={["top"]}>
-                  <View className="flex-row items-center gap-2 pb-2 pt-4">
+                  <View className="flex-row items-center gap-2 px-9 pb-2 pt-5">
                     <Pressable
                       accessibilityLabel="Kembali"
                       onPress={handleBack}
@@ -306,14 +299,8 @@ export default function MerchantDetailScreen() {
                   resizeMode="cover"
                 />
               ) : (
-                <View
-                  className="h-[100px] w-[100px] items-center justify-center rounded-[14px] bg-surface-muted"
-                >
-                  <AppIcon
-                    name="store"
-                    size={32}
-                    color={Colors.primaryDark}
-                  />
+                <View className="h-[100px] w-[100px] items-center justify-center rounded-[14px] bg-surface-muted">
+                  <AppIcon name="store" size={32} color={Colors.primaryDark} />
                 </View>
               )}
 
@@ -351,50 +338,53 @@ export default function MerchantDetailScreen() {
 
             {/* ---- Products by category ---- */}
             <View className="px-4">
-            {!(query.data.products ?? []).length ? (
-              <StatusState type="empty" message="Belum ada produk tersedia." />
-            ) : (
-              <>
-                {CATEGORY_ORDER.map((catKey) => {
-                  const prods = grouped.get(catKey) ?? [];
-                  if (prods.length === 0) return null;
-                  return (
-                    <View key={catKey}>
-                      <Text className="mt-4 mb-2 font-bold text-[17px] text-foreground">
-                        {CATEGORY_LABELS[catKey]}
-                      </Text>
-                      <View
-                        className="rounded-2xl"
-                        style={{ backgroundColor: colors.surface }}
-                      >
-                        {prods.map((product, idx) => {
-                          const qty = getQuantity(product.id);
-                          return (
-                            <ProductRow
-                              key={product.id}
-                              product={product}
-                              quantity={qty}
-                              isLast={idx === prods.length - 1}
-                              disabled={
-                                product.stock <= 0 ||
-                                !query.data!.is_open ||
-                                !query.data!.is_active
-                              }
-                              onAdd={() => add(product)}
-                              onIncrement={() => add(product)}
-                              onDecrement={() =>
-                                setQuantity(merchantId, product.id, qty - 1)
-                              }
-                              colors={colors}
-                            />
-                          );
-                        })}
+              {!(query.data.products ?? []).length ? (
+                <StatusState
+                  type="empty"
+                  message="Belum ada produk tersedia."
+                />
+              ) : (
+                <>
+                  {CATEGORY_ORDER.map((catKey) => {
+                    const prods = grouped.get(catKey) ?? [];
+                    if (prods.length === 0) return null;
+                    return (
+                      <View key={catKey}>
+                        <Text className="mt-4 mb-2 font-bold text-[17px] text-foreground">
+                          {CATEGORY_LABELS[catKey]}
+                        </Text>
+                        <View
+                          className="rounded-2xl"
+                          style={{ backgroundColor: colors.surface }}
+                        >
+                          {prods.map((product, idx) => {
+                            const qty = getQuantity(product.id);
+                            return (
+                              <ProductRow
+                                key={product.id}
+                                product={product}
+                                quantity={qty}
+                                isLast={idx === prods.length - 1}
+                                disabled={
+                                  product.stock <= 0 ||
+                                  !query.data!.is_open ||
+                                  !query.data!.is_active
+                                }
+                                onAdd={() => add(product)}
+                                onIncrement={() => add(product)}
+                                onDecrement={() =>
+                                  setQuantity(merchantId, product.id, qty - 1)
+                                }
+                                colors={colors}
+                              />
+                            );
+                          })}
+                        </View>
                       </View>
-                    </View>
-                  );
-                })}
-              </>
-            )}
+                    );
+                  })}
+                </>
+              )}
             </View>
           </>
         ) : (
