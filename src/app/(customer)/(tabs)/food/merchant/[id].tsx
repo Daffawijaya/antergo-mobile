@@ -69,9 +69,10 @@ function ProductRow({
   colors: { surface: string; border: string; text: string; muted: string };
 }) {
   const hasItem = quantity > 0;
+  const isOutOfStock = product.stock === 0;
 
   return (
-    <View>
+    <View style={isOutOfStock ? { opacity: 0.5 } : {}}>
       <View className="relative flex-row items-start gap-3 py-3 pr-20">
         {/* Product image */}
         <View className="h-[108px] w-[108px]">
@@ -100,45 +101,50 @@ function ProductRow({
           <Text className="font-semibold text-[15px] text-foreground">
             {formatRupiah(product.price)}
           </Text>
+          {isOutOfStock && (
+            <Text className="text-[13px] text-red-500">Nggak tersedia</Text>
+          )}
         </View>
 
         {/* Plus button / counter — absolute bottom-right of the row */}
-        <View className="absolute bottom-3 right-3">
-          {hasItem ? (
-            <View
-              className="flex-row items-center rounded-full border border-brand"
-              style={{ backgroundColor: "rgba(255,255,255,0.92)" }}
-            >
+        {!isOutOfStock && (
+          <View className="absolute bottom-3 right-3">
+            {hasItem ? (
+              <View
+                className="flex-row items-center rounded-full border border-brand"
+                style={{ backgroundColor: "rgba(255,255,255,0.92)" }}
+              >
+                <Pressable
+                  disabled={disabled}
+                  onPress={onDecrement}
+                  className="h-7 w-7 items-center justify-center"
+                >
+                  <Text className="font-bold text-base text-foreground">−</Text>
+                </Pressable>
+                <Text className="min-w-[14px] text-center font-bold text-sm text-foreground">
+                  {quantity}
+                </Text>
+                <Pressable
+                  disabled={disabled}
+                  onPress={onIncrement}
+                  className="h-7 w-7 items-center justify-center"
+                >
+                  <Text className="font-bold text-base text-foreground">+</Text>
+                </Pressable>
+              </View>
+            ) : (
               <Pressable
                 disabled={disabled}
-                onPress={onDecrement}
-                className="h-7 w-7 items-center justify-center"
+                onPress={onAdd}
+                className="h-8 w-8 items-center justify-center rounded-full bg-brand"
               >
-                <Text className="font-bold text-base text-foreground">−</Text>
+                <Text className="font-bold text-lg leading-none text-on-brand">
+                  +
+                </Text>
               </Pressable>
-              <Text className="min-w-[14px] text-center font-bold text-sm text-foreground">
-                {quantity}
-              </Text>
-              <Pressable
-                disabled={disabled}
-                onPress={onIncrement}
-                className="h-7 w-7 items-center justify-center"
-              >
-                <Text className="font-bold text-base text-foreground">+</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable
-              disabled={disabled}
-              onPress={onAdd}
-              className="h-8 w-8 items-center justify-center rounded-full bg-brand"
-            >
-              <Text className="font-bold text-lg leading-none text-on-brand">
-                +
-              </Text>
-            </Pressable>
-          )}
-        </View>
+            )}
+          </View>
+        )}
       </View>
       {/* Divider */}
       {!isLast ? (
