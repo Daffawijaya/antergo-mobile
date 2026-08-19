@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
 const ROLE_LABELS: Record<AppRole, string> = {
-  customer: "Customer",
+  customer: "Pelanggan",
   driver: "Driver",
   merchant: "Merchant",
 };
@@ -227,7 +227,7 @@ export function ProfileScreen() {
                       selected ? "text-foreground" : "text-muted"
                     }`}
                   >
-                    {item === "light" ? "Light" : "Dark"}
+                    {item === "light" ? "Terang" : "Gelap"}
                   </Text>
                 </Pressable>
               );

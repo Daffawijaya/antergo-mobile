@@ -102,7 +102,7 @@ export default function DriverRideDetailScreen() {
     <Screen>
       <BackButton
         onPress={() => router.replace("/(driver)/orders")}
-        title={order?.order_number ?? "Detail Ride"}
+        title={order?.order_number ?? "Detail Perjalanan"}
       />
 
       {detail.isLoading ? (
@@ -135,7 +135,7 @@ export default function DriverRideDetailScreen() {
               <View style={styles.routeRow}>
                 <View style={[styles.routeDot, styles.pickupDot]} />
                 <View style={styles.routeCopy}>
-                  <Text style={styles.routeLabel}>Pickup</Text>
+                  <Text style={styles.routeLabel}>Jemput</Text>
                   <Text style={styles.routeAddress} numberOfLines={2}>
                     {order.pickup_address ?? "—"}
                   </Text>
@@ -172,7 +172,7 @@ export default function DriverRideDetailScreen() {
 
           {/* ── Customer ── */}
           <Card>
-            <Text style={styles.sectionTitle}>Customer</Text>
+            <Text style={styles.sectionTitle}>Pelanggan</Text>
             <KeyValue label="Nama" value={order.user?.name ?? "—"} />
             {order.user?.phone ? (
               <KeyValue label="Telepon" value={order.user.phone} />
@@ -191,7 +191,7 @@ export default function DriverRideDetailScreen() {
               ]}
             >
               <AppIcon name="chat" size={18} color={Colors.primaryDark} />
-              <Text style={styles.chatButtonText}>Chat Customer</Text>
+              <Text style={styles.chatButtonText}>Chat Pelanggan</Text>
             </Pressable>
           </Card>
 

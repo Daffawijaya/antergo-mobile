@@ -290,7 +290,7 @@ export default function CreateSendScreen() {
                 className="font-bold text-[22px] leading-7"
                 style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
               >
-                Delivery
+                Kirim
               </Text>
             </View>
           </View>
@@ -367,7 +367,7 @@ export default function CreateSendScreen() {
                 source={require("../../../../assets/images/icon/delivery.png")}
                 style={{ width: 88, height: 88 }}
                 resizeMode="contain"
-                accessibilityLabel="Delivery"
+                accessibilityLabel="Kirim"
               />
             </View>
           </View>
@@ -519,7 +519,7 @@ function HeroHeader({
         <AppIcon name="back" size={26} color={color} />
       </Pressable>
       <Text className="font-bold text-[22px] leading-7" style={{ color }}>
-        Delivery
+        Kirim
       </Text>
     </View>
   );

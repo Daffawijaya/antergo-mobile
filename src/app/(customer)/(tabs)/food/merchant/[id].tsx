@@ -200,7 +200,7 @@ export default function MerchantDetailScreen() {
     ) {
       Alert.alert(
         "Ganti tipe produk?",
-        "Cart lama akan dikosongkan karena hanya dapat memesan satu tipe produk per merchant.",
+        "Keranjang lama akan dikosongkan karena hanya dapat memesan satu tipe produk per merchant.",
         [
           { text: "Batal", style: "cancel" },
           {

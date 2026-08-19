@@ -79,7 +79,7 @@ export function DriverLocationTracker() {
           if (!cancelled)
             setState(
               "permission_required",
-              "Permission diperlukan. Tekan Retry Tracking lalu izinkan lokasi sepanjang waktu.",
+              "Izin diperlukan. Tekan Coba Lagi lalu izinkan lokasi sepanjang waktu.",
             );
           return;
         }

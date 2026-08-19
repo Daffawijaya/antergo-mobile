@@ -81,7 +81,7 @@ export default function CommerceCatalogScreen() {
   const { mode, colors } = useAppTheme();
   const { service: rawService } = useLocalSearchParams<{ service?: string }>();
   const service = rawService === "shopping" ? "shopping" : "food";
-  const serviceLabel = service === "shopping" ? "Shopping" : "Food";
+  const serviceLabel = service === "shopping" ? "Belanja" : "Makanan";
   // Promo copy mirrors the Bike hero's three-line structure ("Perjalanan
   // Hemat / Driver siap jemput / di lokasi kamu"), adapted for the catalog.
   const promoTitle = service === "shopping" ? "Belanja Hemat" : "Pesanan Hemat";

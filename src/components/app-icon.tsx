@@ -36,6 +36,7 @@ import {
   Utensils,
   Camera,
 } from "lucide-react-native";
+import { IoMdCameraIcon } from "./brand-icons";
 
 const icons = {
   home: House,
@@ -74,6 +75,7 @@ const icons = {
   history: History,
   check: Check,
   camera: Camera,
+  camera_md: IoMdCameraIcon,
 } as const;
 
 export type AppIconName = keyof typeof icons;

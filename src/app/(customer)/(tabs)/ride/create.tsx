@@ -88,7 +88,7 @@ export default function CreateRideScreen() {
   const router = useRouter();
   const { service } = useLocalSearchParams<{ service?: string }>();
   const serviceType = service === "car" ? "car" : "bike";
-  const serviceLabel = serviceType === "car" ? "Car" : "Bike";
+  const serviceLabel = serviceType === "car" ? "Mobil" : "Motor";
   // Promo copy follows the service: bike sells on price (hemat), car on
   // comfort (nyaman).
   const promoTitle = serviceType === "car" ? "Perjalanan Nyaman" : "Perjalanan Hemat";

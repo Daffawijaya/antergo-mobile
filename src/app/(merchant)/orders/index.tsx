@@ -31,7 +31,7 @@ export default function MerchantOrdersScreen() {
     <Screen>
       <PageHeader
         eyebrow="Merchant"
-        title="Pesanan Food"
+        title="Pesanan Makanan"
         description="Pesanan terbaru diperbarui otomatis."
       />
       {query.isLoading ? (
@@ -43,7 +43,7 @@ export default function MerchantOrdersScreen() {
           action={<Button title="Coba lagi" onPress={() => query.refetch()} />}
         />
       ) : !query.data?.data.length ? (
-        <StatusState type="empty" message="Belum ada pesanan Food." />
+        <StatusState type="empty" message="Belum ada pesanan makanan." />
       ) : (
         <>
           {query.data.data.map((order) => (
@@ -60,9 +60,9 @@ export default function MerchantOrdersScreen() {
               <Card>
                 <Text style={styles.title}>{order.order_number}</Text>
                 <OrderStatusBadge status={order.status} />
-                <KeyValue label="Customer" value={order.user?.name ?? "-"} />
+                <KeyValue label="Pelanggan" value={order.user?.name ?? "-"} />
                 <KeyValue
-                  label="Items"
+                  label="Item"
                   value={
                     order.items
                       ?.map((item) => `${item.product_name} ×${item.quantity}`)

@@ -87,7 +87,7 @@ export default function DriverFoodDetailScreen() {
       <Screen>
         <StatusState
           type="error"
-          message="Order ini bukan Food delivery."
+          message="Order ini bukan pengantaran makanan."
           action={
             <Button
               title="Kembali"
@@ -102,7 +102,7 @@ export default function DriverFoodDetailScreen() {
     <Screen>
       <BackButton
         onPress={() => router.replace("/(driver)/orders")}
-        title={order?.order_number ?? "Food delivery"}
+        title={order?.order_number ?? "Pengantaran Makanan"}
       />
 
       {query.isLoading ? (
@@ -149,7 +149,7 @@ export default function DriverFoodDetailScreen() {
               <View style={styles.routeRow}>
                 <View style={[styles.routeDot, styles.destDot]} />
                 <View style={styles.routeCopy}>
-                  <Text style={styles.routeLabel}>Customer</Text>
+                  <Text style={styles.routeLabel}>Pelanggan</Text>
                   <Text style={styles.routeAddress} numberOfLines={1}>
                     {order.user?.name ?? "—"}
                   </Text>
@@ -180,7 +180,7 @@ export default function DriverFoodDetailScreen() {
 
           {/* ── Customer ── */}
           <Card>
-            <Text style={styles.sectionTitle}>Customer</Text>
+            <Text style={styles.sectionTitle}>Pelanggan</Text>
             <KeyValue label="Nama" value={order.user?.name ?? "—"} />
             {order.user?.phone ? (
               <KeyValue label="Telepon" value={order.user.phone} />
@@ -201,7 +201,7 @@ export default function DriverFoodDetailScreen() {
               ]}
             >
               <AppIcon name="chat" size={18} color={Colors.primaryDark} />
-              <Text style={styles.chatButtonText}>Chat Customer</Text>
+              <Text style={styles.chatButtonText}>Chat Pelanggan</Text>
             </Pressable>
           </Card>
 

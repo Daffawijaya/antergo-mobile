@@ -84,11 +84,11 @@ export default function MerchantHome() {
             />
           </Card>
           <Card>
-            <Text style={styles.heading}>Order Food terbaru</Text>
-            <KeyValue label="Pending / baru" value={count("pending")} />
-            <KeyValue label="Preparing" value={count("preparing")} />
+            <Text style={styles.heading}>Pesanan Makanan terbaru</Text>
+            <KeyValue label="Menunggu / baru" value={count("pending")} />
+            <KeyValue label="Disiapkan" value={count("preparing")} />
             <KeyValue
-              label="Ready for pickup"
+              label="Siap diambil"
               value={count("ready_for_pickup")}
             />
             <Text style={styles.muted}>

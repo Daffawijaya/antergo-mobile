@@ -143,19 +143,19 @@ export default function SearchScreen() {
             onPress={() => chooseFilter("all")}
           />
           <FilterChip
-            label="Food"
+            label="Makanan"
             icon="restaurant"
             selected={filter === "food"}
             onPress={() => chooseFilter("food")}
           />
           <FilterChip
-            label="Shopping"
+            label="Belanja"
             icon="shopping_bag"
             selected={filter === "shopping"}
             onPress={() => chooseFilter("shopping")}
           />
           <FilterChip
-            label="Bike/Car"
+            label="Motor/Mobil"
             icon="directions_car"
             selected={filter === "ride"}
             onPress={() => chooseFilter("ride")}
@@ -178,10 +178,10 @@ export default function SearchScreen() {
                 source={require("../../../../assets/images/icon/bike.png")}
                 style={styles.rideIcon}
                 resizeMode="contain"
-                accessibilityLabel="Bike"
+                accessibilityLabel="Motor"
               />
               <View style={styles.resultCopy}>
-                <Text style={styles.resultTitle}>Bike</Text>
+                <Text style={styles.resultTitle}>Motor</Text>
                 <Text style={styles.resultMeta}>Perjalanan dengan motor</Text>
               </View>
               <AppIcon name="forward" size={21} color={colors.text} />
@@ -199,10 +199,10 @@ export default function SearchScreen() {
                 source={require("../../../../assets/images/icon/car.png")}
                 style={styles.rideIcon}
                 resizeMode="contain"
-                accessibilityLabel="Car"
+                accessibilityLabel="Mobil"
               />
               <View style={styles.resultCopy}>
-                <Text style={styles.resultTitle}>Car</Text>
+                <Text style={styles.resultTitle}>Mobil</Text>
                 <Text style={styles.resultMeta}>Perjalanan dengan mobil</Text>
               </View>
               <AppIcon name="forward" size={21} color={colors.text} />

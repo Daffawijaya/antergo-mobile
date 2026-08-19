@@ -69,7 +69,7 @@ export default function CustomerSendDetail() {
         onPress={() => router.back()}
       />
       <PageHeader
-        eyebrow="Delivery Detail"
+        eyebrow="Detail Pengiriman"
         title={order?.order_number ?? "Detail pengiriman"}
         description="Status diperbarui otomatis setiap 5 detik selama pengiriman aktif."
       />
@@ -129,8 +129,7 @@ export default function CustomerSendDetail() {
             <KeyValue label="Catatan" value={order.notes || "-"} />
           </Card>
           <Card>
-            <Text style={styles.title}>Rute</Text>
-            <KeyValue label="Pickup" value={order.pickup_address ?? "-"} />
+            <Text style={styles.title}>Rute</Text>              <KeyValue label="Jemput" value={order.pickup_address ?? "-"} />
             <KeyValue label="Tujuan" value={order.destination_address ?? "-"} />
           </Card>
           {order.driver ? (
@@ -187,7 +186,7 @@ export default function CustomerSendDetail() {
                 </Text>
               ) : null}
               <Button
-                title="Batalkan Delivery"
+                title="Batalkan Pengiriman"
                 variant="danger"
                 loading={cancel.isPending}
                 onPress={() => cancel.mutate()}

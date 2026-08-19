@@ -50,7 +50,7 @@ export default function CustomerHome() {
   const services: Service[] = [
     {
       type: "food",
-      label: "Food",
+      label: "Makanan",
       icon: serviceIcons.food,
       onPress: () =>
         router.push({
@@ -60,7 +60,7 @@ export default function CustomerHome() {
     },
     {
       type: "shopping",
-      label: "Shopping",
+      label: "Belanja",
       icon: serviceIcons.shopping,
       onPress: () =>
         router.push({
@@ -70,13 +70,13 @@ export default function CustomerHome() {
     },
     {
       type: "delivery",
-      label: "Delivery",
+      label: "Kirim",
       icon: serviceIcons.delivery,
       onPress: () => router.push("/(customer)/send/create"),
     },
     {
       type: "bike",
-      label: "Bike",
+      label: "Motor",
       icon: serviceIcons.bike,
       onPress: () =>
         router.push({
@@ -86,7 +86,7 @@ export default function CustomerHome() {
     },
     {
       type: "car",
-      label: "Car",
+      label: "Mobil",
       icon: serviceIcons.car,
       onPress: () =>
         router.push({
@@ -157,7 +157,7 @@ export default function CustomerHome() {
       <View className="flex-row gap-2.5 px-4 pb-2.5">
         <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
           <View>
-            <Text className="text-xs text-muted">Balance</Text>
+            <Text className="text-xs text-muted">Saldo</Text>
             <Text className="font-bold text-base text-foreground">Rp0</Text>
           </View>
           <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-brand bg-surface-muted">
@@ -175,13 +175,13 @@ export default function CustomerHome() {
         </View>
       </View>
       <MerchantSection
-        title="Foods"
+        title="Makanan"
         loading={foodMerchants.isLoading}
         merchants={foodMerchants.data?.data ?? []}
         onPress={openMerchant}
       />
       <ProductSection
-        title="Shopping"
+        title="Belanja"
         loading={goods.isLoading}
         products={onePerMerchant(goods.data?.data)}
         onPress={openProduct}

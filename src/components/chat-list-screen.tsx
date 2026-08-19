@@ -25,7 +25,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
           and 22px bold title, without the gradient background. */}
       <View className="mt-2">
         <Text className="font-bold text-[22px] leading-7 text-foreground">
-          Inbox
+          Pesan
         </Text>
       </View>
       {query.isLoading ? (
@@ -67,7 +67,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
                   <View style={styles.nameRow}>
                     <Text numberOfLines={1} style={styles.name}>
                       {person?.name ??
-                        (role === "customer" ? "Driver AnterGo" : "Customer")}
+                        (role === "customer" ? "Driver AnterGo" : "Pelanggan")}
                     </Text>
                     <Text style={styles.time}>
                       {last ? formatDateTime(last.created_at) : ""}

@@ -77,8 +77,8 @@ export default function CartScreen() {
           <PageHeader
             eyebrow={
               singleItems[0]?.product.product_type === "goods"
-                ? "Shopping Cart"
-                : "Food Cart"
+                ? "Keranjang Belanja"
+                : "Keranjang Makanan"
             }
             title={singleCart!.merchant.name}
             description="Subtotal hanya preview. Harga dan stok final divalidasi backend."
@@ -86,10 +86,10 @@ export default function CartScreen() {
           {!singleItems.length ? (
             <StatusState
               type="empty"
-              message="Cart masih kosong."
+              message="Keranjang masih kosong."
               action={
                 <Button
-                  title="Cari Merchant"
+                  title="Cari UMKM"
                   onPress={() =>
                     router.replace({
                       pathname: "/(customer)/(tabs)/food",
@@ -152,7 +152,7 @@ export default function CartScreen() {
                 </Text>
               </Card>
               <Button
-                title="Lanjut Checkout"
+                title="Lanjut ke Checkout"
                 onPress={() =>
                   router.push({
                     pathname: "/(customer)/(tabs)/food/checkout",
@@ -161,7 +161,7 @@ export default function CartScreen() {
                 }
               />
               <Button
-                title="Kosongkan Cart"
+                title="Kosongkan Keranjang"
                 variant="danger"
                 onPress={() => clearMerchant(merchantId)}
               />
@@ -179,7 +179,7 @@ export default function CartScreen() {
           {!allMerchantEntries.length ? (
             <StatusState
               type="empty"
-              message="Cart masih kosong."
+              message="Keranjang masih kosong."
               action={
                 <Button
                   title="Mulai Belanja"
@@ -277,7 +277,7 @@ export default function CartScreen() {
               </Card>
 
               <Button
-                title="Kosongkan Semua Cart"
+                title="Kosongkan Semua"
                 variant="danger"
                 onPress={() => {
                   if (confirm("Hapus semua item dari cart?")) clearAll();

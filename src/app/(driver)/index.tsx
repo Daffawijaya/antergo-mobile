@@ -277,7 +277,7 @@ export default function DriverHome() {
 
             {profile.data.is_online && isTrackingError ? (
               <Button
-                title="Retry Tracking"
+                title="Coba Lagi"
                 variant="secondary"
                 loading={availability.isPending}
                 onPress={requestOnline}
@@ -288,7 +288,7 @@ export default function DriverHome() {
           {/* ── Order Aktif ── */}
           <Card>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Order Aktif</Text>
+              <Text style={styles.sectionTitle}>Pesanan Aktif</Text>
               {activeRide.data ? (
                 <OrderStatusBadge status={activeRide.data.status} />
               ) : null}
@@ -326,7 +326,7 @@ export default function DriverHome() {
                 <View style={styles.routeSection}>
                   <View style={styles.routeRow}>
                     <View style={[styles.routeDot, styles.pickupDot]} />
-                    <Text style={styles.routeLabel}>Pickup</Text>
+                    <Text style={styles.routeLabel}>Jemput</Text>
                   </View>
                   <Text style={styles.routeAddress} numberOfLines={1}>
                     {activeRide.data.pickup_address ?? "—"}
@@ -347,7 +347,7 @@ export default function DriverHome() {
 
                 <View style={styles.activeOrderBottom}>
                   <Text style={styles.customerName} numberOfLines={1}>
-                    {activeRide.data.user?.name ?? "Customer"}
+                    {activeRide.data.user?.name ?? "Pelanggan"}
                   </Text>
                   <Button
                     compact
@@ -406,7 +406,7 @@ export default function DriverHome() {
                       </Text>
                     </View>
                     <Text style={styles.previewRoute} numberOfLines={1}>
-                      {order.pickup_address ?? "Pickup"} → {order.destination_address ?? "Tujuan"}
+                      {order.pickup_address ?? "Jemput"} → {order.destination_address ?? "Tujuan"}
                     </Text>
                     {order.pickup_distance != null && order.pickup_distance > 0 ? (
                       <Text style={styles.previewDistance}>

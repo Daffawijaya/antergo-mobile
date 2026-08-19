@@ -85,7 +85,7 @@ function OrderCard({
         <View style={styles.routeRow}>
           <View style={[styles.routeDot, styles.pickupDot]} />
           <Text style={styles.routeAddress} numberOfLines={1}>
-            {order.pickup_address ?? "Pickup"}
+            {order.pickup_address ?? "Jemput"}
           </Text>
         </View>
 
@@ -187,7 +187,7 @@ export default function DriverOrders() {
       <PageHeader
         eyebrow="DRIVER"
         title="Pesanan"
-        description="Order tersedia, aktif, dan riwayat."
+        description="Pesanan tersedia, aktif, dan riwayat."
       />
 
       {/* Segmented tabs */}

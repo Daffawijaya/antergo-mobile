@@ -73,7 +73,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-          title: "Profile",
+          title: "Profil",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <FaUserIcon size={23} color={String(color)} />

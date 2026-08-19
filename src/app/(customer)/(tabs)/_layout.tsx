@@ -60,7 +60,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Beranda",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TiHomeIcon size={24} color={String(color)} />
@@ -72,7 +72,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: "Activities",
+          title: "Pesanan",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TbClipboardTextFilledIcon size={22} color={String(color)} />
@@ -84,7 +84,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat/index"
         options={{
-          title: "Inbox",
+          title: "Pesan",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <BsChatTextFillIcon size={22} color={String(color)} />
@@ -96,7 +96,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Profil",
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <FaUserIcon size={21} color={String(color)} />

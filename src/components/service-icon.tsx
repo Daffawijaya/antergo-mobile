@@ -15,11 +15,11 @@ export function orderService(
   );
 }
 const service = {
-  bike: { label: "Bike", icon: "bike" as AppIconName },
-  car: { label: "Car", icon: "car" as AppIconName },
-  delivery: { label: "Delivery", icon: "package" as AppIconName },
-  food: { label: "Food", icon: "utensils" as AppIconName },
-  shopping: { label: "Shopping", icon: "bag" as AppIconName },
+  bike: { label: "Motor", icon: "bike" as AppIconName },
+  car: { label: "Mobil", icon: "car" as AppIconName },
+  delivery: { label: "Kirim", icon: "package" as AppIconName },
+  food: { label: "Makanan", icon: "utensils" as AppIconName },
+  shopping: { label: "Belanja", icon: "bag" as AppIconName },
 } as const;
 export function ServiceIcon({
   type,

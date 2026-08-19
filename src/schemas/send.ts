@@ -14,10 +14,10 @@ export const createSendSchema = z.object({
   pickup_address: z
     .string()
     .trim()
-    .min(1, "Alamat pickup wajib diisi.")
+    .min(1, "Alamat jemput wajib diisi.")
     .max(500),
-  pickup_latitude: coordinate(-90, 90, "Latitude pickup"),
-  pickup_longitude: coordinate(-180, 180, "Longitude pickup"),
+  pickup_latitude: coordinate(-90, 90, "Latitude jemput"),
+  pickup_longitude: coordinate(-180, 180, "Longitude jemput"),
   destination_address: z
     .string()
     .trim()

@@ -73,7 +73,7 @@ export default function MerchantOrderDetailScreen() {
         <>
           <Card>
             <OrderStatusBadge status={query.data.status} />
-            <KeyValue label="Customer" value={query.data.user?.name ?? "-"} />
+            <KeyValue label="Pelanggan" value={query.data.user?.name ?? "-"} />
             <KeyValue label="Telepon" value={query.data.user?.phone ?? "-"} />
             <KeyValue
               label="Total"
@@ -85,7 +85,7 @@ export default function MerchantOrderDetailScreen() {
             />
           </Card>
           <Card>
-            <Text style={styles.heading}>Items</Text>
+            <Text style={styles.heading}>Item</Text>
             {query.data.items?.map((item) => (
               <View key={item.id} style={styles.item}>
                 <Text style={styles.title}>
@@ -100,7 +100,7 @@ export default function MerchantOrderDetailScreen() {
             ))}
           </Card>
           <Card>
-            <Text style={styles.heading}>Delivery</Text>
+            <Text style={styles.heading}>Pengantaran</Text>
             <KeyValue
               label="Alamat"
               value={query.data.destination_address ?? "-"}

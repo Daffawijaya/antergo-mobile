@@ -97,7 +97,7 @@ export default function MerchantProducts() {
               <View className="flex-1">
                 <Button
                   compact
-                  title="Food & Drink"
+                  title="Makanan & Minuman"
                   variant={type === "food" ? "primary" : "secondary"}
                   onPress={() => setType("food")}
                 />
@@ -180,7 +180,7 @@ export default function MerchantProducts() {
                   {product.name}
                 </Text>
                 <Text className="text-sm text-muted">
-                  {product.product_type === "goods" ? "Barang" : "Food & Drink"}
+                  {product.product_type === "goods" ? "Barang" : "Makanan & Minuman"}
                 </Text>
                 <Text className="font-semibold text-brand-dark">
                   Rp {Number(product.price).toLocaleString("id-ID")}

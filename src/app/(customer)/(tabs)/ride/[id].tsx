@@ -79,7 +79,7 @@ export default function RideDetailScreen() {
         onPress={() => router.back()}
       />
       <PageHeader
-        eyebrow="Ride Detail"
+        eyebrow="Detail Perjalanan"
         title={query.data?.order_number ?? "Detail perjalanan"}
         description="Status diperbarui otomatis selama perjalanan aktif."
       />
@@ -211,7 +211,7 @@ export default function RideDetailScreen() {
                 </Text>
               ) : null}
               <Button
-                title="Batalkan Ride"
+                title="Batalkan Perjalanan"
                 variant="danger"
                 loading={cancelMutation.isPending}
                 onPress={() => cancelMutation.mutate()}

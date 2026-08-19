@@ -89,7 +89,7 @@ export default function DriverSendDetail() {
   if (order && order.type !== "send")
     return (
       <Screen>
-        <StatusState type="error" message="Order ini bukan Delivery." />
+        <StatusState type="error"        message="Order ini bukan pengiriman." />
       </Screen>
     );
 
@@ -131,7 +131,7 @@ export default function DriverSendDetail() {
               <View style={styles.routeRow}>
                 <View style={[styles.routeDot, styles.pickupDot]} />
                 <View style={styles.routeCopy}>
-                  <Text style={styles.routeLabel}>Pickup</Text>
+                  <Text style={styles.routeLabel}>Jemput</Text>
                   <Text style={styles.routeAddress} numberOfLines={2}>
                     {order.pickup_address ?? "—"}
                   </Text>
@@ -196,7 +196,7 @@ export default function DriverSendDetail() {
               ]}
             >
               <AppIcon name="chat" size={18} color={Colors.primaryDark} />
-              <Text style={styles.chatButtonText}>Chat Customer</Text>
+              <Text style={styles.chatButtonText}>Chat Pelanggan</Text>
             </Pressable>
           </Card>
 

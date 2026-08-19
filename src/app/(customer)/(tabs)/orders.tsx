@@ -65,7 +65,7 @@ export default function CustomerOrders() {
           and 22px bold title, without the gradient background. */}
       <View className="mt-2">
         <Text className="font-bold text-[22px] leading-7 text-foreground">
-          Activities
+          Pesanan
         </Text>
       </View>
       <View style={styles.filters}>

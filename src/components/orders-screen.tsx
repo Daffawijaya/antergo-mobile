@@ -57,7 +57,7 @@ export function OrdersScreen({ role }: { role: Exclude<UserRole, "admin"> }) {
             <KeyValue label="Tipe" value={order.type} />
             <KeyValue
               label="Status"
-              value={order.status.replaceAll("_", " ")}
+              value=          {order.status.replaceAll("_", " ")}
             />
             <KeyValue
               label="Total"

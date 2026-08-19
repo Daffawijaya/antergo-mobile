@@ -77,7 +77,7 @@ export function RideMap({
         {pickup ? (
           <Marker
             coordinate={pickup}
-            title="Pickup"
+            title="Jemput"
             pinColor={Colors.primary}
             draggable={!!onPickupChange}
             onDragEnd={drag(onPickupChange)}

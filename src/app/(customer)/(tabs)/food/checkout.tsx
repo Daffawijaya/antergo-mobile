@@ -110,7 +110,7 @@ export default function FoodCheckoutScreen() {
   return (
     <Screen>
       <PageHeader
-        eyebrow={service === "shopping" ? "SHOPPING" : "FOOD"}
+        eyebrow={service === "shopping" ? "BELANJA" : "MAKANAN"}
         title="Konfirmasi pesanan"
         description="Periksa alamat dan ringkasan sebelum memesan."
         action={<BackButton onPress={() => router.back()} />}

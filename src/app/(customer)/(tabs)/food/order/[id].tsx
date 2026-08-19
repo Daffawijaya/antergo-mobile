@@ -57,7 +57,7 @@ export default function FoodOrderDetailScreen() {
         onPress={() => router.back()}
       />
       <PageHeader
-        eyebrow="Food Order"
+        eyebrow="Pesanan Makanan"
         title={query.data?.order_number ?? "Detail pesanan"}
         description="Status diperbarui setiap 5 detik selama order aktif."
       />
@@ -82,11 +82,11 @@ export default function FoodOrderDetailScreen() {
               value={formatRupiah(query.data.subtotal)}
             />
             <KeyValue
-              label="Delivery fee"
+              label="Ongkir"
               value={formatRupiah(query.data.delivery_fee)}
             />
             <KeyValue
-              label="Service fee"
+              label="Biaya layanan"
               value={formatRupiah(query.data.service_fee)}
             />
             <KeyValue
@@ -96,14 +96,14 @@ export default function FoodOrderDetailScreen() {
           </Card>
           <PaymentSummary order={query.data} />
           <Card>
-            <Text style={styles.heading}>Items</Text>
+            <Text style={styles.heading}>Item</Text>
             {query.data.items?.map((item) => (
               <View key={item.id} style={styles.item}>
                 <Text style={styles.title}>
                   {item.product_name} × {item.quantity}
                 </Text>
                 <KeyValue
-                  label="Harga snapshot"
+                  label="Harga saat pesan"
                   value={formatRupiah(item.price)}
                 />
                 <KeyValue
@@ -130,7 +130,7 @@ export default function FoodOrderDetailScreen() {
           />
           <Card>
             <Text style={styles.heading}>Pengantaran</Text>
-            <KeyValue label="Pickup" value={query.data.pickup_address ?? "-"} />
+            <KeyValue label="Jemput" value={query.data.pickup_address ?? "-"} />
             <KeyValue
               label="Tujuan"
               value={query.data.destination_address ?? "-"}
@@ -180,7 +180,7 @@ export default function FoodOrderDetailScreen() {
                 </Text>
               ) : null}
               <Button
-                title="Batalkan Food Order"
+                title="Batalkan Pesanan"
                 variant="danger"
                 loading={cancel.isPending}
                 onPress={() => cancel.mutate()}
