@@ -1,21 +1,25 @@
 import { apiClient } from "./client";
 
-export interface TitipBeliItem {
+export interface JastipItem {
   name: string;
   quantity?: string;
+  unit?: string;
+  price?: string;
   note?: string;
+  is_paid?: boolean;
 }
 
-export interface TitipBeliLocation {
+export interface JastipLocation {
   place_name: string;
   address: string;
   latitude: number;
   longitude: number;
-  items: TitipBeliItem[];
+  is_paid: boolean;
+  items: JastipItem[];
 }
 
-export interface CreateTitipBeliPayload {
-  purchase_locations: TitipBeliLocation[];
+export interface CreateJastipPayload {
+  purchase_locations: JastipLocation[];
   destination_address: string;
   destination_latitude: number;
   destination_longitude: number;
@@ -23,6 +27,6 @@ export interface CreateTitipBeliPayload {
   driver_note?: string;
 }
 
-export async function createTitipBeliOrder(payload: CreateTitipBeliPayload) {
+export async function createJastipOrder(payload: CreateJastipPayload) {
   return (await apiClient.post("/titip-beli/orders", payload)).data;
 }

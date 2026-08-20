@@ -72,6 +72,12 @@ export default function CustomerHome() {
         }),
     },
     {
+      type: "titip_beli" as ServiceVariant,
+      label: t("jastip.title"),
+      icon: serviceIcons.titip_beli,
+      onPress: () => router.push("/(customer)/jastip/create"),
+    },
+    {
       type: "delivery",
       label: t("home.delivery"),
       icon: serviceIcons.delivery,
@@ -96,12 +102,6 @@ export default function CustomerHome() {
           pathname: "/(customer)/(tabs)/ride/create",
           params: { service: "car" },
         }),
-    },
-    {
-      type: "titip_beli" as ServiceVariant,
-      label: t("titipBeli.title"),
-      icon: serviceIcons.titip_beli,
-      onPress: () => router.push("/(customer)/titip-beli/create"),
     },
   ];
   const openMerchant = (merchant: Merchant) =>
