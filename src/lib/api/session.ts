@@ -5,8 +5,9 @@ import type { AppRole } from "@/types/api";
 
 const TOKEN_KEY = "antergo_auth_token";
 const ACTIVE_ROLE_KEY = "antergo_active_role";
+const LAST_ACTIVE_KEY = "antergo_last_active";
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 let cachedToken: string | null | undefined;
-let unauthorizedHandler: (() => void | Promise<void>) | undefined;
 
 function getWebStorage() {
   if (typeof window === "undefined") return null;
@@ -50,14 +51,6 @@ export async function clearToken() {
   await deleteToken();
 }
 
-export function setUnauthorizedHandler(handler: () => void | Promise<void>) {
-  unauthorizedHandler = handler;
-}
-
-export async function handleUnauthorized() {
-  await clearToken();
-  await unauthorizedHandler?.();
-}
 export async function getStoredActiveRole(): Promise<AppRole | null> {
   if (Platform.OS === "web")
     return getWebStorage()?.getItem(ACTIVE_ROLE_KEY) as AppRole | null;
@@ -78,4 +71,41 @@ export async function clearActiveRole() {
     return;
   }
   await SecureStore.deleteItemAsync(ACTIVE_ROLE_KEY);
+}
+
+/* ── last-active tracking ─────────────────────────────── */
+
+async function readLastActive(): Promise<number | null> {
+  const raw =
+    Platform.OS === "web"
+      ? getWebStorage()?.getItem(LAST_ACTIVE_KEY)
+      : await SecureStore.getItemAsync(LAST_ACTIVE_KEY);
+  return raw ? Number(raw) : null;
+}
+
+async function writeLastActive(ts: number) {
+  if (Platform.OS === "web") {
+    getWebStorage()?.setItem(LAST_ACTIVE_KEY, String(ts));
+    return;
+  }
+  await SecureStore.setItemAsync(LAST_ACTIVE_KEY, String(ts));
+}
+
+export async function touchLastActive() {
+  await writeLastActive(Date.now());
+}
+
+/** Returns true if session should be expired (>30 days inactive). */
+export async function isSessionExpired(): Promise<boolean> {
+  const last = await readLastActive();
+  if (!last) return false; // first time → not expired
+  return Date.now() - last > SESSION_TTL_MS;
+}
+
+export async function clearLastActive() {
+  if (Platform.OS === "web") {
+    getWebStorage()?.removeItem(LAST_ACTIVE_KEY);
+    return;
+  }
+  await SecureStore.deleteItemAsync(LAST_ACTIVE_KEY);
 }

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Button, Card, FormField, KeyValue } from "@/components/ui";
 import { Colors } from "@/constants/colors";
+import { useTranslation } from "@/i18n";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { submitOrderRating } from "@/lib/api/payment-rating";
 import type { Order, RatingTarget } from "@/types/api";
@@ -17,6 +18,7 @@ export function RatingCard({
   queryKey: readonly unknown[];
 }) {
   const { styles } = useScreenStyles();
+  const { t } = useTranslation();
   const client = useQueryClient();
   const [score, setScore] = useState(0);
   const [comment, setComment] = useState("");
@@ -39,19 +41,19 @@ export function RatingCard({
   if (order.payment_status !== "paid")
     return (
       <Card>
-        <Text style={styles.title}>Penilaian</Text>
+        <Text style={styles.title}>{t("rating.title")}</Text>
         <Text style={styles.body}>
-          Penilaian tersedia setelah driver mengonfirmasi pembayaran tunai.
+          {t("rating.availableAfter")}
         </Text>
       </Card>
     );
   if (order.rating)
     return (
       <Card>
-        <Text style={styles.title}>Penilaian Anda</Text>
+        <Text style={styles.title}>{t("rating.yourRating")}</Text>
         <KeyValue
-          label="Target"
-          value={order.rating.driver_id ? "Driver" : "Merchant"}
+          label={t("rating.target")}
+          value={order.rating.driver_id ? "Driver" : t("rating.merchant")}
         />
         <Text style={styles.stars}>
           {"★".repeat(order.rating.rating)}
@@ -65,19 +67,19 @@ export function RatingCard({
 
   return (
     <Card>
-      <Text style={styles.title}>Beri Penilaian</Text>
+      <Text style={styles.title}>{t("rating.giveRating")}</Text>
       {order.type === "food" ? (
         <View style={styles.targets}>
           <Button
-            title="Merchant"
+            title={t("rating.merchant")}
             variant={target === "merchant" ? "primary" : "secondary"}
             onPress={() => setTarget("merchant")}
           />
-          <Button
-            title="Driver"
+          <Button            title="Driver"
             variant={target === "driver" ? "primary" : "secondary"}
             onPress={() => setTarget("driver")}
           />
+
         </View>
       ) : null}
       <View style={styles.starRow}>
@@ -95,7 +97,7 @@ export function RatingCard({
         ))}
       </View>
       <FormField
-        label="Komentar (opsional)"
+        label={t("rating.commentOptional")}
         value={comment}
         onChangeText={setComment}
         multiline
@@ -103,13 +105,13 @@ export function RatingCard({
         maxLength={1000}
       />
       {score === 0 ? (
-        <Text style={styles.hint}>Pilih 1 sampai 5 bintang.</Text>
+        <Text style={styles.hint}>{t("rating.selectStars")}</Text>
       ) : null}
       {mutation.isError ? (
         <Text style={styles.error}>{getApiErrorMessage(mutation.error)}</Text>
       ) : null}
       <Button
-        title="Kirim Penilaian"
+        title={t("rating.submitRating")}
         disabled={score === 0}
         loading={mutation.isPending}
         onPress={() => mutation.mutate()}

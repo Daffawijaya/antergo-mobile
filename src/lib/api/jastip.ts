@@ -6,7 +6,6 @@ export interface JastipItem {
   unit?: string;
   price?: string;
   note?: string;
-  is_paid?: boolean;
 }
 
 export interface JastipLocation {
@@ -14,7 +13,6 @@ export interface JastipLocation {
   address: string;
   latitude: number;
   longitude: number;
-  is_paid: boolean;
   items: JastipItem[];
 }
 
@@ -28,5 +26,5 @@ export interface CreateJastipPayload {
 }
 
 export async function createJastipOrder(payload: CreateJastipPayload) {
-  return (await apiClient.post("/titip-beli/orders", payload)).data;
+  return (await apiClient.post("/jastip/orders", payload)).data;
 }

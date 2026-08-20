@@ -9,13 +9,16 @@ import {
 } from "@/lib/api/push-notifications";
 import {
   clearActiveRole,
+  clearLastActive,
   clearToken,
   getStoredActiveRole,
   getStoredToken,
+  isSessionExpired,
   saveActiveRole,
   saveToken,
-  setUnauthorizedHandler,
+  touchLastActive,
 } from "@/lib/api/session";
+
 import type {
   LoginInput,
   RegisterInput,
@@ -59,6 +62,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   restoreSession: async () => {
     const token = await getStoredToken();
     if (!token) return set({ user: null, activeRole: null, isHydrated: true });
+
+    // Auto-logout after 30 days of inactivity
+    if (await isSessionExpired()) {
+      await stopDriverLocationTracking();
+      await Promise.all([clearToken(), clearActiveRole(), clearLastActive()]);
+      queryClient.clear();
+      set({ user: null, activeRole: null, isHydrated: true });
+      return;
+    }
+
+    // Touch last active on every open
+    await touchLastActive();
+
     try {
       const user = await authApi.getMe();
       const activeRole = await resolveActiveRole(
@@ -67,10 +83,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       );
       set({ user, activeRole, isHydrated: true });
     } catch {
-      await stopDriverLocationTracking();
-      await Promise.all([clearToken(), clearActiveRole()]);
-      queryClient.clear();
-      set({ user: null, activeRole: null, isHydrated: true });
+      // Don't force logout on API errors – keep user logged in locally.
+      // The 401 interceptor handles token expiry separately.
+      set({ isHydrated: true });
     }
   },
   refreshUser: async () => {
@@ -118,17 +133,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await authApi.logout();
     } finally {
       await stopDriverLocationTracking();
-      await Promise.all([clearToken(), clearActiveRole()]);
+      await Promise.all([clearToken(), clearActiveRole(), clearLastActive()]);
       queryClient.clear();
       set({ user: null, activeRole: null });
     }
   },
   clearSession: async () => {
     await stopDriverLocationTracking();
-    await Promise.all([clearToken(), clearActiveRole()]);
+    await Promise.all([clearToken(), clearActiveRole(), clearLastActive()]);
     queryClient.clear();
     set({ user: null, activeRole: null, isHydrated: true });
   },
 }));
 
-setUnauthorizedHandler(() => useAuthStore.getState().clearSession());

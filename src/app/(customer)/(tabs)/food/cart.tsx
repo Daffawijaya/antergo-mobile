@@ -268,7 +268,7 @@ export default function CartScreen() {
               {/* Grand total */}
               <Card>
                 <KeyValue
-                  label={`Total ${allMerchantEntries.length} UMKM • ${totalAllItems} item`}
+                  label={`Total ${allMerchantEntries.length} ${t("home.umkmAnterGo")} • ${totalAllItems} item`}
                   value={formatRupiah(totalAllPrice)}
                 />
                 <Text style={styles.muted}>

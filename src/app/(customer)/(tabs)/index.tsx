@@ -18,13 +18,13 @@ type Service = {
   icon: number;
   onPress: () => void;
 };
-const serviceIcons: Record<ServiceVariant | "titip_beli", number> = {
+const serviceIcons: Record<ServiceVariant | "jastip", number> = {
   food: require("../../../../assets/images/icon/food.png"),
   delivery: require("../../../../assets/images/icon/delivery.png"),
   shopping: require("../../../../assets/images/icon/shopping.png"),
   bike: require("../../../../assets/images/icon/bike.png"),
   car: require("../../../../assets/images/icon/car.png"),
-  titip_beli: require("../../../../assets/images/icon/titip.png"),
+  jastip: require("../../../../assets/images/icon/titip.png"),
 };
 const onePerMerchant = (products: Product[] = []) => {
   const seen = new Set<number>();
@@ -72,9 +72,9 @@ export default function CustomerHome() {
         }),
     },
     {
-      type: "titip_beli" as ServiceVariant,
+      type: "jastip" as ServiceVariant,
       label: t("jastip.title"),
-      icon: serviceIcons.titip_beli,
+      icon: serviceIcons.jastip,
       onPress: () => router.push("/(customer)/jastip/create"),
     },
     {
@@ -262,7 +262,7 @@ function MerchantSection({
                   {merchant.name}
                 </Text>
                 <Text numberOfLines={1} className="text-xs text-muted">
-                  {merchant.category?.name ?? "UMKM kuliner"}
+                  {merchant.category?.name ?? t("home.umkmKuliner")}
                 </Text>
                 <Text
                   className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}
@@ -327,7 +327,7 @@ function ProductSection({
                   {product.name}
                 </Text>
                 <Text numberOfLines={1} className="text-xs text-muted">
-                  {product.merchant?.name ?? "UMKM AnterGo"}
+                  {product.merchant?.name ?? t("home.defaultStore")}
                 </Text>
                 <Text className="font-bold text-sm text-brand-dark">
                   {formatRupiah(product.price)}

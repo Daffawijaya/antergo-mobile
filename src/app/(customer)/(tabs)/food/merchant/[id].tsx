@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { AppIcon } from "@/components/app-icon";
 import { Button, Notice, StatusState } from "@/components/ui";
+import { useTranslation } from "@/i18n";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getMerchantDetail } from "@/lib/api/food";
@@ -159,6 +160,7 @@ function ProductRow({
 /* ------------------------------------------------------------------ */
 
 export default function MerchantDetailScreen() {
+  const { t } = useTranslation();
   const {
     id,
     service: rawService,
@@ -388,7 +390,7 @@ export default function MerchantDetailScreen() {
             </View>
           </>
         ) : (
-          <Notice>Data merchant tidak ditemukan.</Notice>
+          <Notice>{t("food.storeNotFound")}</Notice>
         )}
       </ScrollView>
 

@@ -27,7 +27,7 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-image-picker", {"photosPermission": "Izinkan AnterGo memilih foto yang Anda pilih untuk profil, toko, produk, dan dokumen.", "cameraPermission": "Izinkan AnterGo menggunakan kamera untuk mengambil foto dan dokumen.", "microphonePermission": false}],
+      ["expo-image-picker", {"photosPermission": "Izinkan anterGo memilih foto yang Anda pilih untuk profil, toko, produk, dan dokumen.", "cameraPermission": "Izinkan anterGo menggunakan kamera untuk mengambil foto dan dokumen.", "microphonePermission": false}],
       [
         "expo-splash-screen",
         {
@@ -46,8 +46,8 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Izinkan AnterGo menggunakan lokasi Anda untuk memilih pickup dan memperbarui posisi driver saat aplikasi terbuka.",
-          "locationAlwaysAndWhenInUsePermission": "Izinkan AnterGo menggunakan lokasi saat aplikasi tidak dibuka agar driver Online tetap dapat menerima dan menjalankan pesanan.",
+          "locationWhenInUsePermission": "Izinkan anterGo menggunakan lokasi Anda untuk memilih pickup dan memperbarui posisi driver saat aplikasi terbuka.",
+          "locationAlwaysAndWhenInUsePermission": "Izinkan anterGo menggunakan lokasi saat aplikasi tidak dibuka agar driver Online tetap dapat menerima dan menjalankan pesanan.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true

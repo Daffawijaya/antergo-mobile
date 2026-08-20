@@ -486,7 +486,7 @@ export default function CommerceCatalogScreen() {
                     {product.name}
                   </Text>
                   <Text numberOfLines={1} className="text-sm text-muted">
-                    {product.merchant?.name ?? "UMKM AnterGo"}
+                    {product.merchant?.name ?? t("home.defaultStore")}
                   </Text>
                   <Text className="font-bold text-base text-brand-dark">
                     {formatRupiah(product.price)}

@@ -2,6 +2,7 @@ import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "@/i18n";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { PaymentSummary } from "@/components/payment-summary";
 import { RatingCard } from "@/components/rating-card";
@@ -28,6 +29,7 @@ import { useAppTheme } from "@/stores/theme-store";
 const terminal = new Set(["completed", "cancelled"]);
 export default function FoodOrderDetailScreen() {
   const { styles } = useScreenStyles();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const orderId = Number(id);
   const router = useRouter();
@@ -74,11 +76,11 @@ export default function FoodOrderDetailScreen() {
           <Card>
             <OrderStatusBadge status={query.data.status} />
             <KeyValue
-              label="Merchant"
+              label={t("rating.merchant")}
               value={query.data.merchant?.name ?? "-"}
             />
             <KeyValue
-              label="Subtotal"
+              label={t("checkout.subtotal")}
               value={formatRupiah(query.data.subtotal)}
             />
             <KeyValue

@@ -2,6 +2,7 @@ import { useMemo as useThemeMemo , useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "@/i18n";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   Button,
@@ -19,6 +20,7 @@ import { useAppTheme } from "@/stores/theme-store";
 
 export default function MerchantOrdersScreen() {
   const { styles } = useScreenStyles();
+  const { t } = useTranslation();
   const router = useRouter();
   const [page, setPage] = useState(1);
   const query = useQuery({
@@ -30,7 +32,7 @@ export default function MerchantOrdersScreen() {
   return (
     <Screen>
       <PageHeader
-        eyebrow="Merchant"
+        eyebrow={t("merchantDashboard.eyebrow")}
         title="Pesanan Makanan"
         description="Pesanan terbaru diperbarui otomatis."
       />

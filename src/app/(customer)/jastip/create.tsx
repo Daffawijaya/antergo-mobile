@@ -1,4 +1,5 @@
 import { AppIcon } from "@/components/app-icon";
+import { LuX } from "react-icons/lu";
 import { FaDotCircleIcon, HiLocationMarkerIcon } from "@/components/brand-icons";
 import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { useAppTheme } from "@/stores/theme-store";
@@ -7,8 +8,7 @@ import { useLocationPickerStore } from "@/stores/location-picker-store";
 import {
   createJastipOrder,
   type JastipItem,
-} from "@/lib/api/titip-beli";
-import { formatRupiah } from "@/lib/format";
+} from "@/lib/api/jastip";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useMutation } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -32,7 +32,6 @@ interface PurchaseLocationForm {
   address: string;
   latitude: number | null;
   longitude: number | null;
-  isPaid: boolean;
   items: JastipItem[];
 }
 
@@ -60,7 +59,6 @@ const emptyLocation = (): PurchaseLocationForm => ({
   address: "",
   latitude: null,
   longitude: null,
-  isPaid: false,
   items: [emptyItem()],
 });
 
@@ -102,33 +100,11 @@ export default function CreateJastipScreen() {
     new Set(),
   );
 
-  // Auto-calculate total from unpaid items across all locations
-  const calculatedTotal = useMemo(() => {
-    return locations.reduce((total, loc) => {
-      if (loc.isPaid) return total;
-      return total + loc.items.reduce((sum, item) => {
-        return sum + (Number(item.price) || 0);
-      }, 0);
-    }, 0);
-  }, [locations]);
-
   const totalItemCount = useMemo(() => {
     return locations.reduce((total, loc) => {
       return total + loc.items.filter((it) => it.name.trim()).length;
     }, 0);
   }, [locations]);
-
-  const locationSubtotals = useMemo(() => {
-    return locations.map((loc) => {
-      if (loc.isPaid) return 0;
-      return loc.items.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-    });
-  }, [locations]);
-
-  const allPaid = useMemo(
-    () => locations.length > 0 && locations.every((l) => l.isPaid),
-    [locations],
-  );
 
   const destination = useLocationPickerStore(
     (s) => s.selections["send-destination"],
@@ -188,14 +164,6 @@ export default function CreateJastipScreen() {
       else next.add(index);
       return next;
     });
-  };
-
-  const togglePaid = (index: number) => {
-    setLocations((prev) =>
-      prev.map((loc, i) =>
-        i === index ? { ...loc, isPaid: !loc.isPaid } : loc,
-      ),
-    );
   };
 
   const updateItem = (
@@ -259,11 +227,9 @@ export default function CreateJastipScreen() {
       }
     }
 
-    if (!allPaid) {
-      const total = Number(advanceAmount) || calculatedTotal;
-      if (total < 0) {
-        errs.push(t("jastip.advanceRequired"));
-      }
+    const total = Number(advanceAmount);
+    if (total < 0) {
+      errs.push(t("jastip.advanceRequired"));
     }
 
     if (!destination) {
@@ -285,21 +251,19 @@ export default function CreateJastipScreen() {
         address: loc.address,
         latitude: loc.latitude!,
         longitude: loc.longitude!,
-        is_paid: loc.isPaid,
         items: loc.items
           .filter((it) => it.name.trim())
           .map((it) => ({
             name: it.name.trim(),
             quantity: it.quantity?.trim() || undefined,
             unit: it.unit?.trim() || undefined,
-            price: loc.isPaid ? undefined : it.price?.trim() || undefined,
             note: it.note?.trim() || undefined,
           })),
       })),
       destination_address: destination.address,
       destination_latitude: destination.coordinate.latitude,
       destination_longitude: destination.coordinate.longitude,
-      advance_amount: allPaid ? 0 : Number(advanceAmount) || calculatedTotal,
+      advance_amount: Number(advanceAmount) || 0,
       driver_note: driverNote.trim() || undefined,
     };
 
@@ -365,7 +329,7 @@ export default function CreateJastipScreen() {
       header={
         sticky ? (
           <View
-            className="px-5 py-5"
+            className="px-5 py-4"
             style={{
               position: "absolute",
               top: insets.top,
@@ -506,7 +470,6 @@ export default function CreateJastipScreen() {
       <View className="px-5">
         {locations.map((loc, locIdx) => {
           const isCollapsed = collapsedLocations.has(locIdx);
-          const locSubtotal = locationSubtotals[locIdx] ?? 0;
           const validItemCount = loc.items.filter((it) => it.name.trim()).length;
 
           return (
@@ -549,7 +512,7 @@ export default function CreateJastipScreen() {
                   {/* Location picker */}
                   <Pressable
                     onPress={() => openPickupPicker(locIdx)}
-                    className="flex-row items-center rounded-xl bg-surface-muted px-4 py-3 active:opacity-70"
+                    className="flex-row items-center rounded-[14px] border border-border bg-surface px-[15px] min-h-12 active:opacity-70"
                   >
                     <View className="w-6 items-center justify-center">
                       <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
@@ -558,73 +521,32 @@ export default function CreateJastipScreen() {
                       numberOfLines={1}
                       className={`ml-3 flex-1 text-[15px] leading-5 ${loc.address ? "font-bold text-foreground" : "font-medium text-muted"}`}
                     >
-                      {loc.address || "Ambil barang dari mana?"}
+                      {loc.address || t("jastip.whereToBuy")}
                     </Text>
                     <AppIcon name="forward" size={18} color={colors.muted} />
                   </Pressable>
 
                   {/* Place name */}
-                  <FormField
-                    label={t("jastip.placeName")}
+                  <TextInput
                     value={loc.placeName}
                     onChangeText={(v) => updateLocation(locIdx, { placeName: v })}
                     placeholder={t("jastip.placeName")}
+                    placeholderTextColor="#9CA3AF"
+                    className="min-h-12 rounded-[14px] border border-border bg-surface px-[15px] text-base text-foreground"
                   />
 
-                  {/* Paid / Unpaid toggle */}
-                  <Pressable
-                    onPress={() => togglePaid(locIdx)}
-                    className="flex-row items-center gap-3 rounded-xl border px-4 py-3 active:opacity-70"
-                    style={{
-                      borderColor: loc.isPaid ? "#16A34A" : colors.border,
-                      backgroundColor: loc.isPaid ? "#F0FDF4" : colors.surfaceMuted,
-                    }}
-                  >
-                    <View
-                      className="h-6 w-11 items-center justify-center rounded-full"
-                      style={{ backgroundColor: loc.isPaid ? "#16A34A" : colors.border }}
-                    >
-                      <View
-                        className="h-5 w-5 rounded-full bg-white"
-                        style={{ marginLeft: loc.isPaid ? 20 : 2 }}
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[13px] font-bold text-foreground">
-                        {loc.isPaid ? t("jastip.paid") : t("jastip.unpaid")}
-                      </Text>
-                      <Text className="text-[11px] text-muted">
-                        {t("jastip.paidHint")}
-                      </Text>
-                    </View>
-                  </Pressable>
-
                   {/* ── Items ────────────────────────────── */}
-                  {/* Subtotal header (only unpaid) */}
-                  {!loc.isPaid && locSubtotal > 0 && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-semibold text-sm text-muted">
-                        {t("jastip.shoppingList")}
-                      </Text>
-                      <Text className="font-bold text-sm text-foreground">
-                        {formatRupiah(locSubtotal)}
-                      </Text>
-                    </View>
-                  )}
-                  {!loc.isPaid && locSubtotal === 0 && (
-                    <Text className="font-semibold text-sm text-muted">
-                      {t("jastip.shoppingList")}
-                    </Text>
-                  )}
+                  <Text className="font-semibold text-sm text-muted">
+                    {t("jastip.shoppingList")}
+                  </Text>
 
-                  {/* Item list (always shown, price hidden when paid) */}
                   {loc.items.map((item, itemIdx) => (
                     <View key={itemIdx}>
                       {itemIdx > 0 && (
                         <View className="my-2.5 h-px bg-border" />
                       )}
 
-                      {/* Row 1: Nama · Qty +/- · Satuan · Hapus */}
+                      {/* Single row: Nama · Jumlah · Satuan · X */}
                       <View className="flex-row items-center gap-2">
                         <TextInput
                           value={item.name}
@@ -633,7 +555,7 @@ export default function CreateJastipScreen() {
                           }
                           placeholder={t("jastip.itemName")}
                           placeholderTextColor="#9CA3AF"
-                          className="min-h-9 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
+                          className="min-h-12 flex-1 rounded-[14px] border border-border bg-surface px-[15px] text-base text-foreground"
                         />
                         <QuantityCounter
                           value={item.quantity}
@@ -647,38 +569,23 @@ export default function CreateJastipScreen() {
                             updateItem(locIdx, itemIdx, { unit: v })
                           }
                         />
-                        {loc.items.length > 1 && (
-                          <Pressable
-                            onPress={() => removeItem(locIdx, itemIdx)}
-                            className="h-7 w-7 items-center justify-center rounded-full active:opacity-70"
-                          >
-                            <AppIcon name="close" size={14} color="#9CA3AF" />
-                          </Pressable>
-                        )}
+                        <Pressable
+                          onPress={() => removeItem(locIdx, itemIdx)}
+                          hitSlop={8}
+                          className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
+                        >
+                          <LuX size={20} color="#9CA3AF" strokeWidth={1.5} />
+                        </Pressable>
                       </View>
-
-                      {/* Row 2: Perkiraan Harga (full width) */}
-                      {!loc.isPaid && (
-                        <TextInput
-                          value={item.price ? formatRupiahInput(item.price) : ""}
-                          onChangeText={(v) =>
-                            updateItem(locIdx, itemIdx, { price: parseRupiahInput(v) })
-                          }
-                          placeholder="Perkiraan Harga"
-                          placeholderTextColor="#9CA3AF"
-                          keyboardType="numeric"
-                          className="mt-1 min-h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
-                        />
-                      )}
                     </View>
                   ))}
 
                   <Pressable
                     onPress={() => addItem(locIdx)}
-                    className="items-center rounded-xl border border-dashed border-border bg-background py-3 active:opacity-70"
+                    className="py-3 active:opacity-70"
                   >
-                    <Text className="font-semibold text-sm text-brand">
-                      {t("jastip.addItem")}
+                    <Text className="text-sm font-semibold text-brand">
+                      + {t("jastip.addItem")}
                     </Text>
                   </Pressable>
                 </View>
@@ -688,11 +595,6 @@ export default function CreateJastipScreen() {
                   <AppIcon name="bag" size={14} color={colors.muted} />
                   <Text className="text-xs text-muted">
                     {validItemCount} barang
-                    {loc.isPaid
-                      ? ` · ${t("jastip.paid")}`
-                      : locSubtotal > 0
-                        ? ` · ${formatRupiah(locSubtotal)}`
-                        : ""}
                   </Text>
                 </View>
               )}
@@ -713,42 +615,25 @@ export default function CreateJastipScreen() {
 
       {/* ── Bottom section ───────────────────────────────── */}
       <View className="gap-4 px-5 pt-4">
-        {/* Perkiraan Total Harga — only if unpaid locations */}
-        {!allPaid ? (
-          <View className="gap-3">
-            <Text className="font-extrabold text-[17px] text-foreground">
-              Perkiraan Total Harga
-            </Text>
-            <View className="rounded-[14px] border border-border bg-surface px-[15px]">
-              <View className="min-h-12 flex-row items-center gap-1">
-                <Text className="text-base text-muted">Rp</Text>
-                <TextInput
-                  value={
-                    advanceAmount
-                      ? formatRupiahInput(advanceAmount)
-                      : calculatedTotal > 0
-                        ? formatRupiahInput(String(calculatedTotal))
-                        : ""
-                  }
-                  onChangeText={(v) => setAdvanceAmount(parseRupiahInput(v))}
-                  placeholder="0"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  className="flex-1 text-base text-foreground"
-                />
-              </View>
+        {/* Perkiraan Total Harga */}
+        <View className="gap-3">
+          <Text className="font-extrabold text-[17px] text-foreground">
+            Perkiraan Total Harga
+          </Text>
+          <View className="rounded-[14px] border border-border bg-surface px-[15px]">
+            <View className="min-h-12 flex-row items-center gap-1">
+              <Text className="text-base text-muted">Rp</Text>
+              <TextInput
+                value={advanceAmount ? formatRupiahInput(advanceAmount) : ""}
+                onChangeText={(v) => setAdvanceAmount(parseRupiahInput(v))}
+                placeholder="0"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                className="flex-1 text-base text-foreground"
+              />
             </View>
           </View>
-        ) : (
-          <View className="items-center rounded-2xl bg-success/10 px-4 py-3">
-            <Text className="text-center text-sm font-bold text-success">
-              Semua lokasi sudah dibayar ✓
-            </Text>
-            <Text className="text-center text-xs text-muted">
-              Driver cukup ambil barang, tidak perlu bayar
-            </Text>
-          </View>
-        )}
+        </View>
 
         {/* Catatan Driver */}
         <FormField
@@ -765,29 +650,10 @@ export default function CreateJastipScreen() {
             <Text className="font-extrabold text-[15px] text-foreground">
               Ringkasan
             </Text>
-            <View className="mt-3 gap-2">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[13px] text-muted">
-                  {totalItemCount} barang dari {locations.length} lokasi
-                </Text>
-                {!allPaid ? (
-                  <Text className="font-bold text-[15px] text-foreground">
-                    {formatRupiah(calculatedTotal)}
-                  </Text>
-                ) : (
-                  <Text className="font-bold text-[15px] text-success">
-                    Lunas ✓
-                  </Text>
-                )}
-              </View>
-              {Number(advanceAmount) > 0 &&
-              Number(advanceAmount) !== calculatedTotal ? (
-                <View className="flex-row items-center justify-between">                   <Text className="text-[13px] text-muted">Perkiraan Total</Text>
-                  <Text className="font-bold text-[13px] text-foreground">
-                    {formatRupiah(Number(advanceAmount))}
-                  </Text>
-                </View>
-              ) : null}
+            <View className="mt-3">
+              <Text className="text-[13px] text-muted">
+                {totalItemCount} barang dari {locations.length} lokasi
+              </Text>
             </View>
           </View>
         ) : null}
@@ -808,17 +674,8 @@ export default function CreateJastipScreen() {
         ) : null}
 
         {/* Submit */}
-        <Text className="text-center text-[13px] text-muted">
-          {allPaid
-            ? "Driver tinggal ambil barang di setiap lokasi."
-            : "Biaya belanja & ongkir dihitung otomatis berdasarkan jarak."}
-        </Text>
         <Button
-          title={
-            totalItemCount > 0 && !allPaid
-              ? `Buat Pesanan · ${formatRupiah(calculatedTotal)}`
-              : t("jastip.placeOrder")
-          }
+          title={t("jastip.placeOrder")}
           loading={mutation.isPending}
           disabled={mutation.isPending}
           onPress={submit}
@@ -906,7 +763,7 @@ function UnitDropdown({
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className="h-9 min-w-[72px] flex-row items-center justify-between rounded-lg border border-border bg-surface px-2.5"
+        className="min-h-12 min-w-[72px] flex-row items-center justify-between rounded-[14px] border border-border bg-surface px-[15px]"
       >
         <Text
           numberOfLines={1}
@@ -954,7 +811,7 @@ function UnitDropdown({
                         className="rounded-xl px-4 py-3"
                       >
                         <Text className="text-sm font-semibold text-brand">
-                          Ketik manual…
+                          {t("jastip.typeManual")}
                         </Text>
                       </Pressable>
                     </>

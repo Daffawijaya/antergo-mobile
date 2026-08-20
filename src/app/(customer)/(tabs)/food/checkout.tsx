@@ -1,4 +1,5 @@
 import { useMemo as useThemeMemo, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
@@ -27,6 +28,7 @@ import { useAppTheme } from "@/stores/theme-store";
 
 export default function FoodCheckoutScreen() {
   const { styles } = useScreenStyles();
+  const { t } = useTranslation();
   const router = useRouter();
   const client = useQueryClient();
   const { merchantId: merchantIdParam } = useLocalSearchParams<{
@@ -156,7 +158,7 @@ export default function FoodCheckoutScreen() {
         <KeyValue label="Total sementara" value={formatRupiah(subtotal)} />
       </Card>
       <FormField
-        label="Catatan untuk merchant (opsional)"
+        label={t("jastip.driverNote")}
         placeholder="Contoh: jangan terlalu pedas"
         value={notes}
         onChangeText={setNotes}

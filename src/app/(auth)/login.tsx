@@ -97,7 +97,7 @@ export default function LoginScreen() {
             source={LOGOS[mode]}
             style={styles.logo}
             resizeMode="contain"
-            accessibilityLabel="AnterGo"
+            accessibilityLabel="anterGo"
           />
         </View>
 

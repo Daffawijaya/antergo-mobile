@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 import { AxiosError, create, isAxiosError } from "axios";
 import Constants from "expo-constants";
 import type { ApiErrorPayload } from "@/types/api";
-import { getStoredToken, handleUnauthorized } from "./session";
+import { getStoredToken } from "./session";
 
 const getBaseUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -47,9 +47,8 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorPayload>) => {
-    if (error.response?.status === 401 && (await getStoredToken())) {
-      await handleUnauthorized();
-    }
+    // Don't auto-logout on 401 – keep user logged in locally.
+    // Session expiry is handled by the 30-day inactivity check.
     return Promise.reject(error);
   },
 );

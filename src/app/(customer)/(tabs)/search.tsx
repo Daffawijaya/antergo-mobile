@@ -245,7 +245,7 @@ export default function SearchScreen() {
                       {product.name}
                     </Text>
                     <Text numberOfLines={1} style={styles.resultMeta}>
-                      {product.merchant?.name ?? "UMKM AnterGo"}
+                      {product.merchant?.name ?? t("home.defaultStore")}
                     </Text>
                     <Text style={styles.price}>
                       {formatRupiah(product.price)}

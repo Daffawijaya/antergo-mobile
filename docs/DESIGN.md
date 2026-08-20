@@ -1,4 +1,4 @@
-# AnterGo Mobile Design System
+# anterGo Mobile Design System
 
 ## Design Direction
 The design is mobile-first, simple, clean, and functional. It avoids excessive decoration, focusing on action and content.

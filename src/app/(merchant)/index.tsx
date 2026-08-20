@@ -2,6 +2,7 @@ import { useMemo as useThemeMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Text, StyleSheet } from "react-native";
+import { useTranslation } from "@/i18n";
 import {
   Button,
   Card,
@@ -18,6 +19,7 @@ import { useAppTheme } from "@/stores/theme-store";
 
 export default function MerchantHome() {
   const { styles } = useScreenStyles();
+  const { t } = useTranslation();
   const router = useRouter();
   const client = useQueryClient();
   const profile = useQuery({
@@ -43,9 +45,9 @@ export default function MerchantHome() {
   return (
     <Screen>
       <PageHeader
-        eyebrow="Merchant"
-        title={profile.data?.name ?? "Dashboard merchant"}
-        description="Ringkasan operasional toko Anda."
+        eyebrow={t("merchantDashboard.eyebrow")}
+        title={profile.data?.name ?? t("merchantDashboard.title")}
+        description={t("merchantDashboard.description")}
       />
       {profile.isLoading ? (
         <StatusState type="loading" />

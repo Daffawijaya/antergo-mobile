@@ -138,7 +138,7 @@ export function ProfileScreen() {
                   numberOfLines={1}
                   className="font-bold text-xl text-foreground"
                 >
-                  {user?.name ?? "Pengguna AnterGo"}
+                  {user?.name ?? "Pengguna anterGo"}
                 </Text>
               </View>
             </View>

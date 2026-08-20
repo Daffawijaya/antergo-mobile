@@ -75,9 +75,9 @@ export async function startDriverBackgroundTracking() {
     showsBackgroundLocationIndicator: true,
     activityType: Location.ActivityType.AutomotiveNavigation,
     foregroundService: {
-      notificationTitle: "AnterGo Driver aktif",
+      notificationTitle: "anterGo Driver aktif",
       notificationBody:
-        "AnterGo sedang menggunakan lokasi untuk menerima dan menjalankan pesanan.",
+        "anterGo sedang menggunakan lokasi untuk menerima dan menjalankan pesanan.",
       killServiceOnDestroy: false,
     },
   });

@@ -252,7 +252,7 @@ export default function DriverHome() {
                   Lokasi sepanjang waktu diperlukan
                 </Text>
                 <Text style={styles.muted}>
-                  AnterGo menggunakan lokasi agar driver tetap dapat menerima
+                  anterGo menggunakan lokasi agar driver tetap dapat menerima
                   dan menjalankan pesanan ketika aplikasi berada di background
                   atau layar mati.
                 </Text>
