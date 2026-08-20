@@ -5,6 +5,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { applyAsDriver, type VehicleDraft } from "@/lib/api/resources";
 import type { OptimizedPhoto } from "@/lib/image-upload";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 import { useMutation } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -28,6 +29,7 @@ export default function DriverRegisterScreen() {
   const [color, setColor] = useState("");
   const [vehicleImage, setVehicleImage] = useState<OptimizedPhoto>();
   const [error, setError] = useState("");
+  const { t } = useTranslation();
   const goBack = () =>
     returnTo ? router.replace(returnTo as never) : router.back();
   const mutation = useMutation({
@@ -86,8 +88,8 @@ export default function DriverRegisterScreen() {
   return (
     <Screen className="gap-5 px-4 pt-2">
       <CustomerPageHeader
-        title="Daftar Driver"
-        subtitle={`Langkah ${step} dari 3`}
+        title={t("driver.register")}
+        subtitle={t("driver.stepOf").replace("{step}", String(step))}
         onBack={step === 1 ? goBack : () => setStep((step - 1) as Step)}
       />
       <View className="flex-row gap-2">
@@ -101,32 +103,32 @@ export default function DriverRegisterScreen() {
       {step === 1 ? (
         <View className="gap-5">
           <Text className="font-bold text-xl text-foreground">
-            Profil Driver
+            {t("driver.profile")}
           </Text>
           <PhotoInput
-            label="Foto Driver"
-            helper="Pastikan wajah jelas, hanya satu orang, dan pencahayaan cukup."
+            label={t("driver.photo")}
+            helper={t("driver.photoHint")}
             kind="avatar"
             value={avatar}
             onChange={setAvatar}
           />
           <View className="gap-1 border-b border-border pb-4">
-            <Text className="text-sm text-muted">Nama akun</Text>
+            <Text className="text-sm text-muted">{t("driver.accountName")}</Text>
             <Text className="text-base text-foreground">{user?.name}</Text>
           </View>
           <View className="gap-1 border-b border-border pb-4">
-            <Text className="text-sm text-muted">Nomor ponsel</Text>
+            <Text className="text-sm text-muted">{t("driver.phoneNumber")}</Text>
             <Text className="text-base text-foreground">{user?.phone}</Text>
           </View>
           <FormField
-            label="NIK"
+            label={t("driver.nik")}
             value={nik}
             onChangeText={(v) => setNik(v.replace(/\D/g, "").slice(0, 16))}
             keyboardType="number-pad"
-            placeholder="16 digit NIK"
+            placeholder={t("driver.nikPlaceholder")}
           />
           <Button
-            title="Lanjut ke Dokumen"
+            title={t("driver.nextToDocuments")}
             disabled={!avatar || nik.length !== 16}
             onPress={() => setStep(2)}
           />
@@ -134,17 +136,17 @@ export default function DriverRegisterScreen() {
       ) : null}
       {step === 2 ? (
         <View className="gap-5">
-          <Text className="font-bold text-xl text-foreground">Dokumen</Text>
+          <Text className="font-bold text-xl text-foreground">{t("driver.documents")}</Text>
           <PhotoInput
             document
-            label="Foto KTP"
-            helper="Pastikan seluruh dokumen masuk frame, tulisan terbaca, tidak blur, dan tanpa pantulan."
+            label={t("driver.ktpPhoto")}
+            helper={t("driver.ktpHint")}
             kind="document"
             value={ktp}
             onChange={setKtp}
           />
           <Button
-            title="Lanjut ke Kendaraan"
+            title={t("driver.nextToVehicles")}
             disabled={!ktp}
             onPress={() => setStep(3)}
           />
@@ -152,7 +154,7 @@ export default function DriverRegisterScreen() {
       ) : null}
       {step === 3 ? (
         <View className="gap-5">
-          <Text className="font-bold text-xl text-foreground">Kendaraan</Text>
+          <Text className="font-bold text-xl text-foreground">{t("driver.vehicles")}</Text>
           {vehicles.map((v, i) => (
             <View
               key={`${v.plate_number}-${i}`}
@@ -160,7 +162,7 @@ export default function DriverRegisterScreen() {
             >
               <View>
                 <Text className="font-bold text-foreground">
-                  {v.type === "car" ? "Mobil" : "Motor"}
+                  {v.type === "car" ? t("driver.car") : t("driver.motorcycle")}
                 </Text>
                 <Text className="text-muted">
                   {v.brand} {v.model} · {v.plate_number}
@@ -171,38 +173,38 @@ export default function DriverRegisterScreen() {
                   setVehicles((all) => all.filter((_, x) => x !== i))
                 }
               >
-                <Text className="font-semibold text-red-500">Hapus</Text>
+                <Text className="font-semibold text-red-500">{t("common.delete")}</Text>
               </Pressable>
             </View>
           ))}
           <View className="flex-row gap-2">
             <View className="flex-1">
               <Button
-                title="Tambah Motor"
+                title={t("driver.addMotorcycle")}
                 variant={type === "motorcycle" ? "primary" : "secondary"}
                 onPress={() => setType("motorcycle")}
               />
             </View>
             <View className="flex-1">
               <Button
-                title="Tambah Mobil"
+                title={t("driver.addCar")}
                 variant={type === "car" ? "primary" : "secondary"}
                 onPress={() => setType("car")}
               />
             </View>
           </View>
-          <FormField label="Merek" value={brand} onChangeText={setBrand} />
-          <FormField label="Model" value={model} onChangeText={setModel} />
+          <FormField label={t("driver.brand")} value={brand} onChangeText={setBrand} />
+          <FormField label={t("driver.model")} value={model} onChangeText={setModel} />
           <FormField
-            label="Nomor polisi"
+            label={t("driver.plateNumber")}
             value={plate}
             onChangeText={setPlate}
             autoCapitalize="characters"
           />
-          <FormField label="Warna" value={color} onChangeText={setColor} />
+          <FormField label={t("driver.color")} value={color} onChangeText={setColor} />
           <PhotoInput
-            label="Foto Kendaraan"
-            helper="Pastikan kendaraan terlihat jelas dan nomor polisi dapat dibaca."
+            label={t("driver.vehiclePhoto")}
+            helper={t("driver.vehiclePhotoHint")}
             kind="vehicle"
             value={vehicleImage}
             onChange={setVehicleImage}
@@ -210,8 +212,8 @@ export default function DriverRegisterScreen() {
           {type === "motorcycle" ? (
             <PhotoInput
               document
-              label="Foto SIM C"
-              helper="SIM C hanya perlu diunggah satu kali untuk semua motor."
+              label={t("driver.simCPhoto")}
+              helper={t("driver.simCHint")}
               kind="document"
               value={simC}
               onChange={setSimC}
@@ -221,8 +223,8 @@ export default function DriverRegisterScreen() {
           {type === "car" ? (
             <PhotoInput
               document
-              label="Foto SIM A"
-              helper="SIM A hanya perlu diunggah satu kali untuk semua mobil."
+              label={t("driver.simAPhoto")}
+              helper={t("driver.simAHint")}
               kind="document"
               value={simA}
               onChange={setSimA}
@@ -230,21 +232,21 @@ export default function DriverRegisterScreen() {
           ) : null}
           <Button
             variant="secondary"
-            title="+ Tambah Kendaraan"
+            title={t("driver.addVehicle")}
             onPress={addVehicle}
           />
           {needsA && !simA ? (
-            <Notice tone="info">SIM A diperlukan untuk mobil.</Notice>
+            <Notice tone="info">{t("driver.simARequired")}</Notice>
           ) : null}
           {needsC && !simC ? (
-            <Notice tone="info">SIM C diperlukan untuk motor.</Notice>
+            <Notice tone="info">{t("driver.simCRequired")}</Notice>
           ) : null}
           {error ? <Notice tone="danger">{error}</Notice> : null}
           {mutation.isError ? (
             <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
           ) : null}
           <Button
-            title="Kirim Pendaftaran"
+            title={t("driver.submitRegistration")}
             disabled={!vehicles.length}
             loading={mutation.isPending}
             onPress={submit}

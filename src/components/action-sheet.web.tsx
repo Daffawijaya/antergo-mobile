@@ -99,6 +99,16 @@ export function ActionSheet({
         }),
       ]).start();
     } else {
+      // Blur the previously focused element so the browser doesn't emit
+      // "Blocked aria-hidden on an element because its descendant retained
+      // focus" warnings when the overlay is removed from the a11y tree.
+      if (
+        typeof document !== "undefined" &&
+        document.activeElement &&
+        document.activeElement !== document.body
+      ) {
+        (document.activeElement as HTMLElement).blur();
+      }
       Animated.parallel([
         Animated.timing(overlayOpacity, {
           toValue: 0,
@@ -201,7 +211,15 @@ export function ActionSheet({
         );
       });
 
-      const uri = URL.createObjectURL(blob);
+      // Convert to a data-URL so expo-image (and React Native Web's <img>)
+      // can render it without issues. blob: URIs are not reliably supported
+      // across all image components on web and can cause a white screen.
+      const uri = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Foto tidak dapat diproses."));
+        reader.readAsDataURL(blob);
+      });
       const photo: OptimizedPhoto = {
         uri,
         name: `antergo-${photoMode.kind}-${Date.now()}.jpg`,
@@ -211,7 +229,6 @@ export function ActionSheet({
       };
 
       closeCamera();
-      onClose();
       photoMode.onPicked(photo);
     } catch (error) {
       Alert.alert(
@@ -235,12 +252,14 @@ export function ActionSheet({
         quality: 1,
       });
 
+      onClose(); // Close the sheet immediately after pick
+
       if (result.canceled || !result.assets[0]) return;
 
       const photo = await optimizePhoto(result.assets[0], photoMode.kind);
-      onClose();
       photoMode.onPicked(photo);
     } catch (error) {
+      onClose();
       Alert.alert(
         "Foto gagal diproses",
         error instanceof Error ? error.message : "Coba lagi.",

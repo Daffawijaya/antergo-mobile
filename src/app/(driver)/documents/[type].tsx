@@ -19,6 +19,7 @@ import { DOC_LABELS } from "@/lib/driver-documents";
 import type { OptimizedPhoto } from "@/lib/image-upload";
 import type { DriverDocumentType } from "@/types/api";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 import { driverDocumentsKey } from "./index";
 
 const VALID_TYPES: DriverDocumentType[] = ["ktp", "sim_a", "sim_c"];
@@ -43,6 +44,7 @@ export default function DocumentDetailScreen() {
   const [photo, setPhoto] = useState<OptimizedPhoto>();
   const [expiresAt, setExpiresAt] = useState("");
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+  const { t } = useTranslation();
 
   /* ---------- original values (from backend) ---------- */
   const [origPhotoUrl, setOrigPhotoUrl] = useState<string | null>(null);
@@ -125,7 +127,7 @@ export default function DocumentDetailScreen() {
         <BackButton
           onPress={() => router.replace("/(driver)/documents")}
         />
-        <Notice tone="danger">Jenis dokumen tidak valid.</Notice>
+        <Notice tone="danger">{t("documents.invalidType")}</Notice>
       </Screen>
     );
   }
@@ -157,7 +159,7 @@ export default function DocumentDetailScreen() {
             ) : (
               <View className="items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted aspect-[1.58]">
                 <Text className="text-sm text-muted">
-                  Belum ada foto dokumen
+                  {t("documents.noPhoto")}
                 </Text>
               </View>
             )}
@@ -170,15 +172,15 @@ export default function DocumentDetailScreen() {
           {/* ── Berlaku Sampai (hidden for KTP — valid for life) ── */}
           {showExpiry ? (
             <FormField
-              label="Berlaku Sampai"
+              label={t("documents.validUntilLabel")}
               value={expiresAt}
               onChangeText={setExpiresAt}
-              placeholder="YYYY-MM-DD (contoh: 2030-12-31)"
+              placeholder={t("documents.dateFormat")}
               autoCapitalize="none"
               autoCorrect={false}
               error={
                 expiresAt.trim() && !dateValid
-                  ? "Format tanggal harus YYYY-MM-DD."
+                  ? t("documents.invalidDateFormat")
                   : undefined
               }
             />
@@ -191,7 +193,7 @@ export default function DocumentDetailScreen() {
 
           {/* ── Simpan Perubahan ── */}
           <Button
-            title="Simpan Perubahan"
+            title={t("documents.saveChanges")}
             disabled={!hasChanges}
             loading={save.isPending}
             className="rounded-full"
@@ -216,7 +218,7 @@ export default function DocumentDetailScreen() {
           kind: "document",
           onPicked: handlePhotoPicked,
           remove: photo
-            ? { label: "Hapus Foto", onRemove: () => setPhoto(undefined) }
+            ? { label: t("accountDetail.removePhoto"), onRemove: () => setPhoto(undefined) }
             : undefined,
         }}
       />

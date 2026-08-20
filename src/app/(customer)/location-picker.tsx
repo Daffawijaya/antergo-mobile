@@ -21,34 +21,22 @@ import {
   useLocationPickerStore,
 } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation, type TranslationKey } from "@/i18n";
 
-const LABELS: Record<LocationPurpose, { title: string; cta: string }> = {
-  "ride-pickup": { title: "Lokasi jemput", cta: "Pilih lokasi jemput" },
-  "ride-destination": {
-    title: "Tujuan perjalanan",
-    cta: "Pilih lokasi tujuan",
-  },
-  "send-pickup": {
-    title: "Ambil barang dari mana?",
-    cta: "Ambil barang dari sini",
-  },
-  "send-destination": {
-    title: "Lokasi penerima",
-    cta: "Pilih lokasi penerima",
-  },
-  "food-destination": { title: "Alamat pengantaran", cta: "Pilih alamat ini" },
+const LABEL_KEYS: Record<LocationPurpose, { title: TranslationKey; cta: TranslationKey }> = {
+  "ride-pickup": { title: "location.ridePickup", cta: "location.ridePickupCta" },
+  "ride-destination": { title: "location.rideDest", cta: "location.rideDestCta" },
+  "send-pickup": { title: "location.sendPickup", cta: "location.sendPickupCta" },
+  "send-destination": { title: "location.sendDest", cta: "location.sendDestCta" },
+  "food-destination": { title: "location.foodDest", cta: "location.foodDestCta" },
 };
 
-// Top-bar label mirrors the search field the user tapped ("Antar ke?",
-// "Jemput di mana?", …). It stays put even while the map is being dragged —
-// no "Mencari alamat…" loading text up here; the address itself is shown in
-// the bottom sheet.
-const TOP_LABELS: Record<LocationPurpose, string> = {
-  "ride-pickup": "Jemput di mana?",
-  "ride-destination": "Mau ke mana?",
-  "send-pickup": "Ambil barang dari mana?",
-  "send-destination": "Antar ke?",
-  "food-destination": "Alamat pengantaran",
+const TOP_LABEL_KEYS: Record<LocationPurpose, TranslationKey> = {
+  "ride-pickup": "location.topRidePickup",
+  "ride-destination": "location.topRideDest",
+  "send-pickup": "location.topSendPickup",
+  "send-destination": "location.topSendDest",
+  "food-destination": "location.topFoodDest",
 };
 
 // Marker colors/icons matching the search fields and result list on the
@@ -88,8 +76,9 @@ export default function LocationPickerScreen() {
         }
       : previous?.coordinate;
   const [coordinate, setCoordinate] = useState<Coordinate | undefined>(initial);
+  const { t } = useTranslation();
   const [address, setAddress] = useState(
-    params.address ?? previous?.address ?? "Geser peta untuk menentukan lokasi",
+    params.address ?? previous?.address ?? t("location.dragToSet"),
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -120,7 +109,7 @@ export default function LocationPickerScreen() {
   };
   const mapChanged = (point: Coordinate) => {
     setCoordinate(point);
-    setAddress("Mencari alamat…");
+    setAddress(t("location.searchingAddress"));
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void updateAddress(point), 500);
   };
@@ -141,7 +130,7 @@ export default function LocationPickerScreen() {
       setError(
         cause instanceof Error
           ? cause.message
-          : "Lokasi saat ini tidak tersedia.",
+          : t("location.currentUnavailable"),
       );
     } finally {
       setBusy(false);
@@ -149,7 +138,7 @@ export default function LocationPickerScreen() {
   };
   const confirm = () => {
     if (!coordinate) {
-      setError("Pilih lokasi terlebih dahulu.");
+      setError(t("location.selectFirst"));
       return;
     }
     setSelection(purpose, { coordinate, address });
@@ -197,7 +186,7 @@ export default function LocationPickerScreen() {
               <HiLocationMarkerIcon size={22} color={DEST_RED} />
             )}
             <Text numberOfLines={1} className="flex-1 text-sm text-muted">
-              {TOP_LABELS[purpose]}
+              {t(TOP_LABEL_KEYS[purpose])}
             </Text>
           </View>
         </View>
@@ -236,7 +225,7 @@ export default function LocationPickerScreen() {
             className={`min-h-12 py-3.5 items-center justify-center rounded-full bg-brand ${!coordinate || busy ? "opacity-50" : "active:opacity-80"}`}
           >
             <Text className="font-bold text-base text-white">
-              {LABELS[purpose].cta}
+              {t(LABEL_KEYS[purpose].cta)}
             </Text>
           </Pressable>
         </View>

@@ -40,6 +40,7 @@ import {
   useLocationPickerStore,
 } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation, type TranslationKey } from "@/i18n";
 
 // Palette from the design reference (WhatsApp Image 2026-08-16 at 17.23.35).
 const ACCENT_RED = "#D03020";
@@ -82,6 +83,7 @@ export default function LocationSearchScreen() {
     setSeenPurposeParam(purposeParam);
     setPurpose(purposeParam);
   }
+  const { t } = useTranslation();
   const selections = useLocationPickerStore((state) => state.selections);
   const queryRef = useRef("");
   const lastSearchedRef = useRef("");
@@ -233,7 +235,7 @@ export default function LocationSearchScreen() {
       if (queryRef.current.trim() !== value) return;
       setResults(found);
       if (!found.length)
-        setError("Lokasi tidak ditemukan. Coba kata kunci yang lebih lengkap.");
+        setError(t("location.notFound"));
     } catch {
       if (queryRef.current.trim() !== value) return;
       setError(
@@ -324,8 +326,8 @@ export default function LocationSearchScreen() {
                 }
                 placeholder={
                   pickupPurpose === "send-pickup"
-                    ? "Ambil barang dari mana?"
-                    : "Jemput di mana?"
+                    ? t("location.sendPickup")
+                    : t("location.topRidePickup")
                 }
                 active={purpose === pickupPurpose}
                 busy={busyPurpose === pickupPurpose}
@@ -349,10 +351,10 @@ export default function LocationSearchScreen() {
                 }
                 placeholder={
                   isFood
-                    ? "Alamat pengantaran"
+                    ? t("location.foodDest")
                     : purpose.startsWith("ride")
-                      ? "Mau ke mana?"
-                      : "Antar ke?"
+                      ? t("location.topRideDest")
+                      : t("location.topSendDest")
                 }
                 active={purpose === destinationPurpose}
                 busy={busyPurpose === destinationPurpose}
@@ -415,7 +417,7 @@ export default function LocationSearchScreen() {
         ) : null}
         {list.length ? (
           <Text className="mt-2 font-extrabold text-[17px] text-foreground">
-            {results.length ? "Hasil pencarian" : "Terakhir dipilih"}
+            {results.length ? t("location.searchResults") : t("location.lastSelected")}
           </Text>
         ) : null}
         {!list.length && !busyPurpose && !busyLocation ? (
@@ -424,7 +426,7 @@ export default function LocationSearchScreen() {
             style={{ backgroundColor: MINT_BG }}
           >
             <Text className="text-center text-sm leading-5 text-muted">
-              Cari lokasi atau pilih langsung di Maps.
+              {t("location.searchHint")}
             </Text>
           </View>
         ) : (
@@ -483,7 +485,7 @@ export default function LocationSearchScreen() {
             color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark}
           />
           <Text className="text-sm" style={{ color: mode === "dark" ? "#FFFFFF" : Colors.primaryDark }}>
-            Pilih di peta
+            {t("location.pickOnMap")}
           </Text>
           {busyLocation ? (
             <ActivityIndicator size="small" color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark} />

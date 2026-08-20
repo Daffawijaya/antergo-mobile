@@ -15,20 +15,22 @@ import type { AppRole } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
+import { useLanguageStore, LANGUAGE_LABELS } from "@/stores/language-store";
+import { useTranslation } from "@/i18n";
 import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
 const ROLE_LABELS: Record<AppRole, string> = {
-  customer: "Pelanggan",
-  driver: "Driver",
-  merchant: "Merchant",
+  customer: "profile.customerRole",
+  driver: "profile.driverRole",
+  merchant: "profile.merchantRole",
 };
 
 const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
-  customer: "Pesan makanan",
-  driver: "Terima pesanan",
-  merchant: "Kelola toko",
+  customer: "profile.pesanMakanan",
+  driver: "profile.terimaPesanan",
+  merchant: "profile.kelolaToko",
 };
 
 const roleImage = (role: AppRole) => {
@@ -46,6 +48,8 @@ export function ProfileScreen() {
   const setActiveRole = useAuthStore((state) => state.setActiveRole);
   const logout = useAuthStore((state) => state.logout);
   const refreshUser = useAuthStore((state) => state.refreshUser);
+  const lang = useLanguageStore((s) => s.language);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
   const pushStatus = usePushNotificationStore((state) => state.status);
@@ -76,14 +80,14 @@ export function ProfileScreen() {
   );
   const pushLabel =
     pushStatus === "registered"
-      ? "Aktif"
+      ? t("profile.notifActive")
       : pushStatus === "denied"
-        ? "Izin diperlukan"
+        ? t("profile.notifDenied")
         : pushStatus === "unavailable"
-          ? "Tidak tersedia"
+          ? t("profile.notifUnavailable")
           : pushStatus === "error"
-            ? "Gagal"
-            : "Memeriksa…";
+            ? t("profile.notifError")
+            : t("profile.notifChecking");
   const handleLogout = async () => {
     setLoading(true);
     setError(undefined);
@@ -191,10 +195,10 @@ export function ProfileScreen() {
                         <Text
                           className={`font-semibold text-sm ${selected ? (mode === "dark" ? "text-white" : "text-black") : "text-foreground"}`}
                         >
-                          {ROLE_LABELS[role]}
+                          {t(ROLE_LABELS[role] as any)}
                         </Text>
                         <Text className="text-[11px] text-muted">
-                          {ROLE_DESCRIPTIONS[role]}
+                          {t(ROLE_DESCRIPTIONS[role] as any)}
                         </Text>
                       </View>
                     </View>
@@ -227,7 +231,7 @@ export function ProfileScreen() {
                       selected ? "text-foreground" : "text-muted"
                     }`}
                   >
-                    {item === "light" ? "Terang" : "Gelap"}
+                    {item === "light" ? t("profile.light") : t("profile.dark")}
                   </Text>
                 </Pressable>
               );
@@ -239,7 +243,7 @@ export function ProfileScreen() {
           <Text className="mb-2 font-bold text-xl text-foreground">Umum</Text>
           <SettingsRow
             icon="badge"
-            title="Notifikasi"
+            title={t("profile.notifications")}
             value={pushLabel}
             onPress={
               (pushStatus === "denied" || pushStatus === "error") && retryPush
@@ -248,9 +252,9 @@ export function ProfileScreen() {
             }
           />
           {pushStatus === "denied" ? (
-            <SettingsRow
-              icon="settings"
-              title="Buka pengaturan aplikasi"
+          <SettingsRow
+            icon="settings"
+            title={t("profile.openSettings")}
               onPress={() => void Linking.openSettings()}
             />
           ) : null}
@@ -259,8 +263,8 @@ export function ProfileScreen() {
               icon="two_wheeler"
               title={
                 driverApplication?.status === "pending"
-                  ? "Pendaftaran driver diproses"
-                  : "Daftar sebagai driver"
+                  ? t("profile.driverPending")
+                  : t("profile.registerDriver")
               }
               onPress={
                 driverApplication?.status === "pending"
@@ -277,12 +281,12 @@ export function ProfileScreen() {
             <>
               <SettingsRow
                 icon="directions_car"
-                title="Kendaraan Saya"
+                title={t("profile.myVehicles")}
                 onPress={() => router.push("/(driver)/vehicles")}
               />
               <SettingsRow
                 icon="documents"
-                title="Dokumen & SIM"
+                title={t("profile.documents")}
                 onPress={() => router.push("/(driver)/documents")}
               />
             </>
@@ -290,7 +294,7 @@ export function ProfileScreen() {
           {!user?.roles.includes("merchant") ? (
             <SettingsRow
               icon="storefront"
-              title="Daftar sebagai merchant"
+              title={t("profile.registerMerchant")}
               onPress={() =>
                 router.push({
                   pathname: "/(customer)/(tabs)/merchant-register",
@@ -300,8 +304,14 @@ export function ProfileScreen() {
             />
           ) : null}
           <SettingsRow
+            icon="language"
+            title={t("profile.language")}
+            value={LANGUAGE_LABELS[lang][lang]}
+            onPress={() => router.push("/(customer)/(tabs)/language")}
+          />
+          <SettingsRow
             icon="logout"
-            title={loading ? "Sedang keluar…" : "Keluar dari akun"}
+            title={loading ? t("profile.loggingOut") : t("profile.logout")}
             danger
             onPress={() => void handleLogout()}
           />
@@ -333,7 +343,8 @@ function SettingsRow({
     | "two_wheeler"
     | "storefront"
     | "directions_car"
-    | "documents";
+    | "documents"
+    | "language";
   title: string;
   value?: string;
   onPress?: () => void;
@@ -355,9 +366,11 @@ function SettingsRow({
                     ? "bike"
                     : icon === "directions_car"
                       ? "car"
-                      : icon === "documents"
+                      :                    icon === "documents"
                         ? "clipboard"
-                        : "store"
+                        : icon === "language"
+                          ? "language"
+                          : "store"
           }
           size={21}
           color={danger ? Colors.danger : colors.text}

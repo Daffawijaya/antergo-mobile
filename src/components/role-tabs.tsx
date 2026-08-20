@@ -9,6 +9,7 @@ import {
 } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 export function RoleTabs({
   middle,
   hidden,
@@ -17,6 +18,7 @@ export function RoleTabs({
   hidden?: string | string[];
 }) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -37,7 +39,7 @@ export function RoleTabs({
       <Tabs.Screen
         name="index"
         options={{
-          title: "Beranda",
+          title: t("nav.home"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TiHomeIcon size={23} color={String(color)} />
@@ -49,7 +51,7 @@ export function RoleTabs({
       <Tabs.Screen
         name={middle}
         options={{
-          title: "Pesanan",
+          title: t("nav.orders"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TbClipboardTextFilledIcon size={23} color={String(color)} />
@@ -61,7 +63,7 @@ export function RoleTabs({
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: t("nav.profile"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <FaUserIcon size={23} color={String(color)} />

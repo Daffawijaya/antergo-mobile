@@ -14,6 +14,7 @@ import { Colors } from "@/constants/colors";
 import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 
 export default function CartScreen() {
   const { styles } = useScreenStyles();
@@ -30,6 +31,7 @@ export default function CartScreen() {
   const setQuantity = useCartStore((s) => s.setQuantity);
   const clearMerchant = useCartStore((s) => s.clearMerchant);
   const clearAll = useCartStore((s) => s.clearAll);
+  const { t } = useTranslation();
 
   // Single merchant mode (when merchantId is provided)
   const singleCart = merchantId ? carts[merchantId] : undefined;
@@ -66,7 +68,7 @@ export default function CartScreen() {
   return (
     <Screen>
       <Button
-        title="Kembali"
+        title={t("common.back")}
         variant="secondary"
         onPress={() => router.back()}
       />
@@ -77,19 +79,19 @@ export default function CartScreen() {
           <PageHeader
             eyebrow={
               singleItems[0]?.product.product_type === "goods"
-                ? "Keranjang Belanja"
-                : "Keranjang Makanan"
+                ? t("cart.shoppingCart")
+                : t("cart.foodCart")
             }
             title={singleCart!.merchant.name}
-            description="Subtotal hanya preview. Harga dan stok final divalidasi backend."
+            description={t("cart.subtotalPreview")}
           />
           {!singleItems.length ? (
             <StatusState
               type="empty"
-              message="Keranjang masih kosong."
+              message={t("cart.empty")}
               action={
                 <Button
-                  title="Cari UMKM"
+                  title={t("cart.searchMerchant")}
                   onPress={() =>
                     router.replace({
                       pathname: "/(customer)/(tabs)/food",
@@ -105,10 +107,10 @@ export default function CartScreen() {
                 <Card key={item.product.id}>
                   <Text style={styles.title}>{item.product.name}</Text>
                   <KeyValue
-                    label="Harga preview"
+                    label={t("cart.pricePreview")}
                     value={formatRupiah(item.product.price)}
                   />
-                  <KeyValue label="Stok diketahui" value={item.product.stock} />
+                  <KeyValue label={t("cart.stockKnown")} value={item.product.stock} />
                   <View style={styles.row}>
                     <View style={styles.flex}>
                       <Button
@@ -143,16 +145,15 @@ export default function CartScreen() {
               ))}
               <Card>
                 <KeyValue
-                  label="Subtotal preview"
+                  label={t("cart.subtotalPreviewLabel")}
                   value={formatRupiah(singleSubtotal)}
                 />
                 <Text style={styles.muted}>
-                  Delivery fee, service fee, harga, dan total final dihitung
-                  Laravel saat checkout.
+                  {t("cart.checkoutNote")}
                 </Text>
               </Card>
               <Button
-                title="Lanjut ke Checkout"
+                title={t("cart.checkout")}
                 onPress={() =>
                   router.push({
                     pathname: "/(customer)/(tabs)/food/checkout",
@@ -161,7 +162,7 @@ export default function CartScreen() {
                 }
               />
               <Button
-                title="Kosongkan Keranjang"
+                title={t("cart.clearCart")}
                 variant="danger"
                 onPress={() => clearMerchant(merchantId)}
               />
@@ -172,17 +173,17 @@ export default function CartScreen() {
         /* ---- All merchants view ---- */
         <>
           <PageHeader
-            eyebrow="Keranjang"
-            title="Semua Pesanan"
-            description="Gabungan seluruh item dari semua UMKM."
+            eyebrow={t("cart.title")}
+            title={t("cart.allOrders")}
+            description={t("cart.allOrdersDesc")}
           />
           {!allMerchantEntries.length ? (
             <StatusState
               type="empty"
-              message="Keranjang masih kosong."
+              message={t("cart.empty")}
               action={
                 <Button
-                  title="Mulai Belanja"
+                  title={t("cart.startShopping")}
                   onPress={() =>
                     router.replace({
                       pathname: "/(customer)/(tabs)/food",
@@ -271,16 +272,15 @@ export default function CartScreen() {
                   value={formatRupiah(totalAllPrice)}
                 />
                 <Text style={styles.muted}>
-                  Delivery fee, service fee, harga, dan total final dihitung
-                  Laravel saat checkout.
+                  {t("cart.checkoutNote")}
                 </Text>
               </Card>
 
               <Button
-                title="Kosongkan Semua"
+                title={t("cart.clearAll")}
                 variant="danger"
                 onPress={() => {
-                  if (confirm("Hapus semua item dari cart?")) clearAll();
+                  if (confirm(t("cart.removeConfirm"))) clearAll();
                 }}
               />
             </>

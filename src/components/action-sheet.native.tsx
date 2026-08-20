@@ -126,13 +126,16 @@ export function ActionSheet({
                 quality: 1,
               });
 
-        if (result.canceled || !result.assets[0]) return;
+        onClose(); // Close the sheet immediately after the picker returns
+
+        if (result.canceled || !result.assets[0]) {
+          return;
+        }
 
         const photo = await optimizePhoto(result.assets[0], photoMode.kind);
-
-        onClose();
         photoMode.onPicked(photo);
       } catch (error) {
+        onClose();
         Alert.alert(
           "Foto gagal diproses",
           error instanceof Error ? error.message : "Coba lagi.",

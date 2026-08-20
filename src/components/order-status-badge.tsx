@@ -1,21 +1,23 @@
 import { StyleSheet, Text } from "react-native";
 import { Colors, Radius, Typography } from "@/constants/colors";
 import type { OrderStatus } from "@/types/api";
-const LABELS: Record<OrderStatus, string> = {
-  pending: "Menunggu",
-  searching_driver: "Mencari driver",
-  driver_assigned: "Driver ditemukan",
-  driver_arrived: "Driver tiba",
-  merchant_confirmed: "Dikonfirmasi",
-  preparing: "Disiapkan",
-  ready_for_pickup: "Siap diambil",
-  picked_up: "Diambil",
-  in_progress: "Dalam perjalanan",
-  delivering: "Diantar",
-  completed: "Selesai",
-  cancelled: "Dibatalkan",
+import { useTranslation, type TranslationKey } from "@/i18n";
+const STATUS_KEYS: Record<OrderStatus, TranslationKey> = {
+  pending: "status.pending",
+  searching_driver: "status.searchingDriver",
+  driver_assigned: "status.driverAssigned",
+  driver_arrived: "status.driverArrived",
+  merchant_confirmed: "status.merchantConfirmed",
+  preparing: "status.preparing",
+  ready_for_pickup: "status.readyForPickup",
+  picked_up: "status.pickedUp",
+  in_progress: "status.inProgress",
+  delivering: "status.delivering",
+  completed: "status.completed",
+  cancelled: "status.cancelled",
 };
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
+  const { t } = useTranslation();
   const cancelled = status === "cancelled";
   const completed = status === "completed";
   return (
@@ -26,7 +28,7 @@ export function OrderStatusBadge({ status }: { status: OrderStatus }) {
         cancelled && styles.cancelled,
       ]}
     >
-      {LABELS[status]}
+      {t(STATUS_KEYS[status])}
     </Text>
   );
 }

@@ -18,6 +18,7 @@ import { listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 
 type Filter = "all" | "food" | "shopping" | "ride";
 
@@ -25,6 +26,7 @@ export default function SearchScreen() {
   const router = useRouter();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -100,9 +102,9 @@ export default function SearchScreen() {
               })
             }
           >
-            <Text style={styles.locationLabel}>Antar sekarang</Text>
+            <Text style={styles.locationLabel}>{t("search.deliverNow")}</Text>
             <Text numberOfLines={1} style={styles.locationValue}>
-              {destination?.address || "Pilih alamat pengantaran"}
+              {destination?.address || t("search.pickAddress")}
             </Text>
           </Pressable>
           <AppIcon name="down" size={22} color={colors.text} />
@@ -116,7 +118,7 @@ export default function SearchScreen() {
             onChangeText={setQuery}
             onSubmitEditing={() => submit()}
             returnKeyType="search"
-            placeholder="Cari makanan atau produk"
+            placeholder={t("search.placeholder")}
             placeholderTextColor={colors.muted}
             style={styles.input}
           />
@@ -138,24 +140,24 @@ export default function SearchScreen() {
           contentContainerStyle={styles.filters}
         >
           <FilterChip
-            label="Semua"
+            label={t("search.all")}
             selected={filter === "all"}
             onPress={() => chooseFilter("all")}
           />
           <FilterChip
-            label="Makanan"
+            label={t("search.food")}
             icon="restaurant"
             selected={filter === "food"}
             onPress={() => chooseFilter("food")}
           />
           <FilterChip
-            label="Belanja"
+            label={t("search.shopping")}
             icon="shopping_bag"
             selected={filter === "shopping"}
             onPress={() => chooseFilter("shopping")}
           />
           <FilterChip
-            label="Motor/Mobil"
+            label={t("search.ride")}
             icon="directions_car"
             selected={filter === "ride"}
             onPress={() => chooseFilter("ride")}
@@ -164,7 +166,7 @@ export default function SearchScreen() {
 
         {filter === "ride" ? (
           <View style={styles.section}>
-            <Text style={styles.heading}>Pesan perjalanan</Text>
+            <Text style={styles.heading}>{t("search.bookRide")}</Text>
             <Pressable
               style={styles.rideRow}
               onPress={() =>
@@ -181,8 +183,8 @@ export default function SearchScreen() {
                 accessibilityLabel="Motor"
               />
               <View style={styles.resultCopy}>
-                <Text style={styles.resultTitle}>Motor</Text>
-                <Text style={styles.resultMeta}>Perjalanan dengan motor</Text>
+                <Text style={styles.resultTitle}>{t("service.motor")}</Text>
+                <Text style={styles.resultMeta}>{t("search.bikeRide")}</Text>
               </View>
               <AppIcon name="forward" size={21} color={colors.text} />
             </Pressable>
@@ -202,20 +204,20 @@ export default function SearchScreen() {
                 accessibilityLabel="Mobil"
               />
               <View style={styles.resultCopy}>
-                <Text style={styles.resultTitle}>Mobil</Text>
-                <Text style={styles.resultMeta}>Perjalanan dengan mobil</Text>
+                <Text style={styles.resultTitle}>{t("service.car")}</Text>
+                <Text style={styles.resultMeta}>{t("search.carRide")}</Text>
               </View>
               <AppIcon name="forward" size={21} color={colors.text} />
             </Pressable>
           </View>
         ) : submitted ? (
           <View style={styles.section}>
-            <Text style={styles.heading}>Hasil pencarian</Text>
+            <Text style={styles.heading}>{t("search.results")}</Text>
             {results.isLoading ? (
-              <Text style={styles.empty}>Mencari…</Text>
+              <Text style={styles.empty}>{t("search.searching")}</Text>
             ) : !results.data?.data.length ? (
               <Text style={styles.empty}>
-                Tidak ada produk yang cocok dengan “{submitted}”.
+                {t("search.noResults").replace("{query}", submitted)}
               </Text>
             ) : (
               results.data.data.map((product) => (
@@ -256,9 +258,9 @@ export default function SearchScreen() {
           </View>
         ) : (
           <View style={styles.section}>
-            <Text style={styles.heading}>Cari di AnterGo</Text>
+            <Text style={styles.heading}>{t("search.searchOnAnterGo")}</Text>
             <Text style={styles.empty}>
-              Cari makanan, minuman, atau produk dari UMKM AnterGo.
+              {t("search.searchHint")}
             </Text>
           </View>
         )}

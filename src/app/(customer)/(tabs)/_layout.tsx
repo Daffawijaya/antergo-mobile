@@ -12,9 +12,10 @@ import {
 } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 const hidden = [
-  "payments",
   "account-detail",
+  "language",
   "search",
   "driver-register",
   "merchant-register",
@@ -29,6 +30,7 @@ const hidden = [
 ];
 export default function TabsLayout() {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   return (
     <>
     <Tabs
@@ -60,7 +62,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Beranda",
+          title: t("nav.home"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TiHomeIcon size={24} color={String(color)} />
@@ -72,7 +74,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: "Pesanan",
+          title: t("nav.orders"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TbClipboardTextFilledIcon size={22} color={String(color)} />
@@ -84,7 +86,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat/index"
         options={{
-          title: "Pesan",
+          title: t("nav.messages"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <BsChatTextFillIcon size={22} color={String(color)} />
@@ -96,7 +98,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: t("nav.profile"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <FaUserIcon size={21} color={String(color)} />

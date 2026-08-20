@@ -6,6 +6,7 @@ import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { roleAvatar } from "@/lib/user-avatar";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -17,12 +18,13 @@ type Service = {
   icon: number;
   onPress: () => void;
 };
-const serviceIcons: Record<ServiceVariant, number> = {
+const serviceIcons: Record<ServiceVariant | "titip_beli", number> = {
   food: require("../../../../assets/images/icon/food.png"),
   delivery: require("../../../../assets/images/icon/delivery.png"),
   shopping: require("../../../../assets/images/icon/shopping.png"),
   bike: require("../../../../assets/images/icon/bike.png"),
   car: require("../../../../assets/images/icon/car.png"),
+  titip_beli: require("../../../../assets/images/icon/titip.png"),
 };
 const onePerMerchant = (products: Product[] = []) => {
   const seen = new Set<number>();
@@ -47,10 +49,11 @@ export default function CustomerHome() {
     queryKey: ["products", "home", "goods"],
     queryFn: () => listNearbyProducts(1, undefined, "goods"),
   });
+  const { t } = useTranslation();
   const services: Service[] = [
     {
       type: "food",
-      label: "Makanan",
+      label: t("home.food"),
       icon: serviceIcons.food,
       onPress: () =>
         router.push({
@@ -60,7 +63,7 @@ export default function CustomerHome() {
     },
     {
       type: "shopping",
-      label: "Belanja",
+      label: t("home.shopping"),
       icon: serviceIcons.shopping,
       onPress: () =>
         router.push({
@@ -70,13 +73,13 @@ export default function CustomerHome() {
     },
     {
       type: "delivery",
-      label: "Kirim",
+      label: t("home.delivery"),
       icon: serviceIcons.delivery,
       onPress: () => router.push("/(customer)/send/create"),
     },
     {
       type: "bike",
-      label: "Motor",
+      label: t("home.bike"),
       icon: serviceIcons.bike,
       onPress: () =>
         router.push({
@@ -86,13 +89,19 @@ export default function CustomerHome() {
     },
     {
       type: "car",
-      label: "Mobil",
+      label: t("home.car"),
       icon: serviceIcons.car,
       onPress: () =>
         router.push({
           pathname: "/(customer)/(tabs)/ride/create",
           params: { service: "car" },
         }),
+    },
+    {
+      type: "titip_beli" as ServiceVariant,
+      label: t("titipBeli.title"),
+      icon: serviceIcons.titip_beli,
+      onPress: () => router.push("/(customer)/titip-beli/create"),
     },
   ];
   const openMerchant = (merchant: Merchant) =>
@@ -125,7 +134,7 @@ export default function CustomerHome() {
           className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />
-          <Text className="text-base text-muted">Cari item</Text>
+          <Text className="text-base text-muted">{t("home.search")}</Text>
         </Pressable>
         <Pressable
           onPress={() => router.push("/(customer)/(tabs)/profile")}
@@ -157,7 +166,7 @@ export default function CustomerHome() {
       <View className="flex-row gap-2.5 px-4 pb-2.5">
         <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
           <View>
-            <Text className="text-xs text-muted">Saldo</Text>
+            <Text className="text-xs text-muted">{t("home.balance")}</Text>
             <Text className="font-bold text-base text-foreground">Rp0</Text>
           </View>
           <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-brand bg-surface-muted">
@@ -166,7 +175,7 @@ export default function CustomerHome() {
         </View>
         <View className="min-h-[66px] flex-1 flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
           <View>
-            <Text className="text-xs text-muted">Bayar sekaligus</Text>
+            <Text className="text-xs text-muted">{t("home.payAll")}</Text>
             <Text className="font-bold text-[15px] text-foreground">
               Top Up
             </Text>
@@ -175,13 +184,13 @@ export default function CustomerHome() {
         </View>
       </View>
       <MerchantSection
-        title="Makanan"
+        title={t("home.food")}
         loading={foodMerchants.isLoading}
         merchants={foodMerchants.data?.data ?? []}
         onPress={openMerchant}
       />
       <ProductSection
-        title="Belanja"
+        title={t("home.shopping")}
         loading={goods.isLoading}
         products={onePerMerchant(goods.data?.data)}
         onPress={openProduct}
@@ -216,6 +225,7 @@ function MerchantSection({
   loading: boolean;
   onPress: (merchant: Merchant) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="gap-3 px-4 pb-3">
       <Text className="font-bold text-lg text-foreground">{title}</Text>
@@ -223,7 +233,7 @@ function MerchantSection({
         <StatusState type="loading" />
       ) : !merchants.length ? (
         <Text className="py-5 text-center text-sm text-muted">
-          Belum ada merchant makanan tersedia.
+          {t("home.noMerchantFood")}
         </Text>
       ) : (
         <View className="flex-row flex-wrap gap-2.5">
@@ -278,6 +288,7 @@ function ProductSection({
   loading: boolean;
   onPress: (product: Product) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="gap-3 px-4 pb-6">
       <Text className="font-bold text-lg text-foreground">{title}</Text>
@@ -285,7 +296,7 @@ function ProductSection({
         <StatusState type="loading" />
       ) : !products.length ? (
         <Text className="py-5 text-center text-sm text-muted">
-          Belum ada produk tersedia.
+          {t("home.noProducts")}
         </Text>
       ) : (
         <View className="flex-row flex-wrap gap-2.5">

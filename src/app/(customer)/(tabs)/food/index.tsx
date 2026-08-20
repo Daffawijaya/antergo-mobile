@@ -19,6 +19,7 @@ import { listMerchants, listNearbyProducts } from "@/lib/api/food";
 import { formatRupiah } from "@/lib/format";
 import { useLocationPickerStore} from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 import { LocationHeader } from "@/components/food-location-header";
 
 type Sort = "latest" | "price-low" | "price-high";
@@ -81,12 +82,11 @@ export default function CommerceCatalogScreen() {
   const { mode, colors } = useAppTheme();
   const { service: rawService } = useLocalSearchParams<{ service?: string }>();
   const service = rawService === "shopping" ? "shopping" : "food";
-  const serviceLabel = service === "shopping" ? "Belanja" : "Makanan";
-  // Promo copy mirrors the Bike hero's three-line structure ("Perjalanan
-  // Hemat / Driver siap jemput / di lokasi kamu"), adapted for the catalog.
-  const promoTitle = service === "shopping" ? "Belanja Hemat" : "Pesanan Hemat";
-  const promoSubtitle = "Driver siap antar";
-  const promoSubtitle2 = "sampai lokasi kamu";
+  const { t } = useTranslation();
+  const serviceLabel = service === "shopping" ? t("home.shopping") : t("home.food");
+  const promoTitle = service === "shopping" ? t("food.cheapShopping") : t("food.cheapOrders");
+  const promoSubtitle = t("food.driverReady");
+  const promoSubtitle2 = t("food.toLocation");
   const destination = useLocationPickerStore(
     (state) => state.selections["food-destination"],
   );
@@ -308,7 +308,7 @@ export default function CommerceCatalogScreen() {
             onSubmitEditing={submit}
             returnKeyType="search"
             placeholder={
-              service === "food" ? "Cari UMKM atau makanan" : "Cari produk"
+              service === "food" ? t("food.searchPlaceholderFood") : t("food.searchPlaceholderShopping")
             }
             placeholderTextColor={colors.muted}
             className="min-h-12 flex-1 text-base text-foreground"
@@ -373,37 +373,37 @@ export default function CommerceCatalogScreen() {
             contentContainerClassName="gap-2 py-3"
           >
             <Filter
-              label="Terbaru"
+              label={t("food.sortLatest")}
               selected={sort === "latest"}
               onPress={() => setSort("latest")}
             />
             <Filter
-              label="Harga terendah"
+              label={t("food.sortPriceLow")}
               selected={sort === "price-low"}
               onPress={() => setSort("price-low")}
             />
             <Filter
-              label="Harga tertinggi"
+              label={t("food.sortPriceHigh")}
               selected={sort === "price-high"}
               onPress={() => setSort("price-high")}
             />
           </ScrollView>
         ) : null}
         <Text className="font-extrabold text-[17px] text-foreground">
-          {service === "food" ? "UMKM makanan & minuman" : "Produk untuk kamu"}
+          {service === "food" ? t("food.umkmFood") : t("food.productsForYou")}
         </Text>
         {activeQuery.isLoading ? (
           <StatusState type="loading" />
         ) : activeQuery.isError ? (
-          <StatusState type="error" message="Data gagal dimuat." />
+          <StatusState type="error" message={t("food.dataLoadFailed")} />
         ) : service === "food" ? (
           !merchantList.length ? (
             <StatusState
               type="empty"
               message={
                 search
-                  ? `Tidak ada UMKM untuk “${search}”.`
-                  : "Belum ada UMKM tersedia."
+                  ? t("food.noMerchantForSearch").replace("{query}", search)
+                  : t("food.noMerchantAvailable")
               }
             />
           ) : (
@@ -432,7 +432,7 @@ export default function CommerceCatalogScreen() {
                       {merchant.name}
                     </Text>
                     <Text numberOfLines={1} className="text-sm text-muted">
-                      {merchant.category?.name ?? "Makanan & Minuman"}
+                      {merchant.category?.name ?? t("food.foodDrink")}
                     </Text>
                     <Text
                       numberOfLines={2}
@@ -444,8 +444,8 @@ export default function CommerceCatalogScreen() {
                       className={`font-semibold text-xs ${merchant.is_open && merchant.is_active ? "text-brand-dark" : "text-danger"}`}
                     >
                       {merchant.is_open && merchant.is_active
-                        ? "Buka"
-                        : "Tutup"}
+                        ? t("common.open")
+                        : t("common.closed")}
                     </Text>
                   </View>
                 </Pressable>
@@ -456,9 +456,8 @@ export default function CommerceCatalogScreen() {
           <StatusState
             type="empty"
             message={
-              search
-                ? `Tidak ada produk untuk “${search}”.`
-                : "Belum ada produk tersedia."
+              search                  ? t("food.noProductForSearch").replace("{query}", search)
+                  : t("food.noProductAvailable")
             }
           />
         ) : (
@@ -509,7 +508,7 @@ export default function CommerceCatalogScreen() {
               onPress={() => setPage((value) => value - 1)}
               className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page <= 1 ? "opacity-40" : ""}`}
             >
-              <Text className="font-semibold text-brand-dark">Sebelumnya</Text>
+              <Text className="font-semibold text-brand-dark">{t("common.previous")}</Text>
             </Pressable>
             <Text className="text-sm text-muted">
               {page}/{paginator.last_page}
@@ -519,7 +518,7 @@ export default function CommerceCatalogScreen() {
               onPress={() => setPage((value) => value + 1)}
               className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page >= paginator.last_page ? "opacity-40" : ""}`}
             >
-              <Text className="font-semibold text-brand-dark">Berikutnya</Text>
+              <Text className="font-semibold text-brand-dark">{t("common.next")}</Text>
             </Pressable>
           </View>
         ) : null}

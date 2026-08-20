@@ -12,9 +12,11 @@ import {
 import { DriverLocationTracker } from "@/components/driver-location-tracker";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 const hidden = ["ride/[id]", "food/[id]", "send/[id]", "chat/[id]", "vehicles", "documents", "documents/[type]"];
 export default function DriverLayout() {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   return (
     <>
       <DriverLocationTracker />
@@ -37,7 +39,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="index"
           options={{
-          title: "Beranda",
+          title: t("nav.home"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TiHomeIcon size={23} color={String(color)} />
@@ -49,7 +51,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="orders"
           options={{
-          title: "Pesanan",
+          title: t("nav.orders"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <TbClipboardTextFilledIcon size={23} color={String(color)} />
@@ -61,7 +63,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="chat/index"
           options={{
-          title: "Pesan",
+          title: t("nav.messages"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <BsChatTextFillIcon size={23} color={String(color)} />
@@ -73,7 +75,7 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-          title: "Profil",
+          title: t("nav.profile"),
           tabBarIcon: ({ color, focused }) =>
             focused ? (
               <FaUserIcon size={23} color={String(color)} />

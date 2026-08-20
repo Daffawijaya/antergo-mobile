@@ -11,9 +11,10 @@ import { AppIcon } from "@/components/app-icon";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   orderService,
-  serviceLabel,
+  serviceLabelKey,
   ServiceLabel,
 } from "@/components/service-icon";
+import { useTranslation } from "@/i18n";
 import { Button, PageHeader, Screen, StatusState } from "@/components/ui";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
 import {
@@ -129,6 +130,7 @@ export default function DriverOrders() {
   const { styles } = useScreenStyles();
   const router = useRouter();
   const client = useQueryClient();
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [segment, setSegment] = useState<Segment>("available");
 
@@ -265,7 +267,7 @@ export default function DriverOrders() {
                 action={
                   active.data
                     ? "Selesaikan aktif"
-                    : `Terima ${serviceLabel(orderService(order))}`
+                    : `${t("common.confirm")} ${t(serviceLabelKey(orderService(order)))}`
                 }
                 loading={accept.isPending && accept.variables === order.id}
                 disabled={accept.isPending || !!active.data}

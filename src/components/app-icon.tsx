@@ -35,6 +35,7 @@ import {
   User,
   Utensils,
   Camera,
+  Languages,
 } from "lucide-react-native";
 import { IoMdCameraIcon } from "./brand-icons";
 
@@ -76,6 +77,7 @@ const icons = {
   check: Check,
   camera: Camera,
   camera_md: IoMdCameraIcon,
+  language: Languages,
 } as const;
 
 export type AppIconName = keyof typeof icons;

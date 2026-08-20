@@ -10,10 +10,12 @@ import { listChatConversations } from "@/lib/api/chat";
 import { chatKeys } from "@/lib/chat-query-keys";
 import { formatDateTime } from "@/lib/format";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
   const router = useRouter();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const query = useQuery({
     queryKey: chatKeys.all,
     queryFn: listChatConversations,
@@ -25,21 +27,21 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
           and 22px bold title, without the gradient background. */}
       <View className="mt-2">
         <Text className="font-bold text-[22px] leading-7 text-foreground">
-          Pesan
+          {t("nav.messages")}
         </Text>
       </View>
       {query.isLoading ? (
-        <Text style={styles.state}>Memuat pesan…</Text>
+        <Text style={styles.state}>{t("chat.loading")}</Text>
       ) : query.isError ? (
-        <Text style={styles.state}>Percakapan belum dapat dimuat.</Text>
+        <Text style={styles.state}>{t("chat.loadError")}</Text>
       ) : !query.data?.length ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
             <AppIcon name="inbox" size={30} color={Colors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>Belum ada pesan</Text>
+          <Text style={styles.emptyTitle}>{t("chat.empty")}</Text>
           <Text style={styles.state}>
-            Chat tersedia setelah driver menerima pesanan.
+            {t("chat.emptyDesc")}
           </Text>
         </View>
       ) : (
@@ -67,7 +69,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
                   <View style={styles.nameRow}>
                     <Text numberOfLines={1} style={styles.name}>
                       {person?.name ??
-                        (role === "customer" ? "Driver AnterGo" : "Pelanggan")}
+                        (role === "customer" ? t("chat.driverPlaceholder") : t("chat.customerPlaceholder"))}
                     </Text>
                     <Text style={styles.time}>
                       {last ? formatDateTime(last.created_at) : ""}
@@ -75,7 +77,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
                   </View>
                   <Text style={styles.order}>{order.order_number}</Text>
                   <Text numberOfLines={1} style={styles.preview}>
-                    {last?.body ?? "Mulai percakapan"}
+                    {last?.body ?? t("chat.startConversation")}
                   </Text>
                 </View>
                 {order.unread_count > 0 ? (

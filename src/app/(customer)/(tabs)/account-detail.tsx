@@ -1,12 +1,8 @@
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import {
-  Image,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Image } from "expo-image";
+import { Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { ActionSheet } from "@/components/action-sheet";
@@ -18,6 +14,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { roleAvatar } from "@/lib/user-avatar";
 import { useAppTheme } from "@/stores/theme-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 import type { ApiErrorPayload } from "@/types/api";
 import { updateCustomerPhoto } from "@/lib/api/auth";
 
@@ -44,14 +41,37 @@ export default function AccountDetailScreen() {
     null,
   );
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+  const { t } = useTranslation();
+  // Track whether the photo-picker ActionSheet is open so we can skip
+  // the useFocusEffect reset that fires when the native camera activity
+  // closes and the screen regains focus.
+  const pickingRef = useRef(false);
 
   // While a new photo is picked but not yet saved, show the local preview.
   const avatarSource = pickedPhoto?.uri ?? avatar;
+
+  // Keep the ActionSheet open flag in sync so useFocusEffect can skip
+  // the reset when the native camera/gallery activity returns.
+  useEffect(() => {
+    if (photoSheetVisible) {
+      pickingRef.current = true;
+    } else {
+      // Allow a small window for the native camera activity to finish
+      // regaining focus before we re-enable the focus-effect reset.
+      const t = setTimeout(() => {
+        pickingRef.current = false;
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [photoSheetVisible]);
 
   // Re-entering the page resets the form to the saved data: unsaved edits are
   // discarded when the user leaves, so coming back shows the original values.
   useFocusEffect(
     useCallback(() => {
+      // Skip the reset when returning from a native camera/gallery activity –
+      // the photo result is handled by handlePhotoPicked.
+      if (pickingRef.current) return;
       setName(user?.name ?? "");
       setPhone(user?.phone ?? "");
       setEmail(user?.email ?? "");
@@ -118,16 +138,21 @@ export default function AccountDetailScreen() {
   };
 
   const handlePhotoPicked = (optimized: import("@/lib/image-upload").OptimizedPhoto) => {
-    // Convert OptimizedPhoto back to ImagePickerAsset-like shape for compatibility
-    setPickedPhoto({
-      uri: optimized.uri,
-      width: optimized.width,
-      height: optimized.height,
-      mimeType: optimized.type,
-      fileName: optimized.name,
-    } as ImagePickerAsset);
-    setSuccess(false);
-    setError("");
+    try {
+      // Convert OptimizedPhoto back to ImagePickerAsset-like shape for compatibility
+      setPickedPhoto({
+        uri: optimized.uri,
+        width: optimized.width,
+        height: optimized.height,
+        mimeType: optimized.type,
+        fileName: optimized.name,
+      } as ImagePickerAsset);
+      setSuccess(false);
+      setError("");
+    } catch (e) {
+      console.error("Error setting picked photo:", e);
+      setError("Gagal memproses pratinjau foto.");
+    }
   };
 
   const handleRemovePhoto = () => {
@@ -148,7 +173,7 @@ export default function AccountDetailScreen() {
             kind: "avatar",
             onPicked: handlePhotoPicked,
             remove: pickedPhoto
-              ? { label: "Hapus Foto", onRemove: handleRemovePhoto }
+              ? { label: t("accountDetail.removePhoto"), onRemove: handleRemovePhoto }
               : undefined,
           }}
         />
@@ -158,7 +183,7 @@ export default function AccountDetailScreen() {
       <View className="mt-2 flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Kembali"
+          accessibilityLabel={t("common.back")}
           onPress={() => router.replace("/(customer)/(tabs)/profile")}
           className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
         >
@@ -167,13 +192,13 @@ export default function AccountDetailScreen() {
         {dirty || pickedPhoto ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Simpan perubahan"
+            accessibilityLabel={t("common.save")}
             disabled={saving}
             onPress={save}
             className="h-10 items-center justify-center px-1 active:opacity-70"
           >
             <Text className="font-sans text-base text-brand">
-              {saving ? "Menyimpan…" : "Simpan"}
+              {saving ? t("accountDetail.saving") : t("common.save")}
             </Text>
           </Pressable>
         ) : null}
@@ -188,9 +213,10 @@ export default function AccountDetailScreen() {
           {avatarSource ? (
             <View className="h-28 w-28 overflow-hidden rounded-full">
               <Image
+                key={avatarSource}
                 source={{ uri: avatarSource }}
                 className="h-full w-full"
-                resizeMode="cover"
+                contentFit="cover"
               />
             </View>
           ) : (
@@ -205,25 +231,25 @@ export default function AccountDetailScreen() {
       {/* Form fields */}
       <View className="gap-5">
         <FormField
-          label="Nama"
+          label={t("accountDetail.name")}
           value={name}
           onChangeText={setName}
-          placeholder="Nama lengkap"
+          placeholder={t("accountDetail.namePlaceholder")}
           error={fieldErrors.name}
         />
         <FormField
-          label="Nomor ponsel"
+          label={t("accountDetail.phone")}
           value={phone}
           onChangeText={setPhone}
-          placeholder="Contoh: 0812xxxx"
+          placeholder={t("accountDetail.phonePlaceholder")}
           keyboardType="phone-pad"
           error={fieldErrors.phone}
         />
         <FormField
-          label="Email"
+          label={t("accountDetail.email")}
           value={email}
           onChangeText={setEmail}
-          placeholder="nama@email.com"
+          placeholder={t("accountDetail.emailPlaceholder")}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -231,11 +257,11 @@ export default function AccountDetailScreen() {
         />
       </View>
       {success ? (
-        <Notice tone="success">Perubahan berhasil disimpan.</Notice>
+        <Notice tone="success">{t("accountDetail.saved")}</Notice>
       ) : null}
       {error ? <Notice tone="danger">{error}</Notice> : null}
       <Text className="text-center text-[13px] leading-5 text-muted">
-        Perubahan langsung tersimpan ke akun AnterGo-mu.
+        {t("accountDetail.photoHint")}
       </Text>
 
     </Screen>

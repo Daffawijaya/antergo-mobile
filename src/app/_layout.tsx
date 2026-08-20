@@ -26,6 +26,7 @@ import { queryClient } from "@/lib/query-client";
 import { useAuthStore } from "@/stores/auth-store";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useThemeStore } from "@/stores/theme-store";
+import { useLanguageStore } from "@/stores/language-store";
 
 import "@/lib/driver-location-service";
 import "../../global.css";
@@ -49,11 +50,13 @@ function Router() {
   const restoreSession = useAuthStore((state) => state.restoreSession);
   const mode = useThemeStore((state) => state.mode);
   const restoreTheme = useThemeStore((state) => state.restore);
+  const restoreLanguage = useLanguageStore((state) => state.restore);
 
   useEffect(() => {
     void restoreSession();
     void restoreTheme();
-  }, [restoreSession, restoreTheme]);
+    void restoreLanguage();
+  }, [restoreSession, restoreTheme, restoreLanguage]);
   // Once the session is restored, activate GPS right away and capture the
   // user's current location so every create screen can pre-fill its pickup
   // field (lokasi jemput) without asking again.
@@ -62,7 +65,9 @@ function Router() {
       void useLocationPickerStore.getState().refreshCurrentLocation();
     }
   }, [isHydrated, user]);
-  if (!isHydrated)
+  const langHydrated = useLanguageStore((state) => state.hydrated);
+
+  if (!isHydrated || !langHydrated)
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.primary} />

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
 import type { Order, ServiceVariant } from "@/types/api";
+import { useTranslation, type TranslationKey } from "@/i18n";
 export function orderService(
   order: Pick<Order, "type" | "service_variant">,
 ): ServiceVariant {
@@ -15,11 +16,11 @@ export function orderService(
   );
 }
 const service = {
-  bike: { label: "Motor", icon: "bike" as AppIconName },
-  car: { label: "Mobil", icon: "car" as AppIconName },
-  delivery: { label: "Kirim", icon: "package" as AppIconName },
-  food: { label: "Makanan", icon: "utensils" as AppIconName },
-  shopping: { label: "Belanja", icon: "bag" as AppIconName },
+  bike: { icon: "bike" as AppIconName, labelKey: "service.motor" as TranslationKey },
+  car: { icon: "car" as AppIconName, labelKey: "service.car" as TranslationKey },
+  delivery: { icon: "package" as AppIconName, labelKey: "service.delivery" as TranslationKey },
+  food: { icon: "utensils" as AppIconName, labelKey: "service.food" as TranslationKey },
+  shopping: { icon: "bag" as AppIconName, labelKey: "service.shopping" as TranslationKey },
 } as const;
 export function ServiceIcon({
   type,
@@ -44,15 +45,16 @@ export function ServiceIcon({
   );
 }
 export function ServiceLabel({ type }: { type: ServiceVariant }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.label}>
       <ServiceIcon type={type} size={24} />
-      <Text style={styles.labelText}>{service[type].label}</Text>
+      <Text style={styles.labelText}>{t(service[type].labelKey)}</Text>
     </View>
   );
 }
-export function serviceLabel(type: ServiceVariant) {
-  return service[type].label;
+export function serviceLabelKey(type: ServiceVariant): TranslationKey {
+  return service[type].labelKey;
 }
 const styles = StyleSheet.create({
   icon: {

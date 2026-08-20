@@ -6,7 +6,7 @@ import { CustomerChip } from "@/components/customer-page";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
   orderService,
-  serviceLabel,
+  serviceLabelKey,
   ServiceIcon,
 } from "@/components/service-icon";
 import { Button, Screen, StatusState } from "@/components/ui";
@@ -16,6 +16,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { orderKeys } from "@/lib/query-keys";
 import { useAppTheme } from "@/stores/theme-store";
+import { useTranslation } from "@/i18n";
 import type { Order } from "@/types/api";
 
 type Filter = "all" | "active" | "history";
@@ -41,6 +42,7 @@ export default function CustomerOrders() {
   const router = useRouter();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<Filter>("all");
   const query = useQuery({
@@ -65,22 +67,22 @@ export default function CustomerOrders() {
           and 22px bold title, without the gradient background. */}
       <View className="mt-2">
         <Text className="font-bold text-[22px] leading-7 text-foreground">
-          Pesanan
+          {t("orders.title")}
         </Text>
       </View>
       <View style={styles.filters}>
         <CustomerChip
-          label="Semua"
+          label={t("orders.all")}
           selected={filter === "all"}
           onPress={() => setFilter("all")}
         />
         <CustomerChip
-          label="Aktif"
+          label={t("orders.active")}
           selected={filter === "active"}
           onPress={() => setFilter("active")}
         />
         <CustomerChip
-          label="Riwayat"
+          label={t("orders.history")}
           selected={filter === "history"}
           onPress={() => setFilter("history")}
         />
@@ -93,7 +95,7 @@ export default function CustomerOrders() {
           message={getApiErrorMessage(query.error)}
           action={
             <Button
-              title="Coba lagi"
+              title={t("common.tryAgain")}
               variant="secondary"
               onPress={() => query.refetch()}
             />
@@ -102,11 +104,11 @@ export default function CustomerOrders() {
       ) : !orders.length ? (
         <StatusState
           type="empty"
-          title="Belum ada aktivitas"
+          title={t("orders.noActivity")}
           message={
             filter === "active"
-              ? "Tidak ada pesanan yang sedang berjalan."
-              : "Pesanan Bike, Car, Delivery, Food, dan Shopping akan tampil di sini."
+              ? t("orders.noActive")
+              : t("orders.historyDesc")
           }
         />
       ) : (
@@ -124,7 +126,7 @@ export default function CustomerOrders() {
               <View style={styles.copy}>
                 <View style={styles.titleRow}>
                   <Text style={styles.type}>
-                    {serviceLabel(orderService(order))}
+                    {t(serviceLabelKey(orderService(order)))}
                   </Text>
                   <Text style={styles.total}>
                     {formatRupiah(order.total_price)}
@@ -132,9 +134,9 @@ export default function CustomerOrders() {
                 </View>
                 <Text style={styles.number}>{order.order_number}</Text>
                 <Text numberOfLines={1} style={styles.address}>
-                  {order.destination_address ??
+                  {                    order.destination_address ??
                     order.pickup_address ??
-                    "Detail pesanan"}
+                    t("orders.orderDetails")}
                 </Text>
                 <View style={styles.metaRow}>
                   <OrderStatusBadge status={order.status} />
@@ -152,7 +154,7 @@ export default function CustomerOrders() {
           <View style={styles.flex}>
             <Button
               compact
-              title="Sebelumnya"
+              title={t("common.previous")}
               variant="secondary"
               disabled={page <= 1 || query.isFetching}
               onPress={() => setPage((v) => v - 1)}
@@ -164,7 +166,7 @@ export default function CustomerOrders() {
           <View style={styles.flex}>
             <Button
               compact
-              title="Berikutnya"
+              title={t("common.next")}
               variant="secondary"
               disabled={page >= query.data.last_page || query.isFetching}
               onPress={() => setPage((v) => v + 1)}

@@ -5,6 +5,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { listMerchantCategories, registerMerchant } from "@/lib/api/resources";
 import type { OptimizedPhoto } from "@/lib/image-upload";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -25,6 +26,7 @@ export default function MerchantRegisterScreen() {
   const [longitude, setLng] = useState<number>();
   const [image, setImage] = useState<OptimizedPhoto>();
   const [error, setError] = useState("");
+  const { t } = useTranslation();
   const categories = useQuery({
     queryKey: ["merchant-categories"],
     queryFn: listMerchantCategories,
@@ -63,24 +65,24 @@ export default function MerchantRegisterScreen() {
   return (
     <Screen className="gap-5 px-4 pt-2">
       <CustomerPageHeader
-        title="Daftar Merchant"
-        subtitle="Daftarkan UMKM dan mulai menerima pesanan"
+        title={t("merchantRegister.title")}
+        subtitle={t("merchantRegister.subtitle")}
         onBack={goBack}
       />
       <View className="gap-5">
         <Text className="font-bold text-xl text-foreground">
-          Informasi UMKM
+          {t("merchantRegister.businessInfo")}
         </Text>
         <PhotoInput
-          label="Foto UMKM"
-          helper="Gunakan logo, foto toko, atau foto produk terbaikmu."
+          label={t("merchantRegister.businessPhoto")}
+          helper={t("merchantRegister.businessPhotoHint")}
           kind="merchant"
           value={image}
           onChange={setImage}
         />
         <View className="gap-2 border-b border-border pb-5">
           <Text className="font-medium text-base text-foreground">
-            Kategori *
+            {t("merchantRegister.category")}
           </Text>
           <View className="flex-row flex-wrap gap-2">
             {categories.data?.map((c) => (
@@ -100,37 +102,37 @@ export default function MerchantRegisterScreen() {
             ))}
           </View>
         </View>
-        <FormField label="Nama UMKM" value={name} onChangeText={setName} />
+        <FormField label={t("merchantRegister.businessName")} value={name} onChangeText={setName} />
         <FormField
-          label="Deskripsi (opsional)"
+          label={t("merchantRegister.description")}
           value={description}
           onChangeText={setDescription}
           multiline
         />
         <FormField
-          label="Nomor telepon"
+          label={t("merchantRegister.phoneNumber")}
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
         />
         <FormField
-          label="Alamat"
+          label={t("merchantRegister.address")}
           value={address}
           onChangeText={setAddress}
           multiline
         />
         <View className="gap-2 border-b border-border pb-5">
           <Text className="font-medium text-base text-foreground">
-            Lokasi toko *
+            {t("merchantRegister.storeLocation")}
           </Text>
           <Text className="text-sm text-muted">
             {latitude === undefined
-              ? "Belum ditentukan"
+              ? t("merchantRegister.locationNotSet")
               : `${latitude.toFixed(6)}, ${longitude?.toFixed(6)}`}
           </Text>
           <Button
             variant="secondary"
-            title="Gunakan GPS"
+            title={t("merchantRegister.useGps")}
             onPress={() => void locate()}
           />
         </View>
@@ -140,7 +142,7 @@ export default function MerchantRegisterScreen() {
         <Notice tone="danger">{getApiErrorMessage(mutation.error)}</Notice>
       ) : null}
       <Button
-        title="Daftarkan Merchant"
+        title={t("merchantRegister.registerMerchant")}
         disabled={invalid}
         loading={mutation.isPending}
         onPress={() =>
@@ -158,7 +160,7 @@ export default function MerchantRegisterScreen() {
       />
       {invalid ? (
         <Text className="text-center text-sm text-muted">
-          Foto, kategori, nama, telepon, alamat, dan lokasi wajib diisi.
+          {t("merchantRegister.requiredFields")}
         </Text>
       ) : null}
     </Screen>

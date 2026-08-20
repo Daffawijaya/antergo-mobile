@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Notice, Screen } from "@/components/ui";
 import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
+import { useTranslation } from "@/i18n";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { type LoginForm, loginSchema } from "@/schemas/auth";
 import { useAuthStore } from "@/stores/auth-store";
@@ -72,9 +73,8 @@ export default function LoginScreen() {
   const login = useAuthStore((state) => state.login);
   const [serverError, setServerError] = useState<string>();
   const [showPassword, setShowPassword] = useState(false);
-  const { mode, colors } = useAppTheme();
-  const {
-    control,
+  const { mode, colors } = useAppTheme();  const { t } = useTranslation();
+  const { control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
@@ -102,7 +102,7 @@ export default function LoginScreen() {
         </View>
 
         <Text style={[styles.title, { color: colors.text }]}>
-          Selamat datang kembali
+          {t("auth.welcomeBack")}
         </Text>
 
         <View style={styles.form}>
@@ -111,7 +111,7 @@ export default function LoginScreen() {
             name="email"
             render={({ field }) => (
               <LoginField
-                label="Email"
+                label={t("auth.email")}
                 placeholder="nama@email.com"
                 autoCapitalize="none"
                 autoComplete="email"
@@ -131,8 +131,8 @@ export default function LoginScreen() {
               name="password"
               render={({ field }) => (
                 <LoginField
-                  label="Password"
-                  placeholder="Masukkan password"
+                  label={t("auth.password")}
+                  placeholder={t("auth.enterPassword")}
                   secureTextEntry={!showPassword}
                   autoComplete="current-password"
                   textContentType="password"
@@ -147,8 +147,8 @@ export default function LoginScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={
                         showPassword
-                          ? "Sembunyikan password"
-                          : "Tampilkan password"
+                          ? t("auth.hidePassword")
+                          : t("auth.showPassword")
                       }
                       onPress={() => setShowPassword((visible) => !visible)}
                       hitSlop={10}
@@ -170,9 +170,9 @@ export default function LoginScreen() {
             {/* Placeholder — alur lupa password belum tersedia. */}
             <Text
               style={[styles.forgot, { color: Colors.primary }]}
-              accessibilityLabel="Lupa password? Segera hadir"
+              accessibilityLabel={t("auth.forgotPassword")}
             >
-              Lupa password?
+              {t("auth.forgotPassword")}
             </Text>
           </View>
 
@@ -192,15 +192,15 @@ export default function LoginScreen() {
             {isSubmitting ? (
               <ActivityIndicator color={Colors.onPrimary} />
             ) : (
-              <Text style={styles.submitText}>Masuk</Text>
+              <Text style={styles.submitText}>{t("auth.login")}</Text>
             )}
           </Pressable>
         </View>
 
         <Text style={[styles.footer, { color: colors.muted }]}>
-          Belum punya akun?{" "}
+          {t("auth.noAccount")}{" "}
           <Link href="./register" style={[styles.link, { color: Colors.primary }]}>
-            Daftar
+            {t("auth.register")}
           </Link>
         </Text>
       </View>

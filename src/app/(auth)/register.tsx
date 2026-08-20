@@ -15,11 +15,11 @@ import { Colors, Spacing, Typography } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { type RegisterForm, registerSchema } from "@/schemas/auth";
 import { useAuthStore } from "@/stores/auth-store";
+import { useTranslation } from "@/i18n";
 export default function RegisterScreen() {
   const register = useAuthStore((state) => state.register);
-  const [serverError, setServerError] = useState<string>();
-  const {
-    control,
+  const [serverError, setServerError] = useState<string>();  const { t } = useTranslation();
+  const { control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
@@ -43,9 +43,9 @@ export default function RegisterScreen() {
   return (
     <Screen>
       <PageHeader
-        eyebrow="AKUN BARU"
-        title="Mulai bersama AnterGo"
-        description="Buat akun customer hanya dalam beberapa langkah."
+        eyebrow={t("auth.newAccount")}
+        title={t("auth.registerTitle")}
+        description={t("auth.registerDesc")}
       />
       <Card>
         <View style={styles.form}>
@@ -54,8 +54,8 @@ export default function RegisterScreen() {
             name="name"
             render={({ field }) => (
               <FormField
-                label="Nama lengkap"
-                placeholder="Nama kamu"
+                label={t("auth.fullName")}
+                placeholder={t("auth.namePlaceholder")}
                 value={field.value}
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
@@ -84,7 +84,7 @@ export default function RegisterScreen() {
             name="phone"
             render={({ field }) => (
               <FormField
-                label="Nomor telepon"
+                label={t("auth.phone")}
                 placeholder="08xxxxxxxxxx"
                 keyboardType="phone-pad"
                 value={field.value}
@@ -99,8 +99,8 @@ export default function RegisterScreen() {
             name="password"
             render={({ field }) => (
               <FormField
-                label="Password"
-                placeholder="Buat password"
+                label={t("auth.password")}
+                placeholder={t("auth.createPassword")}
                 secureTextEntry
                 value={field.value}
                 onBlur={field.onBlur}
@@ -114,8 +114,8 @@ export default function RegisterScreen() {
             name="password_confirmation"
             render={({ field }) => (
               <FormField
-                label="Konfirmasi password"
-                placeholder="Ulangi password"
+                label={t("auth.confirmPassword")}
+                placeholder={t("auth.repeatPassword")}
                 secureTextEntry
                 value={field.value}
                 onBlur={field.onBlur}
@@ -125,13 +125,13 @@ export default function RegisterScreen() {
             )}
           />
           {serverError ? <Notice tone="danger">{serverError}</Notice> : null}
-          <Button title="Buat akun" loading={isSubmitting} onPress={submit} />
+          <Button title={t("auth.createAccount")} loading={isSubmitting} onPress={submit} />
         </View>
       </Card>
       <Text style={styles.footer}>
-        Sudah punya akun?{" "}
+        {t("auth.hasAccount")}{" "}
         <Link href="./login" style={styles.link}>
-          Masuk
+          {t("auth.login")}
         </Link>
       </Text>
     </Screen>
