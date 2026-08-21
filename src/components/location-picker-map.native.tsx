@@ -7,8 +7,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 
-import { AppIcon } from "@/components/app-icon";
-import { Colors } from "@/constants/colors";
+import { LocationPickerMarker } from "@/components/brand-icons";
 import { getMapStyleUrl } from "@/constants/map-style";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
@@ -66,10 +65,10 @@ export function LocationPickerMap({
         pointerEvents="none"
         style={styles.centerPin}
       >
-        <View className="h-12 w-12 items-center justify-center rounded-full bg-brand elevation-lg">
-          <AppIcon name="pin" size={29} color={Colors.onPrimary} />
-        </View>
-        <View className="h-3 w-1 rounded-full bg-brand" />
+        <LocationPickerMarker
+          size={40}
+          holeColor={mode === "dark" ? "#1F1400" : "#FFFFFF"}
+        />
       </View>
     </View>
   );
@@ -82,8 +81,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: "50%",
     top: "50%",
-    marginLeft: -24,
-    marginTop: -56,
+    marginLeft: -20,
+    marginTop: -38,
     alignItems: "center",
   },
 });

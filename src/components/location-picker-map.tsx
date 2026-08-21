@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView, { type Region } from "react-native-maps";
-import { AppIcon } from "@/components/app-icon";
+import { LocationPickerMarker } from "@/components/brand-icons";
 import { Elevation, Radius } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
@@ -21,11 +21,6 @@ export function LocationPickerMap({
   const ref = useRef<MapView>(null);
   const userMovedMap = useRef(false);
   const { mode } = useAppTheme();
-  // Center pin: gray in both modes (per design request) — medium gray with a
-  // white icon in light mode, lighter gray with a dark icon in dark mode so
-  // it stays visible on the dark map.
-  const pinColor = mode === "dark" ? "#9CA3AF" : "#6B7280";
-  const pinIconColor = mode === "dark" ? "#1F1400" : "#FFFFFF";
   useEffect(() => {
     if (coordinate)
       ref.current?.animateToRegion(
@@ -60,10 +55,10 @@ export function LocationPickerMap({
         onRegionChangeComplete={changed}
       />
       <View pointerEvents="none" style={styles.pin}>
-        <View style={[styles.pinBubble, { backgroundColor: pinColor }]}>
-          <AppIcon name="pin" size={28} color={pinIconColor} />
-        </View>
-        <View style={[styles.tip, { backgroundColor: pinColor }]} />
+        <LocationPickerMarker
+          size={40}
+          holeColor={mode === "dark" ? "#1F1400" : "#FFFFFF"}
+        />
       </View>
     </View>
   );
@@ -81,21 +76,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: "50%",
     top: "50%",
-    marginLeft: -24,
-    marginTop: -52,
+    marginLeft: -20,
+    marginTop: -38,
     alignItems: "center",
-  },
-  pinBubble: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Elevation.floating,
-  },
-  tip: {
-    width: 4,
-    height: 12,
-    borderRadius: 2,
   },
 });

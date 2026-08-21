@@ -1,0 +1,23 @@
+[33m245e55b[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: replace maplibre with react-native-maps and improve edge-to-edge UI
+[33mba06e03[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat: use native MapLibre theme styles
+[33mb3796ec[m animate map action with Android keyboard
+[33m8324f37[m fix customer location flow and sticky search action
+[33m0f41ac4[m fix feature transitions and Android splash
+[33mb71df3f[m refactor mobile navigation and map experience
+[33m978befe[m fix android development build and push notifications
+[33me1d6a97[m feat(mobile): rename titip beli to jastip, remove Leaflet, fix brand name
+[33mffb9c2c[m feat(mobile): rename titip beli to jastip, add paid toggle, simplify item layout
+[33m53b4783[m Syncing changes
+[33m57bed7a[m perf(mobile): lazy-load document photo URL on demand
+[33m59ffd15[m perf(mobile): reduce driver polling frequency to 10s
+[33md6220a7[m feat(mobile): UI polish and brand icon refinements across all screens
+[33mf1261dd[m feat(mobile): redesign search page to match food page layout and behavior
+[33m6a705f2[m fix(mobile): platform-specific ActionSheet camera for web
+[33m3183854[m feat(mobile): add photoMode to ActionSheet for camera/gallery picking
+[33m2a7b344[m fix change
+[33m0ea41c0[m add all
+[33m454527c[m fix layout
+[33m817e733[m fix(mobile): refine back button alignment
+[33m3a662ee[m fix(mobile): align merchant detail back button with card padding
+[33mfc37948[m feat(mobile): add out-of-stock UI state (opacity 50%, text, no button)
+[33mcf5d5b4[m feat(mobile): update customer food tabs, cart, merchant pages, driver flow screens, and cart store

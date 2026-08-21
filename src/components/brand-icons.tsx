@@ -186,6 +186,37 @@ export function HiLocationMarkerIcon({
   );
 }
 
+// Location picker center pin — HiLocationMarker shape with thin dark-red
+// stroke on the outer edge and a white/dark hole in the center.
+export function LocationPickerMarker({
+  size = 40,
+  color = "#EF4444",
+  strokeColor = "#991B1B",
+  holeColor = "#FFFFFF",
+}: {
+  size?: number;
+  color?: string;
+  strokeColor?: string;
+  holeColor?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20">
+      {/* Outer pin shape — fill + thin stroke */}
+      <Path
+        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9z"
+        fill={color}
+        stroke={strokeColor}
+        strokeWidth={0.5}
+      />
+      {/* Inner hole */}
+      <Path
+        d="M10 11a2 2 0 100-4 2 2 0 000 4z"
+        fill={holeColor}
+      />
+    </Svg>
+  );
+}
+
 // Heroicons — HiUserCircle (solid user in a circle)
 export function HiUserCircleIcon({
   size = 24,
