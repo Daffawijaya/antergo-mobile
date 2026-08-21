@@ -249,7 +249,8 @@ export default function CommerceCatalogScreen() {
       }
     >
       <View
-        className="px-4 pb-6 pt-2"
+        className="px-4 pb-6"
+        style={{ paddingTop: insets.top + 8 }}
         onLayout={(event) => {
           setHeroWidth(event.nativeEvent.layout.width);
           // The wave is the hero's bottom edge, so it must sit below all of

@@ -306,7 +306,8 @@ export default function CreateRideScreen() {
       }
     >
       <View
-        className="px-5 pb-6 pt-2"
+        className="px-5 pb-6"
+        style={{ paddingTop: insets.top + 8 }}
         onLayout={(event) => {
           setHeroWidth(event.nativeEvent.layout.width);
           // The wave is the hero's bottom edge, so it must sit below all of

@@ -391,7 +391,7 @@ export default function CreateJastipScreen() {
       }
     >
       {/* ── Hero ─────────────────────────────────────────── */}
-      <View className="px-5 pb-10 pt-2">
+      <View className="px-5 pb-10" style={{ paddingTop: insets.top + 8 }}>
         <Svg
           width={screenWidth}
           height="100"

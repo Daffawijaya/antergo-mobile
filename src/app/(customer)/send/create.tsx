@@ -305,7 +305,7 @@ export default function CreateSendScreen() {
         ) : null
       }
     >
-        <View className="px-5 pb-14 pt-2">
+        <View className="px-5 pb-14" style={{ paddingTop: insets.top + 8 }}>
           <Svg
             width={screenWidth}
             height="188"
