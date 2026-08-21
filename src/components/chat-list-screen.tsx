@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon } from "./app-icon";
 import { orderService, ServiceIcon } from "./service-icon";
 import { Screen } from "./ui";
@@ -14,6 +15,7 @@ import { useAppTheme } from "@/stores/theme-store";
 import { useTranslation } from "@/i18n";
 export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
@@ -25,7 +27,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
   return (
     <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
       <WarmGradientBg height={520} />
-      <View className="px-5" style={{ paddingTop: 8 }}>
+      <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
         <Text className="font-bold text-[22px] leading-7 text-foreground">
           {t("nav.messages")}
         </Text>

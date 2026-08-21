@@ -1,5 +1,6 @@
 import { AppIcon } from "@/components/app-icon";
 import { FaWhatsappIcon, HiUserCircleIcon } from "@/components/brand-icons";
+import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getDriverApplication } from "@/lib/api/resources";
@@ -126,7 +127,8 @@ export function ProfileScreen() {
           paddingBottom: 24,
         }}
       >
-        <View className="bg-surface-muted px-4" style={{ paddingTop: insets.top + 16 }}>
+        <WarmGradientBg height={380} />
+        <View className="px-4" style={{ paddingTop: insets.top + 16 }}>
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
             className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"

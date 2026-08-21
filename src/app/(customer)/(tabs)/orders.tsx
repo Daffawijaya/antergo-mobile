@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomerChip } from "@/components/customer-page";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import {
@@ -41,6 +42,7 @@ function orderPath(order: Order) {
 
 export default function CustomerOrders() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
@@ -65,7 +67,7 @@ export default function CustomerOrders() {
   return (
     <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
       <WarmGradientBg height={520} />
-      <View className="px-5" style={{ paddingTop: 8 }}>
+      <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
         <Text className="font-bold text-[22px] leading-7 text-foreground">
           {t("orders.title")}
         </Text>
