@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.antergo.mobile",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -27,7 +28,14 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-image-picker", {"photosPermission": "Izinkan anterGo memilih foto yang Anda pilih untuk profil, toko, produk, dan dokumen.", "cameraPermission": "Izinkan anterGo menggunakan kamera untuk mengambil foto dan dokumen.", "microphonePermission": false}],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Izinkan anterGo memilih foto yang Anda pilih untuk profil, toko, produk, dan dokumen.",
+          "cameraPermission": "Izinkan anterGo menggunakan kamera untuk mengambil foto dan dokumen.",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -42,7 +50,10 @@
         }
       ],
       "expo-secure-store",
-      ["expo-notifications", { "defaultChannel": "orders", "color": "#208AEF" }],
+      [
+        "expo-notifications",
+        { "defaultChannel": "orders", "color": "#208AEF" }
+      ],
       [
         "expo-location",
         {

@@ -1,8 +1,9 @@
-import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import {
+  getNotificationsModule,
+  isNativePushAvailable,
   shouldRequestPushPermission,
   syncPushRegistration,
 } from "@/lib/push-notifications";
@@ -81,29 +82,43 @@ export function PushNotificationManager() {
 
   useEffect(() => {
     if (!userId) return;
+
+    let active = true;
+    let tokenSubscription: { remove(): void } | undefined;
+    let responseSubscription: { remove(): void } | undefined;
     const retry = () => syncPushRegistration(true);
+
     setRetry(retry);
     void shouldRequestPushPermission().then((request) =>
       syncPushRegistration(request),
     );
 
-    if (Platform.OS === "web") return () => setRetry(null);
+    if (Platform.OS !== "web" && isNativePushAvailable) {
+      void getNotificationsModule().then((Notifications) => {
+        if (!active || !Notifications) return;
 
-    const tokenSubscription = Notifications.addPushTokenListener(() => {
-      void syncPushRegistration(false);
-    });
-    const responseSubscription =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        void openNotification(response.notification.request.content.data ?? {});
+        tokenSubscription = Notifications.addPushTokenListener(() => {
+          void syncPushRegistration(false);
+        });
+        responseSubscription =
+          Notifications.addNotificationResponseReceivedListener((response) => {
+            void openNotification(
+              response.notification.request.content.data ?? {},
+            );
+          });
+        void Notifications.getLastNotificationResponseAsync().then((response) => {
+          if (response)
+            void openNotification(
+              response.notification.request.content.data ?? {},
+            );
+        });
       });
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response)
-        void openNotification(response.notification.request.content.data ?? {});
-    });
+    }
 
     return () => {
-      tokenSubscription.remove();
-      responseSubscription.remove();
+      active = false;
+      tokenSubscription?.remove();
+      responseSubscription?.remove();
       setRetry(null);
     };
   }, [setRetry, userId]);

@@ -1,26 +1,36 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { registerPushToken } from "@/lib/api/push-notifications";
 import { usePushNotificationStore } from "@/stores/push-notification-store";
 
 const PROMPTED_KEY = "antergo_notification_prompted";
 
-if (Platform.OS !== "web")
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
+export const isNativePushAvailable =
+  Platform.OS !== "web" &&
+  Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+
+export async function getNotificationsModule() {
+  if (!isNativePushAvailable) return null;
+  return import("expo-notifications");
+}
+
+if (isNativePushAvailable)
+  void getNotificationsModule().then((Notifications) =>
+    Notifications?.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
     }),
-  });
+  );
 
 export async function syncPushRegistration(requestPermission: boolean) {
   const setState = usePushNotificationStore.getState().setPushState;
-  if (Platform.OS === "web")
+  if (!isNativePushAvailable)
     return setState(
       "unavailable",
       "Push notification tersedia pada Development Build Android/iOS.",
@@ -30,6 +40,9 @@ export async function syncPushRegistration(requestPermission: boolean) {
       "unavailable",
       "Push notification memerlukan perangkat fisik.",
     );
+
+  const Notifications = await getNotificationsModule();
+  if (!Notifications) return;
 
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("orders", {
