@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 type Service = {
   type: ServiceVariant;
@@ -138,9 +138,22 @@ export default function CustomerHome() {
         height={130}
         style={{ position: "absolute", top: 0, left: 0 }}
       >
+        <Defs>
+          <LinearGradient
+            id="home-diagonal"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <Stop offset="0" stopColor={Colors.primary} />
+            <Stop offset="0.6" stopColor={Colors.primary} stopOpacity={0.6} />
+            <Stop offset="1" stopColor={Colors.primary} stopOpacity={0} />
+          </LinearGradient>
+        </Defs>
         <Path
           d={`M 0,0 L ${screenWidth},0 L ${screenWidth},130 Z`}
-          fill={Colors.primary}
+          fill="url(#home-diagonal)"
         />
       </Svg>
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
