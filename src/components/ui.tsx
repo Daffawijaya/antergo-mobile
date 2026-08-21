@@ -13,7 +13,7 @@ import {
   type ViewStyle,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
@@ -50,10 +50,11 @@ export function Screen({
 }>) {
   const { height: screenHeight } = useWindowDimensions();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const content = (
     <View
       className={`flex-1 gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
-      style={contentStyle}
+      style={[{ paddingTop: padded ? insets.top : undefined }, contentStyle]}
     >
       {children}
     </View>
@@ -62,7 +63,7 @@ export function Screen({
     <SafeAreaView
       className="flex-1 bg-background"
       style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
     >
       {scroll ? (
         <ScrollView

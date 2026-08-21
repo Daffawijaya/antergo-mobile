@@ -11,6 +11,7 @@ import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Service = {
   type: ServiceVariant;
@@ -37,6 +38,7 @@ const onePerMerchant = (products: Product[] = []) => {
     .slice(0, 6);
 };
 export default function CustomerHome() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
@@ -128,7 +130,7 @@ export default function CustomerHome() {
       scrollBottomPadding={false}
       className="gap-0 bg-background"
     >
-      <View className="flex-row items-center gap-2.5 bg-surface-muted px-4 py-4">
+      <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
           className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
