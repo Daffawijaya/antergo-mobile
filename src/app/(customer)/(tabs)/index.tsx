@@ -10,9 +10,9 @@ import { useTranslation } from "@/i18n";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
+import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 type Service = {
   type: ServiceVariant;
@@ -40,7 +40,6 @@ const onePerMerchant = (products: Product[] = []) => {
 };
 export default function CustomerHome() {
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
@@ -132,46 +131,7 @@ export default function CustomerHome() {
       scrollBottomPadding={false}
       className="gap-0 bg-background"
     >
-      {/* Background gradient — diagonal warm cream → golden → neutral, matching Jago reference */}
-      <Svg
-        width={screenWidth}
-        height={280}
-        style={{ position: "absolute", top: 0, left: 0 }}
-      >
-        <Defs>
-          <LinearGradient
-            id="home-grad"
-            x1={String(screenWidth)}
-            y1="0"
-            x2="0"
-            y2="280"
-            gradientUnits="userSpaceOnUse"
-          >
-            {/* Top-right corner: neutral */}
-            <Stop offset="0" stopColor="#f7f7f7" />
-            {/* Quickly transition into golden zone */}
-            <Stop offset="0.03" stopColor="#f5f0e8" />
-            <Stop offset="0.06" stopColor="#feb325" />
-            {/* Peak golden amber */}
-            <Stop offset="0.10" stopColor="#ffaa19" />
-            <Stop offset="0.15" stopColor="#ffbd32" />
-            <Stop offset="0.20" stopColor="#fcc84e" />
-            {/* Transition through warm tones */}
-            <Stop offset="0.28" stopColor="#fae4ab" />
-            <Stop offset="0.36" stopColor="#f5d8a0" />
-            <Stop offset="0.44" stopColor="#f8e8c8" />
-            {/* Warm cream */}
-            <Stop offset="0.54" stopColor="#f9f2ea" />
-            {/* Fade to light warm */}
-            <Stop offset="0.64" stopColor="#faf5ee" />
-            <Stop offset="0.76" stopColor="#faf8f4" />
-            {/* Neutral at bottom-left */}
-            <Stop offset="0.88" stopColor="#faf9f7" />
-            <Stop offset="1" stopColor="#fafafa" />
-          </LinearGradient>
-        </Defs>
-        <Rect width={screenWidth} height={280} fill="url(#home-grad)" />
-      </Svg>
+      <WarmGradientBg height={520} />
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
