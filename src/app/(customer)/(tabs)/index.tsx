@@ -10,8 +10,9 @@ import { useTranslation } from "@/i18n";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
 type Service = {
   type: ServiceVariant;
@@ -39,6 +40,7 @@ const onePerMerchant = (products: Product[] = []) => {
 };
 export default function CustomerHome() {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
@@ -130,6 +132,17 @@ export default function CustomerHome() {
       scrollBottomPadding={false}
       className="gap-0 bg-background"
     >
+      {/* Background diagonal triangle — right-angle at top-right, brand yellow */}
+      <Svg
+        width={screenWidth}
+        height={240}
+        style={{ position: "absolute", top: 0, left: 0 }}
+      >
+        <Path
+          d={`M 0,0 L ${screenWidth},0 L ${screenWidth},240 Z`}
+          fill={Colors.primary}
+        />
+      </Svg>
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
