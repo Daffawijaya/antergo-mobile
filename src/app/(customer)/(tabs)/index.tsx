@@ -143,11 +143,11 @@ export default function CustomerHome() {
             id="home-diagonal"
             x1="0"
             y1="0"
-            x2="1"
-            y2="1"
+            x2={String(screenWidth)}
+            y2="130"
           >
             <Stop offset="0" stopColor={Colors.primary} />
-            <Stop offset="0.6" stopColor={Colors.primary} stopOpacity={0.6} />
+            <Stop offset="0.7" stopColor={Colors.primary} stopOpacity={0.4} />
             <Stop offset="1" stopColor={Colors.primary} stopOpacity={0} />
           </LinearGradient>
         </Defs>
