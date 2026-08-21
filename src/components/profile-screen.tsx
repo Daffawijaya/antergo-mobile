@@ -26,7 +26,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -49,6 +49,7 @@ const roleImage = (role: AppRole) => {
 
 export function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const { mode, colors } = useAppTheme();
   const setThemeMode = useThemeStore((state) => state.setMode);
@@ -113,7 +114,7 @@ export function ProfileScreen() {
     <SafeAreaView
       className="flex-1"
       style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -125,7 +126,7 @@ export function ProfileScreen() {
           paddingBottom: 24,
         }}
       >
-        <View className="bg-surface-muted px-4 pt-4">
+        <View className="bg-surface-muted px-4" style={{ paddingTop: insets.top + 16 }}>
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
             className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"
