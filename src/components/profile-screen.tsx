@@ -17,7 +17,15 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { useLanguageStore, LANGUAGE_LABELS } from "@/stores/language-store";
 import { useTranslation } from "@/i18n";
-import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Notice } from "./ui";
 
@@ -41,6 +49,7 @@ const roleImage = (role: AppRole) => {
 
 export function ProfileScreen() {
   const router = useRouter();
+  const { height: screenHeight } = useWindowDimensions();
   const { mode, colors } = useAppTheme();
   const setThemeMode = useThemeStore((state) => state.setMode);
   const user = useAuthStore((state) => state.user);
@@ -102,23 +111,31 @@ export function ProfileScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-background"
+      className="flex-1"
+      style={{ backgroundColor: colors.background }}
       edges={["top", "left", "right"]}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-6"
+        style={{ backgroundColor: colors.background }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          minHeight: screenHeight,
+          backgroundColor: colors.background,
+          paddingBottom: 24,
+        }}
       >
         <View className="bg-surface-muted px-4 pt-4">
           <Pressable
-            onPress={() => router.push("/(customer)/(tabs)/account-detail")}
+            onPress={() => router.push("/(customer)/account-detail")}
             className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"
             style={{
               shadowColor: "#111827",
               shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.07,
-              shadowRadius: 14,
-              elevation: 6,
+              shadowOpacity: 0.015,
+              shadowRadius: 48,
+              elevation: 2,
+              boxShadow: "0 10px 56px rgba(17, 24, 39, 0.02)",
             }}
           >
             <View className="flex-row items-center gap-3">
@@ -218,7 +235,7 @@ export function ProfileScreen() {
                   key={item}
                   onPress={() => void setThemeMode(item)}
                   className={`flex-1 flex-row items-center justify-center gap-2 rounded-full py-2.5 transition-colors ${
-                    selected ? "bg-surface elevation-sm" : ""
+                    selected ? "bg-surface" : ""
                   }`}
                 >
                   <AppIcon
@@ -271,7 +288,7 @@ export function ProfileScreen() {
                   ? undefined
                   : () =>
                       router.push({
-                        pathname: "/(customer)/(tabs)/driver-register",
+                        pathname: "/(customer)/driver-register",
                         params: { returnTo: "/(customer)/(tabs)/profile" },
                       })
               }
@@ -297,7 +314,7 @@ export function ProfileScreen() {
               title={t("profile.registerMerchant")}
               onPress={() =>
                 router.push({
-                  pathname: "/(customer)/(tabs)/merchant-register",
+                  pathname: "/(customer)/merchant-register",
                   params: { returnTo: "/(customer)/(tabs)/profile" },
                 })
               }
@@ -307,7 +324,7 @@ export function ProfileScreen() {
             icon="language"
             title={t("profile.language")}
             value={LANGUAGE_LABELS[lang][lang]}
-            onPress={() => router.push("/(customer)/(tabs)/language")}
+            onPress={() => router.push("/(customer)/language")}
           />
           <SettingsRow
             icon="logout"

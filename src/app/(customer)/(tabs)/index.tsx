@@ -57,7 +57,7 @@ export default function CustomerHome() {
       icon: serviceIcons.food,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/(tabs)/food",
+          pathname: "/(customer)/food/index",
           params: { service: "food" },
         }),
     },
@@ -67,7 +67,7 @@ export default function CustomerHome() {
       icon: serviceIcons.shopping,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/(tabs)/food",
+          pathname: "/(customer)/food/index",
           params: { service: "shopping" },
         }),
     },
@@ -89,7 +89,7 @@ export default function CustomerHome() {
       icon: serviceIcons.bike,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/(tabs)/ride/create",
+          pathname: "/(customer)/ride/create",
           params: { service: "bike" },
         }),
     },
@@ -99,14 +99,14 @@ export default function CustomerHome() {
       icon: serviceIcons.car,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/(tabs)/ride/create",
+          pathname: "/(customer)/ride/create",
           params: { service: "car" },
         }),
     },
   ];
   const openMerchant = (merchant: Merchant) =>
     router.push({
-      pathname: "/(customer)/(tabs)/food/merchant/[id]",
+      pathname: "/(customer)/food/merchant/[id]",
       params: {
         id: String(merchant.id),
         service: "food",
@@ -115,7 +115,7 @@ export default function CustomerHome() {
     });
   const openProduct = (product: Product) =>
     router.push({
-      pathname: "/(customer)/(tabs)/food/merchant/[id]",
+      pathname: "/(customer)/food/merchant/[id]",
       params: {
         id: String(product.merchant_id),
         service: product.product_type === "goods" ? "shopping" : "food",
@@ -130,7 +130,7 @@ export default function CustomerHome() {
     >
       <View className="flex-row items-center gap-2.5 bg-surface-muted px-4 py-4">
         <Pressable
-          onPress={() => router.push("/(customer)/(tabs)/search")}
+          onPress={() => router.push("/(customer)/search")}
           className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />

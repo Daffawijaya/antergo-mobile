@@ -1,15 +1,36 @@
-import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
-import MapView, { type Region } from "react-native-maps";
+import {
+  Camera,
+  type CameraRef,
+  Layer,
+  Map,
+  RasterSource,
+  type ViewStateChangeEvent,
+} from "@maplibre/maplibre-react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
+
 import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
-const DEFAULT_REGION = {
-  latitude: -6.2,
-  longitude: 106.816666,
-  latitudeDelta: 0.025,
-  longitudeDelta: 0.025,
+import { useAppTheme } from "@/stores/theme-store";
+
+const DEFAULT_COORDINATE: Coordinate = {
+  latitude: -0.5022,
+  longitude: 117.1536,
 };
+
+const BASE_STYLE = {
+  version: 8 as const,
+  sources: {},
+  layers: [
+    {
+      id: "background",
+      type: "background" as const,
+      paint: { "background-color": "#E9ECEF" },
+    },
+  ],
+};
+
 export function LocationPickerMap({
   coordinate,
   onChange,
@@ -17,29 +38,72 @@ export function LocationPickerMap({
   coordinate?: Coordinate;
   onChange: (value: Coordinate) => void;
 }) {
-  const ref = useRef<MapView>(null);
+  const camera = useRef<CameraRef>(null);
+  const { mode } = useAppTheme();
+  const [initial] = useState(() => coordinate ?? DEFAULT_COORDINATE);
+  const rasterStyle = useMemo(
+    () =>
+      mode === "dark"
+        ? {
+            rasterBrightnessMin: 0.04,
+            rasterBrightnessMax: 0.42,
+            rasterSaturation: -0.72,
+            rasterContrast: 0.18,
+            rasterHueRotate: 205,
+          }
+        : {
+            rasterBrightnessMin: 0,
+            rasterBrightnessMax: 1,
+            rasterSaturation: 0,
+            rasterContrast: 0,
+            rasterHueRotate: 0,
+          },
+    [mode],
+  );
+
   useEffect(() => {
-    if (coordinate)
-      ref.current?.animateToRegion(
-        { ...coordinate, latitudeDelta: 0.018, longitudeDelta: 0.018 },
-        350,
-      );
+    if (!coordinate) return;
+    camera.current?.easeTo({
+      center: [coordinate.longitude, coordinate.latitude],
+      duration: 350,
+    });
   }, [coordinate]);
-  const changed = (region: Region) =>
-    onChange({ latitude: region.latitude, longitude: region.longitude });
+
+  const regionChanged = (
+    event: NativeSyntheticEvent<ViewStateChangeEvent>,
+  ) => {
+    if (!event.nativeEvent.userInteraction) return;
+    const [longitude, latitude] = event.nativeEvent.center;
+    onChange({ latitude, longitude });
+  };
+
   return (
-    <View className="flex-1">
-      <MapView
-        ref={ref}
-        style={StyleSheet.absoluteFill}
-        initialRegion={
-          coordinate
-            ? { ...coordinate, latitudeDelta: 0.018, longitudeDelta: 0.018 }
-            : DEFAULT_REGION
-        }
-        showsUserLocation
-        onRegionChangeComplete={changed}
-      />
+    <View className="flex-1 overflow-hidden">
+      <Map
+        mapStyle={BASE_STYLE}
+        style={styles.map}
+        compass={false}
+        logo={false}
+        attribution
+        onRegionDidChange={regionChanged}
+      >
+        <Camera
+          ref={camera}
+          initialViewState={{
+            center: [initial.longitude, initial.latitude],
+            zoom: 16,
+          }}
+        />
+        <RasterSource
+          id="osm"
+          tiles={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
+          tileSize={256}
+          maxzoom={19}
+          attribution="© OpenStreetMap contributors"
+        >
+          <Layer id="osm-raster" type="raster" style={rasterStyle} />
+        </RasterSource>
+      </Map>
       <View
         pointerEvents="none"
         className="absolute left-1/2 top-1/2 -ml-6 -mt-14 items-center"
@@ -52,3 +116,7 @@ export function LocationPickerMap({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  map: { flex: 1 },
+});

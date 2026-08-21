@@ -30,6 +30,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  useWindowDimensions,
   View,
   type ImageSourcePropType,
 } from "react-native";
@@ -57,6 +58,7 @@ const HERO_TEXT = "#1F1400";
 
 export default function CreateSendScreen() {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const [vehicleType, setVehicleType] = useState<"motorcycle" | "car">(
     "motorcycle",
   );
@@ -299,7 +301,7 @@ export default function CreateSendScreen() {
     >
         <View className="px-5 pb-14 pt-2">
           <Svg
-            width="100%"
+            width={screenWidth}
             height="188"
             style={{ position: "absolute", top: 0, left: 0, right: 0 }}
           >

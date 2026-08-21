@@ -57,7 +57,7 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
                   router.push({
                     pathname:
                       role === "customer"
-                        ? "/(customer)/(tabs)/chat/[id]"
+                        ? "/(customer)/chat/[id]"
                         : "/(driver)/chat/[id]",
                     params: { id: String(order.id) },
                   })

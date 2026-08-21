@@ -1,5 +1,4 @@
 import { AppIcon } from "@/components/app-icon";
-import { LuX } from "react-icons/lu";
 import { FaDotCircleIcon, HiLocationMarkerIcon } from "@/components/brand-icons";
 import { Button, FormField, Notice, Screen } from "@/components/ui";
 import { useAppTheme } from "@/stores/theme-store";
@@ -20,6 +19,7 @@ import {
   Text,
   TextInput,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -85,6 +85,7 @@ const DEST_RED = "#FA2C19";
 /* ── main screen ─────────────────────────────────────────── */
 
 export default function CreateJastipScreen() {
+  const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const { colors, mode } = useAppTheme();
   const { t } = useTranslation();
@@ -372,7 +373,7 @@ export default function CreateJastipScreen() {
       {/* ── Hero ─────────────────────────────────────────── */}
       <View className="px-5 pb-10 pt-2">
         <Svg
-          width="100%"
+          width={screenWidth}
           height="100"
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
@@ -574,7 +575,12 @@ export default function CreateJastipScreen() {
                           hitSlop={8}
                           className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
                         >
-                          <LuX size={20} color="#9CA3AF" strokeWidth={1.5} />
+                          <AppIcon
+                            name="close"
+                            size={20}
+                            color="#9CA3AF"
+                            strokeWidth={1.5}
+                          />
                         </Pressable>
                       </View>
                     </View>

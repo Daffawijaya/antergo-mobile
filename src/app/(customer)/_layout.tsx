@@ -17,13 +17,28 @@ export default function CustomerLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        animation: PUSH_FROM_RIGHT,
         animationDuration: 220,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(tabs)" options={{ animation: "none" }} />
       <Stack.Screen name="send/create" options={{ animation: PUSH_FROM_RIGHT }} />
       <Stack.Screen name="send/[id]" options={{ animation: PUSH_FROM_RIGHT }} />
+      <Stack.Screen name="food/index" />
+      <Stack.Screen name="food/cart" />
+      <Stack.Screen name="food/checkout" />
+      <Stack.Screen name="food/merchant/[id]" />
+      <Stack.Screen name="food/order/[id]" />
+      <Stack.Screen name="ride/create" />
+      <Stack.Screen name="ride/[id]" />
+      <Stack.Screen name="jastip/create" />
+      <Stack.Screen name="search" />
+      <Stack.Screen name="account-detail" />
+      <Stack.Screen name="language" />
+      <Stack.Screen name="driver-register" />
+      <Stack.Screen name="merchant-register" />
+      <Stack.Screen name="chat/[id]" />
       <Stack.Screen name="location-search" options={{ animation: "slide_from_bottom" }} />
       <Stack.Screen name="location-picker" options={{ animation: "slide_from_bottom" }} />
     </Stack>

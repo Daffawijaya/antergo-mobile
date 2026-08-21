@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type StyleProp,
@@ -47,6 +48,8 @@ export function Screen({
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   header?: ReactNode;
 }>) {
+  const { height: screenHeight } = useWindowDimensions();
+  const { colors } = useAppTheme();
   const content = (
     <View
       className={`flex-1 gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
@@ -58,13 +61,20 @@ export function Screen({
   return (
     <SafeAreaView
       className="flex-1 bg-background"
+      style={{ backgroundColor: colors.background }}
       edges={["top", "left", "right"]}
     >
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerClassName={scrollBottomPadding ? "grow pb-4" : "grow"}
+          style={{ backgroundColor: colors.background }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            minHeight: screenHeight,
+            backgroundColor: colors.background,
+            paddingBottom: scrollBottomPadding ? 16 : 0,
+          }}
           onScroll={onScroll}
           scrollEventThrottle={16}
         >

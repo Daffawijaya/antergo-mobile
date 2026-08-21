@@ -19,6 +19,7 @@ export function LocationPickerMap({
   onChange: (value: Coordinate) => void;
 }) {
   const ref = useRef<MapView>(null);
+  const userMovedMap = useRef(false);
   const { mode } = useAppTheme();
   // Center pin: gray in both modes (per design request) — medium gray with a
   // white icon in light mode, lighter gray with a dark icon in dark mode so
@@ -32,8 +33,16 @@ export function LocationPickerMap({
         350,
       );
   }, [coordinate]);
-  const changed = (region: Region) =>
+  const changed = (region: Region, details?: { isGesture?: boolean }) => {
+    // Android also fires this callback when initialRegion/animateToRegion
+    // positions the map. Treating that as a user move reverse-geocodes the
+    // selected POI and replaces names such as "Big Mall" with its street.
+    const isUserMove = details?.isGesture === true || userMovedMap.current;
+    userMovedMap.current = false;
+    if (!isUserMove) return;
+
     onChange({ latitude: region.latitude, longitude: region.longitude });
+  };
   return (
     <View style={styles.frame}>
       <MapView
@@ -45,6 +54,9 @@ export function LocationPickerMap({
             : JAKARTA
         }
         showsUserLocation
+        onPanDrag={() => {
+          userMovedMap.current = true;
+        }}
         onRegionChangeComplete={changed}
       />
       <View pointerEvents="none" style={styles.pin}>

@@ -64,7 +64,7 @@ export default function FoodCheckoutScreen() {
         client.invalidateQueries({ queryKey: foodKeys.merchants }),
       ]);
       router.replace({
-        pathname: "/(customer)/(tabs)/food/order/[id]",
+        pathname: "/(customer)/food/order/[id]",
         params: { id: String(order.id) },
       });
     },
@@ -102,7 +102,7 @@ export default function FoodCheckoutScreen() {
           action={
             <Button
               title="Cari makanan"
-              onPress={() => router.replace("/(customer)/(tabs)/food")}
+              onPress={() => router.replace("/(customer)/food/index")}
             />
           }
         />
@@ -128,7 +128,7 @@ export default function FoodCheckoutScreen() {
               pathname: "/(customer)/location-search",
               params: {
                 purpose: "food-destination",
-                returnTo: `/(customer)/(tabs)/food/checkout?service=${service}&merchantId=${merchantId}`,
+                returnTo: `/(customer)/food/checkout?service=${service}&merchantId=${merchantId}`,
               },
             })
           }

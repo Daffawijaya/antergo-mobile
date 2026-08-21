@@ -6,6 +6,7 @@
     "@expo-google-fonts/outfit": "^0.4.3",
     "@expo/ui": "~57.0.12",
     "@hookform/resolvers": "^5.8.0",
+    "@maplibre/maplibre-react-native": "^11.3.6",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.101.4",
     "axios": "^1.19.0",

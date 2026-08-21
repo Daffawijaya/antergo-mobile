@@ -19,6 +19,8 @@ import {
 import {
   ActivityIndicator,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -292,10 +294,14 @@ export default function LocationSearchScreen() {
       className="flex-1 bg-background"
       edges={["top", "left", "right"]}
     >
-      <View
-        className="bg-background"
-        style={scrolled ? { ...Elevation.floating } : undefined}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        <View
+          className="bg-background"
+          style={scrolled ? { ...Elevation.floating } : undefined}
+        >
         <View className="px-5 pt-5">
         <View className="flex-row items-center gap-2">
           <Pressable
@@ -407,10 +413,11 @@ export default function LocationSearchScreen() {
       </View>
       </View>
       <ScrollView
+        className="flex-1"
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
         onScroll={(event) => setScrolled(event.nativeEvent.contentOffset.y > 4)}
-        contentContainerClassName="px-5"
+        contentContainerClassName="px-5 pb-3"
       >
         {error ? (
           <Text className="py-2 text-sm text-danger">{error}</Text>
@@ -442,16 +449,19 @@ export default function LocationSearchScreen() {
                 </View>
                 <View className="flex-1 gap-1">
                   <View className="flex-row items-center gap-2">
-                    {/* Distance flows inline after the title so it always sits
-                        right next to the text, even when the title is long. */}
-                    <Text className="flex-1 font-bold text-base text-foreground">
-                      {item.title}
+                    <View className="min-w-0 flex-1 flex-row items-baseline gap-2">
+                      <Text
+                        numberOfLines={1}
+                        className="shrink font-bold text-base text-foreground"
+                      >
+                        {item.title}
+                      </Text>
                       {item.distance !== null ? (
-                        <Text className="ml-1.5 font-semibold text-xs text-muted">
+                        <Text className="shrink-0 font-semibold text-xs text-muted">
                           {formatDistance(item.distance)}
                         </Text>
                       ) : null}
-                    </Text>
+                    </View>
                     {item.source === "merchant" ? (
                       <Text
                         className="rounded-full px-2 py-0.5 font-bold text-[10px]"
@@ -473,7 +483,7 @@ export default function LocationSearchScreen() {
           </View>
         )}
       </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 items-center px-5 pb-5 pt-3">
+      <View className="items-center bg-background px-5 pb-5 pt-3">
         <Pressable
           onPress={openMapAtCurrentLocation}
           className="flex-row items-center justify-center gap-1 self-center rounded-full px-3 py-1 active:opacity-80"
@@ -492,6 +502,7 @@ export default function LocationSearchScreen() {
           ) : null}
         </Pressable>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

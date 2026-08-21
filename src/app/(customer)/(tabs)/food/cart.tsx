@@ -94,7 +94,7 @@ export default function CartScreen() {
                   title={t("cart.searchMerchant")}
                   onPress={() =>
                     router.replace({
-                      pathname: "/(customer)/(tabs)/food",
+                      pathname: "/(customer)/food/index",
                       params: { service },
                     })
                   }
@@ -156,7 +156,7 @@ export default function CartScreen() {
                 title={t("cart.checkout")}
                 onPress={() =>
                   router.push({
-                    pathname: "/(customer)/(tabs)/food/checkout",
+                    pathname: "/(customer)/food/checkout",
                     params: { service, merchantId: String(merchantId) },
                   })
                 }
@@ -186,7 +186,7 @@ export default function CartScreen() {
                   title={t("cart.startShopping")}
                   onPress={() =>
                     router.replace({
-                      pathname: "/(customer)/(tabs)/food",
+                      pathname: "/(customer)/food/index",
                       params: { service: "food" },
                     })
                   }
@@ -209,7 +209,7 @@ export default function CartScreen() {
                     key={cart.merchant.id}
                     onPress={() =>
                       router.push({
-                        pathname: "/(customer)/(tabs)/food/cart",
+                        pathname: "/(customer)/food/cart",
                         params: {
                           merchantId: String(cart.merchant.id),
                           service: "food",

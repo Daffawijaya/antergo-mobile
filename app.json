@@ -52,7 +52,10 @@
       "expo-secure-store",
       [
         "expo-notifications",
-        { "defaultChannel": "orders", "color": "#208AEF" }
+        {
+          "defaultChannel": "orders",
+          "color": "#208AEF"
+        }
       ],
       [
         "expo-location",
@@ -63,7 +66,8 @@
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
-      ]
+      ],
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

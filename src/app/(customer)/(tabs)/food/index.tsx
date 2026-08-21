@@ -155,11 +155,11 @@ export default function CommerceCatalogScreen() {
   };
   const openMerchant = (id: number) =>
     router.push({
-      pathname: "/(customer)/(tabs)/food/merchant/[id]",
+      pathname: "/(customer)/food/merchant/[id]",
       params: {
         id: String(id),
         service,
-        returnTo: `/(customer)/(tabs)/food?service=${service}`,
+        returnTo: `/(customer)/food/index?service=${service}`,
       },
     });
   const openPicker = () =>
@@ -167,7 +167,7 @@ export default function CommerceCatalogScreen() {
       pathname: "/(customer)/location-search",
       params: {
         purpose: "food-destination",
-        returnTo: `/(customer)/(tabs)/food?service=${service}`,
+        returnTo: `/(customer)/food/index?service=${service}`,
       },
     });
   // Sticky header: once the hero header has scrolled off the top, show a
@@ -195,7 +195,7 @@ export default function CommerceCatalogScreen() {
       state.clearSelection("food-destination");
       void state.refreshCurrentLocation();
     }
-    router.replace("/(customer)/(tabs)");
+    router.back();
   };
   const gradient = SERVICE_GRADIENTS[service][mode];
   // White reads best on the (darker) purple hero.
@@ -258,7 +258,7 @@ export default function CommerceCatalogScreen() {
         }}
       >
         <Svg
-          width="100%"
+          width={heroWidth || 1}
           height={heroHeight || 300}
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >

@@ -167,7 +167,7 @@ export default function CreateRideScreen() {
     onSuccess: async ({ order }) => {
       await queryClient.invalidateQueries({ queryKey: orderKeys.all });
       router.replace({
-        pathname: "/(customer)/(tabs)/ride/[id]",
+        pathname: "/(customer)/ride/[id]",
         params: { id: String(order.id) },
       });
     },
@@ -205,7 +205,7 @@ export default function CreateRideScreen() {
       pathname: "/(customer)/location-search",
       params: {
         purpose,
-        returnTo: `/(customer)/(tabs)/ride/create?service=${service}`,
+        returnTo: `/(customer)/ride/create?service=${service}`,
       },
     });
   const swapLocations = () => {
@@ -315,7 +315,7 @@ export default function CreateRideScreen() {
         }}
       >
         <Svg
-          width="100%"
+          width={heroWidth || 1}
           height={waveFillBottom}
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >

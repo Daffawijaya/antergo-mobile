@@ -184,7 +184,7 @@ export default function AccountDetailScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("common.back")}
-          onPress={() => router.replace("/(customer)/(tabs)/profile")}
+          onPress={() => router.back()}
           className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
         >
           <AppIcon name="back" size={26} color={colors.text} />

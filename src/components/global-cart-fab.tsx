@@ -46,7 +46,7 @@ export function GlobalCartFab() {
     <Pressable
       onPress={() =>
         router.push({
-          pathname: "/(customer)/(tabs)/food/cart",
+          pathname: "/(customer)/food/cart",
         })
       }
       className={`absolute ${fabBottom} right-5 h-14 w-14 items-center justify-center rounded-2xl bg-white`}

@@ -404,7 +404,7 @@ export default function MerchantDetailScreen() {
             className="flex-row items-center justify-between rounded-full bg-brand px-5 py-3.5"
             onPress={() =>
               router.push({
-                pathname: "/(customer)/(tabs)/food/cart",
+                pathname: "/(customer)/food/cart",
                 params: { service, merchantId: String(merchantId) },
               })
             }

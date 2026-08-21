@@ -241,31 +241,32 @@ export async function reverseGeocodeLabel(coordinate: Coordinate) {
     const webLabel = await webReverseGeocode(coordinate).catch(() => null);
     if (webLabel) return webLabel;
   } else {
-    // 1. The platform geocoder (Android/iOS) is fast and local.
+    // Prefer the backend so Android does not expose Google Plus Codes such as
+    // "J497+HRH" as the primary location label.
+    const viaApi = await apiReverseGeocode(coordinate).catch(() => null);
+    if (viaApi?.address) return viaApi.address;
+
+    // The platform geocoder is the offline fallback.
     try {
       const [address] = await Location.reverseGeocodeAsync(coordinate);
       if (address) {
-        const label =
-          address.formattedAddress ||
-          [
-            address.name,
-            address.street,
-            address.district,
-            address.city,
-            address.region,
-            address.postalCode,
-          ]
-            .filter(Boolean)
-            .filter((value, index, all) => all.indexOf(value) === index)
-            .join(", ");
+        const label = [
+          address.name,
+          address.street,
+          address.district,
+          address.city,
+          address.region,
+          address.postalCode,
+        ]
+          .filter((value): value is string => Boolean(value))
+          .filter((value) => !/^[A-Z0-9]{4,8}\+[A-Z0-9]{2,4}$/i.test(value.trim()))
+          .filter((value, index, all) => all.indexOf(value) === index)
+          .join(", ");
         if (label) return label;
       }
     } catch {
-      // fall through to the backend below
+      // Fall through to the generic label below.
     }
-    // 2. The project's own backend (Geoapify proxy, Nominatim fallback).
-    const viaApi = await apiReverseGeocode(coordinate).catch(() => null);
-    if (viaApi?.address) return viaApi.address;
   }
 
   // 3. Last resort: never show raw coordinates — use a human label instead.
