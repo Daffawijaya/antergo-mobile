@@ -3,6 +3,6 @@ export const MAP_STYLE_URLS = {
   dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
 } as const;
 
-export function getMapStyleUrl(mode: "light" | "dark") {
-  return MAP_STYLE_URLS[mode];
+export function getMapStyleUrl(_mode?: "light" | "dark") {
+  return MAP_STYLE_URLS.light;
 }

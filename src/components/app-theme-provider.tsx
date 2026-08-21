@@ -22,7 +22,8 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
         <StatusBar
           animated
           barStyle={mode === "dark" ? "light-content" : "dark-content"}
-          backgroundColor={colors.background}
+          translucent
+          backgroundColor="transparent"
         />
         {children}
       </View>

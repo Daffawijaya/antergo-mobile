@@ -12,7 +12,6 @@ import {
   View,
 } from "react-native";
 import {
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { LocationPickerMap } from "@/components/location-picker-map";
@@ -181,16 +180,14 @@ export default function LocationPickerScreen() {
     else router.back();
   };
   return (
-    <SafeAreaView
-      className="bg-background"
+    <View
       style={{ flex: 1, backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
     >
       <View style={{ flex: 1 }}>
         <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
         <View
           className="flex-row items-center gap-2"
-          style={{ position: "absolute", left: 20, right: 20, top: 20 }}
+          style={{ position: "absolute", left: 20, right: 20, top: Math.max(insets.top + 8, 24) }}
         >
           <BackButton
             floating
@@ -260,6 +257,6 @@ export default function LocationPickerScreen() {
           </Pressable>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
