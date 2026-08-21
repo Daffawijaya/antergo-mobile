@@ -31,6 +31,10 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Reanimated, {
+  useAnimatedKeyboard,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 import { Colors, Elevation } from "@/constants/colors";
 import { apiSearchLocations } from "@/lib/api/geocode";
 import {
@@ -67,6 +71,15 @@ export default function LocationSearchScreen() {
   const router = useRouter();
   const { mode, colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const keyboard = useAnimatedKeyboard();
+  const keyboardActionStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY:
+          Platform.OS === "android" ? -keyboard.height.value : 0,
+      },
+    ],
+  }));
   const HERO_TEXT = mode === "dark" ? "#FFFFFF" : "#1F1400";
   // Pin marker for search results: theme gray instead of the brand yellow —
   // gray in both light and dark mode (per design request).
@@ -300,7 +313,7 @@ export default function LocationSearchScreen() {
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View
           className="bg-background"
@@ -497,12 +510,15 @@ export default function LocationSearchScreen() {
           </View>
         )}
       </ScrollView>
-      <View
+      <Reanimated.View
         className="items-center bg-background px-5 pt-3"
-        style={{
-          flexShrink: 0,
-          paddingBottom: Math.max(insets.bottom, 12) + 8,
-        }}
+        style={[
+          {
+            flexShrink: 0,
+            paddingBottom: Math.max(insets.bottom, 12) + 8,
+          },
+          keyboardActionStyle,
+        ]}
       >
         <Pressable
           onPress={openMapAtCurrentLocation}
@@ -521,7 +537,7 @@ export default function LocationSearchScreen() {
             <ActivityIndicator size="small" color={mode === "dark" ? "#FFFFFF" : Colors.primaryDark} />
           ) : null}
         </Pressable>
-      </View>
+      </Reanimated.View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
