@@ -135,11 +135,11 @@ export default function CustomerHome() {
       {/* Background diagonal triangle — right-angle at top-right, brand yellow */}
       <Svg
         width={screenWidth}
-        height={240}
+        height={130}
         style={{ position: "absolute", top: 0, left: 0 }}
       >
         <Path
-          d={`M 0,0 L ${screenWidth},0 L ${screenWidth},240 Z`}
+          d={`M 0,0 L ${screenWidth},0 L ${screenWidth},130 Z`}
           fill={Colors.primary}
         />
       </Svg>
