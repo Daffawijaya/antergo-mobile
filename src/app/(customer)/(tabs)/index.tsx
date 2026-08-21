@@ -57,7 +57,7 @@ export default function CustomerHome() {
       icon: serviceIcons.food,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/food/index",
+          pathname: "/(customer)/food",
           params: { service: "food" },
         }),
     },
@@ -67,7 +67,7 @@ export default function CustomerHome() {
       icon: serviceIcons.shopping,
       onPress: () =>
         router.push({
-          pathname: "/(customer)/food/index",
+          pathname: "/(customer)/food",
           params: { service: "shopping" },
         }),
     },

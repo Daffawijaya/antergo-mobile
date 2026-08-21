@@ -19,13 +19,6 @@ const hidden = [
   "search",
   "driver-register",
   "merchant-register",
-  "ride/create",
-  "ride/[id]",
-  "food/index",
-  "food/cart",
-  "food/checkout",
-  "food/merchant/[id]",
-  "food/order/[id]",
   "chat/[id]",
 ];
 export default function TabsLayout() {

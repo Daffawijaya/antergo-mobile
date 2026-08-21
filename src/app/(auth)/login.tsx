@@ -90,7 +90,7 @@ export default function LoginScreen() {
     }
   });
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen scroll={false} contentStyle={styles.screen}>
       <View style={styles.container}>
         <View style={styles.brand}>
           <Image
