@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 type Service = {
   type: ServiceVariant;
@@ -132,30 +132,45 @@ export default function CustomerHome() {
       scrollBottomPadding={false}
       className="gap-0 bg-background"
     >
-      {/* Background diagonal triangle — right-angle at top-right, brand yellow */}
+      {/* Background gradient — diagonal warm cream → golden → neutral, matching Jago reference */}
       <Svg
         width={screenWidth}
-        height={130}
+        height={280}
         style={{ position: "absolute", top: 0, left: 0 }}
       >
         <Defs>
           <LinearGradient
-            id="home-diagonal"
-            x1="0"
-            y1="130"
+            id="home-grad"
+            x1={String(screenWidth)}
+            y1="0"
             x2="0"
-            y2="0"
+            y2="280"
             gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor={Colors.primary} stopOpacity={0} />
-            <Stop offset="0.5" stopColor={Colors.primary} stopOpacity={0.5} />
-            <Stop offset="1" stopColor={Colors.primary} />
+            {/* Top-right corner: neutral */}
+            <Stop offset="0" stopColor="#f7f7f7" />
+            {/* Quickly transition into golden zone */}
+            <Stop offset="0.03" stopColor="#f5f0e8" />
+            <Stop offset="0.06" stopColor="#feb325" />
+            {/* Peak golden amber */}
+            <Stop offset="0.10" stopColor="#ffaa19" />
+            <Stop offset="0.15" stopColor="#ffbd32" />
+            <Stop offset="0.20" stopColor="#fcc84e" />
+            {/* Transition through warm tones */}
+            <Stop offset="0.28" stopColor="#fae4ab" />
+            <Stop offset="0.36" stopColor="#f5d8a0" />
+            <Stop offset="0.44" stopColor="#f8e8c8" />
+            {/* Warm cream */}
+            <Stop offset="0.54" stopColor="#f9f2ea" />
+            {/* Fade to light warm */}
+            <Stop offset="0.64" stopColor="#faf5ee" />
+            <Stop offset="0.76" stopColor="#faf8f4" />
+            {/* Neutral at bottom-left */}
+            <Stop offset="0.88" stopColor="#faf9f7" />
+            <Stop offset="1" stopColor="#fafafa" />
           </LinearGradient>
         </Defs>
-        <Path
-          d={`M 0,0 L ${screenWidth},0 L ${screenWidth},130 Z`}
-          fill="url(#home-diagonal)"
-        />
+        <Rect width={screenWidth} height={280} fill="url(#home-grad)" />
       </Svg>
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
