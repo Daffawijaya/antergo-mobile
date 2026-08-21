@@ -1,34 +1,21 @@
 import {
   Camera,
   type CameraRef,
-  Layer,
   Map,
-  RasterSource,
   type ViewStateChangeEvent,
 } from "@maplibre/maplibre-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 
 import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
+import { getMapStyleUrl } from "@/constants/map-style";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
 
 const DEFAULT_COORDINATE: Coordinate = {
   latitude: -0.5022,
   longitude: 117.1536,
-};
-
-const BASE_STYLE = {
-  version: 8 as const,
-  sources: {},
-  layers: [
-    {
-      id: "background",
-      type: "background" as const,
-      paint: { "background-color": "#E9ECEF" },
-    },
-  ],
 };
 
 export function LocationPickerMap({
@@ -41,26 +28,6 @@ export function LocationPickerMap({
   const camera = useRef<CameraRef>(null);
   const { mode } = useAppTheme();
   const [initial] = useState(() => coordinate ?? DEFAULT_COORDINATE);
-  const rasterStyle = useMemo(
-    () =>
-      mode === "dark"
-        ? {
-            rasterBrightnessMin: 0.04,
-            rasterBrightnessMax: 0.42,
-            rasterSaturation: -0.72,
-            rasterContrast: 0.18,
-            rasterHueRotate: 205,
-          }
-        : {
-            rasterBrightnessMin: 0,
-            rasterBrightnessMax: 1,
-            rasterSaturation: 0,
-            rasterContrast: 0,
-            rasterHueRotate: 0,
-          },
-    [mode],
-  );
-
   useEffect(() => {
     if (!coordinate) return;
     camera.current?.easeTo({
@@ -78,9 +45,9 @@ export function LocationPickerMap({
   };
 
   return (
-    <View className="flex-1 overflow-hidden">
+    <View style={styles.container}>
       <Map
-        mapStyle={BASE_STYLE}
+        mapStyle={getMapStyleUrl(mode)}
         style={styles.map}
         compass={false}
         logo={false}
@@ -94,19 +61,10 @@ export function LocationPickerMap({
             zoom: 16,
           }}
         />
-        <RasterSource
-          id="osm"
-          tiles={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
-          tileSize={256}
-          maxzoom={19}
-          attribution="© OpenStreetMap contributors"
-        >
-          <Layer id="osm-raster" type="raster" style={rasterStyle} />
-        </RasterSource>
       </Map>
       <View
         pointerEvents="none"
-        className="absolute left-1/2 top-1/2 -ml-6 -mt-14 items-center"
+        style={styles.centerPin}
       >
         <View className="h-12 w-12 items-center justify-center rounded-full bg-brand elevation-lg">
           <AppIcon name="pin" size={29} color={Colors.onPrimary} />
@@ -118,5 +76,14 @@ export function LocationPickerMap({
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, minHeight: 1, overflow: "hidden" },
   map: { flex: 1 },
+  centerPin: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    marginLeft: -24,
+    marginTop: -56,
+    alignItems: "center",
+  },
 });

@@ -1,18 +1,17 @@
 import {
   Camera,
   type CameraRef,
-  Layer,
   Map,
   type MapProps,
   Marker,
-  RasterSource,
   UserLocation,
 } from "@maplibre/maplibre-react-native";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppIcon } from "@/components/app-icon";
 import { Colors, Elevation, Radius } from "@/constants/colors";
+import { getMapStyleUrl } from "@/constants/map-style";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
 
@@ -32,18 +31,6 @@ const DEFAULT_COORDINATE: Coordinate = {
   longitude: 117.1536,
 };
 
-const BASE_STYLE = {
-  version: 8 as const,
-  sources: {},
-  layers: [
-    {
-      id: "background",
-      type: "background" as const,
-      paint: { "background-color": "#E9ECEF" },
-    },
-  ],
-};
-
 export function RideMap({
   pickup,
   destination,
@@ -54,26 +41,6 @@ export function RideMap({
 }: Props) {
   const camera = useRef<CameraRef>(null);
   const { mode } = useAppTheme();
-  const rasterStyle = useMemo(
-    () =>
-      mode === "dark"
-        ? {
-            rasterBrightnessMin: 0.04,
-            rasterBrightnessMax: 0.42,
-            rasterSaturation: -0.72,
-            rasterContrast: 0.18,
-            rasterHueRotate: 205,
-          }
-        : {
-            rasterBrightnessMin: 0,
-            rasterBrightnessMax: 1,
-            rasterSaturation: 0,
-            rasterContrast: 0,
-            rasterHueRotate: 0,
-          },
-    [mode],
-  );
-
   useEffect(() => {
     const coordinates =
       focus === "pickup"
@@ -111,7 +78,7 @@ export function RideMap({
   return (
     <View style={styles.frame}>
       <Map
-        mapStyle={BASE_STYLE}
+        mapStyle={getMapStyleUrl(mode)}
         style={styles.map}
         compass={false}
         logo={false}
@@ -128,15 +95,6 @@ export function RideMap({
             zoom: 14,
           }}
         />
-        <RasterSource
-          id="osm"
-          tiles={["https://tile.openstreetmap.org/{z}/{x}/{y}.png"]}
-          tileSize={256}
-          maxzoom={19}
-          attribution="© OpenStreetMap contributors"
-        >
-          <Layer id="osm-raster" type="raster" style={rasterStyle} />
-        </RasterSource>
         {pickup ? <MapPin id="pickup" coordinate={pickup} color={Colors.primary} /> : null}
         {destination ? <MapPin id="destination" coordinate={destination} color="#FA2C19" /> : null}
         {driver ? <MapPin id="driver" coordinate={driver} color={Colors.primaryDark} icon="bike" /> : null}

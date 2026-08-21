@@ -5,8 +5,16 @@ import {
   FaDotCircleIcon,
   HiLocationMarkerIcon,
 } from "@/components/brand-icons";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LocationPickerMap } from "@/components/location-picker-map";
 import { BackButton } from "@/components/ui";
 import { Colors } from "@/constants/colors";
@@ -60,6 +68,7 @@ const OTHER_PURPOSES: Partial<Record<LocationPurpose, LocationPurpose>> = {
 export default function LocationPickerScreen() {
   const router = useRouter();
   const { mode, colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     purpose?: string;
     returnTo?: string;
@@ -173,12 +182,16 @@ export default function LocationPickerScreen() {
   };
   return (
     <SafeAreaView
-      className="flex-1 bg-background"
+      className="bg-background"
+      style={{ flex: 1, backgroundColor: colors.background }}
       edges={["top", "left", "right"]}
     >
-      <View className="flex-1">
+      <View style={{ flex: 1 }}>
         <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
-        <View className="absolute left-5 right-5 top-5 flex-row items-center gap-2">
+        <View
+          className="flex-row items-center gap-2"
+          style={{ position: "absolute", left: 20, right: 20, top: 20 }}
+        >
           <BackButton
             floating
             // Back pops to the search screen below this one on the customer
@@ -199,7 +212,8 @@ export default function LocationPickerScreen() {
         </View>
         <Pressable
           onPress={() => void gps()}
-          className="absolute bottom-42 right-5 h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
+          className="h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
+          style={{ position: "absolute", right: 20, bottom: 168 }}
         >
           <AppIcon
             name="locate"
@@ -207,10 +221,19 @@ export default function LocationPickerScreen() {
             color={mode === "dark" ? "#FFFFFF" : "#000000"}
           />
         </Pressable>
-        <View className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-surface px-5 pb-5 pt-4 elevation-lg">
+        <View
+          className="rounded-t-[28px] bg-surface px-5 pt-4 elevation-lg"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            paddingBottom: Math.max(insets.bottom, 20),
+          }}
+        >
           <View className="mb-4 flex-row items-center gap-3">
             <HiLocationMarkerIcon size={28} color={colors.muted} />
-            <View className="flex-1">
+            <View style={{ flex: 1 }}>
               <Text className="font-bold text-base text-foreground">
                 {address.split(",")[0]}
               </Text>
