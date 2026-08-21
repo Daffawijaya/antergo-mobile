@@ -142,13 +142,14 @@ export default function CustomerHome() {
           <LinearGradient
             id="home-diagonal"
             x1="0"
-            y1="0"
-            x2={String(screenWidth)}
-            y2="130"
+            y1="130"
+            x2="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor={Colors.primary} />
-            <Stop offset="0.7" stopColor={Colors.primary} stopOpacity={0.4} />
-            <Stop offset="1" stopColor={Colors.primary} stopOpacity={0} />
+            <Stop offset="0" stopColor={Colors.primary} stopOpacity={0} />
+            <Stop offset="0.5" stopColor={Colors.primary} stopOpacity={0.5} />
+            <Stop offset="1" stopColor={Colors.primary} />
           </LinearGradient>
         </Defs>
         <Path
