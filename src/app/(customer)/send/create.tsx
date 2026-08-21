@@ -67,6 +67,12 @@ export default function CreateSendScreen() {
   const destination = useLocationPickerStore(
     (s) => s.selections["send-destination"],
   );
+  // A new transaction must never inherit a destination from an older one.
+  // Location picker screens keep this component mounted, so returning from
+  // search/map does not trigger this reset.
+  useEffect(() => {
+    useLocationPickerStore.getState().clearSelection("send-destination");
+  }, []);
   // Fill the pickup instantly from the stored current location when this
   // screen gains focus with an empty pickup. The current location is captured
   // at app startup and refreshed whenever the user leaves with a moved pickup,

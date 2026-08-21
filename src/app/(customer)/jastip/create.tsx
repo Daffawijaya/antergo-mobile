@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/jastip";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { useMutation } from "@tanstack/react-query";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   Modal,
@@ -107,13 +107,32 @@ export default function CreateJastipScreen() {
     }, 0);
   }, [locations]);
 
+  const params = useLocalSearchParams<{ locationIndex?: string }>();
   const destination = useLocationPickerStore(
-    (s) => s.selections["send-destination"],
+    (s) => s.selections["jastip-destination"],
   );
 
   useFocusEffect(
     useCallback(() => {
-      if (useLocationPickerStore.getState().selections["send-destination"])
+      const state = useLocationPickerStore.getState();
+      const purchase = state.selections["jastip-purchase"];
+      const locationIndex = Number(params.locationIndex);
+      if (purchase && Number.isInteger(locationIndex) && locationIndex >= 0) {
+        setLocations((previous) =>
+          previous.map((location, index) =>
+            index === locationIndex
+              ? {
+                  ...location,
+                  address: purchase.address,
+                  latitude: purchase.coordinate.latitude,
+                  longitude: purchase.coordinate.longitude,
+                }
+              : location,
+          ),
+        );
+        state.clearSelection("jastip-purchase");
+      }
+      if (state.selections["jastip-destination"])
         return;
       let cancelled = false;
       void (async () => {
@@ -123,12 +142,12 @@ export default function CreateJastipScreen() {
         if (cancelled || !point) return;
         useLocationPickerStore
           .getState()
-          .setSelection("send-destination", point);
+          .setSelection("jastip-destination", point);
       })();
       return () => {
         cancelled = true;
       };
-    }, []),
+    }, [params.locationIndex]),
   );
 
   const mutation = useMutation({
@@ -277,7 +296,7 @@ export default function CreateJastipScreen() {
     router.push({
       pathname: "/(customer)/location-search",
       params: {
-        purpose: "send-destination",
+        purpose: "jastip-destination",
         returnTo: "/(customer)/jastip/create",
       },
     });
@@ -286,14 +305,14 @@ export default function CreateJastipScreen() {
     router.push({
       pathname: "/(customer)/location-search",
       params: {
-        purpose: "send-pickup",
-        returnTo: "/(customer)/jastip/create",
+        purpose: "jastip-purchase",
+        returnTo: "/(customer)/jastip/create?locationIndex=" + locIdx,
       },
     });
 
   const handleBack = () => {
     const state = useLocationPickerStore.getState();
-    const dest = state.selections["send-destination"];
+    const dest = state.selections["jastip-destination"];
     const current = state.currentLocation;
     const moved =
       !!dest &&
@@ -301,9 +320,10 @@ export default function CreateJastipScreen() {
         dest.coordinate.latitude !== current.coordinate.latitude ||
         dest.coordinate.longitude !== current.coordinate.longitude);
     if (moved) {
-      state.clearSelection("send-destination");
+      state.clearSelection("jastip-destination");
       void state.refreshCurrentLocation();
     }
+    state.clearSelection("jastip-purchase");
     if (router.canGoBack()) {
       router.back();
     } else {

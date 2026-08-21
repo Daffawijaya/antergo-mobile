@@ -28,6 +28,8 @@ const LABEL_KEYS: Record<LocationPurpose, { title: TranslationKey; cta: Translat
   "ride-destination": { title: "location.rideDest", cta: "location.rideDestCta" },
   "send-pickup": { title: "location.sendPickup", cta: "location.sendPickupCta" },
   "send-destination": { title: "location.sendDest", cta: "location.sendDestCta" },
+  "jastip-purchase": { title: "jastip.whereToBuy", cta: "common.confirm" },
+  "jastip-destination": { title: "jastip.deliverTo", cta: "common.confirm" },
   "food-destination": { title: "location.foodDest", cta: "location.foodDestCta" },
 };
 
@@ -36,6 +38,8 @@ const TOP_LABEL_KEYS: Record<LocationPurpose, TranslationKey> = {
   "ride-destination": "location.topRideDest",
   "send-pickup": "location.topSendPickup",
   "send-destination": "location.topSendDest",
+  "jastip-purchase": "jastip.whereToBuy",
+  "jastip-destination": "jastip.deliverTo",
   "food-destination": "location.topFoodDest",
 };
 
@@ -64,7 +68,10 @@ export default function LocationPickerScreen() {
     address?: string;
   }>();
   const purpose = (params.purpose ?? "ride-pickup") as LocationPurpose;
-  const isPickup = purpose === "ride-pickup" || purpose === "send-pickup";
+  const isPickup =
+    purpose === "ride-pickup" ||
+    purpose === "send-pickup" ||
+    purpose === "jastip-purchase";
   const selections = useLocationPickerStore((state) => state.selections);
   const previous = selections[purpose];
   const setSelection = useLocationPickerStore((state) => state.setSelection);

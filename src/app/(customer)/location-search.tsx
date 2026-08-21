@@ -27,7 +27,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Colors, Elevation } from "@/constants/colors";
 import { apiSearchLocations } from "@/lib/api/geocode";
 import {
@@ -42,10 +45,8 @@ import {
   useLocationPickerStore,
 } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
-import { useTranslation, type TranslationKey } from "@/i18n";
+import { useTranslation } from "@/i18n";
 
-// Palette from the design reference (WhatsApp Image 2026-08-16 at 17.23.35).
-const ACCENT_RED = "#D03020";
 // LocationCard palette copied from the Delivery page (send/create.tsx).
 const PICKUP_BLUE = "#2E9BF5";
 const DEST_RED = "#FA2C19";
@@ -65,6 +66,7 @@ function formatDistance(meters: number | null): string {
 export default function LocationSearchScreen() {
   const router = useRouter();
   const { mode, colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const HERO_TEXT = mode === "dark" ? "#FFFFFF" : "#1F1400";
   // Pin marker for search results: theme gray instead of the brand yellow —
   // gray in both light and dark mode (per design request).
@@ -98,8 +100,9 @@ export default function LocationSearchScreen() {
   const [busyLocation, setBusyLocation] = useState(false);
   const [error, setError] = useState("");
   const [scrolled, setScrolled] = useState(false);
-  const isFood = purpose === "food-destination";
-  const pickupPurpose: LocationPurpose | null = isFood
+  const isSinglePurpose =
+    purpose === "food-destination" || purpose.startsWith("jastip-");
+  const pickupPurpose: LocationPurpose | null = isSinglePurpose
     ? null
     : purpose.includes("destination")
       ? purpose.startsWith("ride")
@@ -292,11 +295,12 @@ export default function LocationSearchScreen() {
   return (
     <SafeAreaView
       className="flex-1 bg-background"
+      style={{ flex: 1, backgroundColor: colors.background }}
       edges={["top", "left", "right"]}
     >
       <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View
           className="bg-background"
@@ -349,18 +353,28 @@ export default function LocationSearchScreen() {
           ) : (
             <View className="flex-1">
               <SearchField
-                marker={<HiLocationMarkerIcon size={22} color={DEST_RED} />}
+                marker={
+                  purpose === "jastip-purchase" ? (
+                    <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
+                  ) : (
+                    <HiLocationMarkerIcon size={22} color={DEST_RED} />
+                  )
+                }
                 value={
                   purpose === destinationPurpose
                     ? query
                     : (selections[destinationPurpose]?.address ?? "")
                 }
                 placeholder={
-                  isFood
+                  purpose === "food-destination"
                     ? t("location.foodDest")
-                    : purpose.startsWith("ride")
-                      ? t("location.topRideDest")
-                      : t("location.topSendDest")
+                    : purpose === "jastip-purchase"
+                      ? t("jastip.whereToBuy")
+                      : purpose === "jastip-destination"
+                        ? t("jastip.deliverTo")
+                        : purpose.startsWith("ride")
+                          ? t("location.topRideDest")
+                          : t("location.topSendDest")
                 }
                 active={purpose === destinationPurpose}
                 busy={busyPurpose === destinationPurpose}
@@ -392,7 +406,7 @@ export default function LocationSearchScreen() {
                   : (selections[destinationPurpose]?.address ?? "")
               }
               placeholder={
-                isFood
+                purpose === "food-destination"
                   ? "Alamat pengantaran"
                   : purpose.startsWith("ride")
                     ? "Mau ke mana?"
@@ -413,11 +427,11 @@ export default function LocationSearchScreen() {
       </View>
       </View>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
         onScroll={(event) => setScrolled(event.nativeEvent.contentOffset.y > 4)}
-        contentContainerClassName="px-5 pb-3"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 12 }}
       >
         {error ? (
           <Text className="py-2 text-sm text-danger">{error}</Text>
@@ -483,7 +497,13 @@ export default function LocationSearchScreen() {
           </View>
         )}
       </ScrollView>
-      <View className="items-center bg-background px-5 pb-5 pt-3">
+      <View
+        className="items-center bg-background px-5 pt-3"
+        style={{
+          flexShrink: 0,
+          paddingBottom: Math.max(insets.bottom, 12) + 8,
+        }}
+      >
         <Pressable
           onPress={openMapAtCurrentLocation}
           className="flex-row items-center justify-center gap-1 self-center rounded-full px-3 py-1 active:opacity-80"
