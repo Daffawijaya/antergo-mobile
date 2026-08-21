@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { OrderStatusBadge } from "@/components/order-status-badge";
+import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import {
   BackButton,
   Button,
@@ -56,95 +57,98 @@ export default function MerchantOrderDetailScreen() {
     ? action[query.data.status as keyof typeof action]
     : undefined;
   return (
-    <Screen>
-      <BackButton
-        onPress={() => router.back()}
-        title="Detail Pesanan"
-      />
-      {query.isLoading ? (
-        <StatusState type="loading" />
-      ) : query.isError ? (
-        <StatusState
-          type="error"
-          message={getApiErrorMessage(query.error)}
-          action={<Button title="Coba lagi" onPress={() => query.refetch()} />}
+    <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
+      <WarmGradientBg height={520} />
+      <View className="gap-4 px-5" style={{ paddingTop: 16 }}>
+        <BackButton
+          onPress={() => router.back()}
+          title="Detail Pesanan"
         />
-      ) : query.data ? (
-        <>
-          <Card>
-            <OrderStatusBadge status={query.data.status} />
-            <KeyValue label="Pelanggan" value={query.data.user?.name ?? "-"} />
-            <KeyValue label="Telepon" value={query.data.user?.phone ?? "-"} />
-            <KeyValue
-              label="Total"
-              value={formatRupiah(query.data.total_price)}
-            />
-            <KeyValue
-              label="Pembayaran"
-              value={`${query.data.payment_method} · ${query.data.payment_status}`}
-            />
-          </Card>
-          <Card>
-            <Text style={styles.heading}>Item</Text>
-            {query.data.items?.map((item) => (
-              <View key={item.id} style={styles.item}>
-                <Text style={styles.title}>
-                  {item.product_name} × {item.quantity}
-                </Text>
-                <KeyValue label="Harga" value={formatRupiah(item.price)} />
-                <KeyValue
-                  label="Subtotal"
-                  value={formatRupiah(item.subtotal)}
-                />
-              </View>
-            ))}
-          </Card>
-          <Card>
-            <Text style={styles.heading}>Pengantaran</Text>
-            <KeyValue
-              label="Alamat"
-              value={query.data.destination_address ?? "-"}
-            />
-            <KeyValue label="Catatan" value={query.data.notes || "-"} />
-            {query.data.driver ? (
-              <KeyValue label="Driver" value={query.data.driver.user.name} />
-            ) : (
-              <Text style={styles.muted}>Driver belum ditugaskan.</Text>
-            )}
-          </Card>
-          {currentAction ? (
+        {query.isLoading ? (
+          <StatusState type="loading" />
+        ) : query.isError ? (
+          <StatusState
+            type="error"
+            message={getApiErrorMessage(query.error)}
+            action={<Button title="Coba lagi" onPress={() => query.refetch()} />}
+          />
+        ) : query.data ? (
+          <>
             <Card>
-              <Text style={styles.muted}>
-                Pastikan kondisi pesanan sesuai sebelum melanjutkan status.
-              </Text>
-              <Button
-                title={currentAction[0]}
-                loading={transition.isPending}
-                onPress={() => transition.mutate(currentAction[1])}
+              <OrderStatusBadge status={query.data.status} />
+              <KeyValue label="Pelanggan" value={query.data.user?.name ?? "-"} />
+              <KeyValue label="Telepon" value={query.data.user?.phone ?? "-"} />
+              <KeyValue
+                label="Total"
+                value={formatRupiah(query.data.total_price)}
               />
-              {transition.isError ? (
-                <Text style={styles.error}>
-                  {getApiErrorMessage(transition.error)}
-                </Text>
-              ) : null}
+              <KeyValue
+                label="Pembayaran"
+                value={`${query.data.payment_method} · ${query.data.payment_status}`}
+              />
             </Card>
-          ) : null}
-          <Card>
-            <Text style={styles.heading}>Riwayat status</Text>
-            {query.data.status_histories?.map((history) => (
-              <View key={history.id} style={styles.item}>
-                <OrderStatusBadge status={history.status} />
+            <Card>
+              <Text style={styles.heading}>Item</Text>
+              {query.data.items?.map((item) => (
+                <View key={item.id} style={styles.item}>
+                  <Text style={styles.title}>
+                    {item.product_name} × {item.quantity}
+                  </Text>
+                  <KeyValue label="Harga" value={formatRupiah(item.price)} />
+                  <KeyValue
+                    label="Subtotal"
+                    value={formatRupiah(item.subtotal)}
+                  />
+                </View>
+              ))}
+            </Card>
+            <Card>
+              <Text style={styles.heading}>Pengantaran</Text>
+              <KeyValue
+                label="Alamat"
+                value={query.data.destination_address ?? "-"}
+              />
+              <KeyValue label="Catatan" value={query.data.notes || "-"} />
+              {query.data.driver ? (
+                <KeyValue label="Driver" value={query.data.driver.user.name} />
+              ) : (
+                <Text style={styles.muted}>Driver belum ditugaskan.</Text>
+              )}
+            </Card>
+            {currentAction ? (
+              <Card>
                 <Text style={styles.muted}>
-                  {formatDateTime(history.created_at)}
+                  Pastikan kondisi pesanan sesuai sebelum melanjutkan status.
                 </Text>
-                {history.note ? (
-                  <Text style={styles.muted}>{history.note}</Text>
+                <Button
+                  title={currentAction[0]}
+                  loading={transition.isPending}
+                  onPress={() => transition.mutate(currentAction[1])}
+                />
+                {transition.isError ? (
+                  <Text style={styles.error}>
+                    {getApiErrorMessage(transition.error)}
+                  </Text>
                 ) : null}
-              </View>
-            ))}
-          </Card>
-        </>
-      ) : null}
+              </Card>
+            ) : null}
+            <Card>
+              <Text style={styles.heading}>Riwayat status</Text>
+              {query.data.status_histories?.map((history) => (
+                <View key={history.id} style={styles.item}>
+                  <OrderStatusBadge status={history.status} />
+                  <Text style={styles.muted}>
+                    {formatDateTime(history.created_at)}
+                  </Text>
+                  {history.note ? (
+                    <Text style={styles.muted}>{history.note}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </Card>
+          </>
+        ) : null}
+      </View>
     </Screen>
   );
 }

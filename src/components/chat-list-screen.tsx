@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppIcon } from "./app-icon";
 import { orderService, ServiceIcon } from "./service-icon";
 import { Screen } from "./ui";
+import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { Colors } from "@/constants/colors";
 import { listChatConversations } from "@/lib/api/chat";
 import { chatKeys } from "@/lib/chat-query-keys";
@@ -22,10 +23,9 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
     refetchInterval: 5_000,
   });
   return (
-    <Screen contentStyle={styles.screen} padded={false}>
-      {/* Header style follows the send/create hero title: same padding
-          and 22px bold title, without the gradient background. */}
-      <View className="mt-2">
+    <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
+      <WarmGradientBg height={520} />
+      <View className="px-5" style={{ paddingTop: 8 }}>
         <Text className="font-bold text-[22px] leading-7 text-foreground">
           {t("nav.messages")}
         </Text>
@@ -100,9 +100,9 @@ export function ChatListScreen({ role }: { role: "customer" | "driver" }) {
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   screen: {
     backgroundColor: colors.background,
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    gap: 0,
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
   list: { borderTopWidth: 1, borderTopColor: colors.border },
   row: {
