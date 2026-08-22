@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { WarmGradientBg } from "@/components/warm-gradient-bg";
+import { BalanceCardBg, TopupCardBg } from "@/components/card-bg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Service = {
@@ -169,24 +170,24 @@ export default function CustomerHome() {
         </View>
       </View>
       <View className="flex-row gap-2.5 px-4 pb-2.5">
-        <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-xl border border-border bg-surface px-3">
+        <BalanceCardBg className="flex-[0.8]">
           <View>
-            <Text className="text-xs text-muted">{t("home.balance")}</Text>
-            <Text className="font-bold text-base text-foreground">Rp0</Text>
+            <Text className="text-xs text-on-purple">{t("home.balance")}</Text>
+            <Text className="font-bold text-base text-on-purple">Rp0</Text>
           </View>
-          <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-brand bg-surface-muted">
-            <Text className="font-extrabold text-brand-dark">A</Text>
+          <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-on-purple/30 bg-on-purple/20">
+            <Text className="font-extrabold text-on-purple">A</Text>
           </View>
-        </View>
-        <View className="min-h-[66px] flex-1 flex-row items-center justify-between rounded-xl border border-border bg-surface px-3">
+        </BalanceCardBg>
+        <TopupCardBg className="flex-1">
           <View>
-            <Text className="text-xs text-muted">{t("home.payAll")}</Text>
-            <Text className="font-bold text-[15px] text-foreground">
+            <Text className="text-xs text-on-brand">{t("home.payAll")}</Text>
+            <Text className="font-bold text-[15px] text-on-brand">
               Top Up
             </Text>
           </View>
-          <AppIcon name="orders" size={22} color={Colors.primary} />
-        </View>
+          <AppIcon name="orders" size={22} color={Colors.onPrimary} />
+        </TopupCardBg>
       </View>
       <MerchantSection
         title={t("home.food")}
