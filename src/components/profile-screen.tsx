@@ -15,10 +15,11 @@ import {
 import type { AppRole } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguageStore, LANGUAGE_LABELS } from "@/stores/language-store";
 import { useTranslation } from "@/i18n";
 import {
+  Animated,
   Image,
   Linking,
   Pressable,
@@ -66,7 +67,27 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
   const pushStatus = usePushNotificationStore((state) => state.status);
   const pushMessage = usePushNotificationStore((state) => state.message);
   const retryPush = usePushNotificationStore((state) => state.retry);
-  
+
+  // ── Theme toggle sliding indicator ──────────────────────────────
+  const slideAnim = useRef(new Animated.Value(mode === "dark" ? 1 : 0)).current;
+  const [toggleWidth, setToggleWidth] = useState(0);
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: mode === "dark" ? 1 : 0,
+      useNativeDriver: false,
+      tension: 68,
+      friction: 12,
+    }).start();
+  }, [mode, slideAnim]);
+
+  const pillWidth = toggleWidth > 0 ? (toggleWidth - 8) / 2 : 0;
+  const pillLeft = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, pillWidth],
+  });
+  // ────────────────────────────────────────────────────────────────
+
   // Fetch driver profile to get photo_url_full
   const { data: driverProfile } = useQuery({
     queryKey: ["driver-profile"],
@@ -250,16 +271,28 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
         ) : null}
 
         <View className="px-4 pb-4">
-          <View className="flex-row rounded-full bg-surface-muted p-1">
+          <View
+            className="flex-row rounded-full bg-surface-muted p-1"
+            onLayout={(e) => setToggleWidth(e.nativeEvent.layout.width)}
+          >
+            <Animated.View
+              style={{
+                position: "absolute",
+                top: 4,
+                bottom: 4,
+                left: pillLeft,
+                width: pillWidth || "50%",
+                borderRadius: 9999,
+                backgroundColor: colors.surface,
+              }}
+            />
             {(["light", "dark"] as ThemeMode[]).map((item) => {
               const selected = mode === item;
               return (
                 <Pressable
                   key={item}
                   onPress={() => void setThemeMode(item)}
-                  className={`flex-1 flex-row items-center justify-center gap-2 rounded-full py-2.5 transition-colors ${
-                    selected ? "bg-surface" : ""
-                  }`}
+                  className="flex-1 flex-row items-center justify-center gap-2 rounded-full py-2.5"
                 >
                   <AppIcon
                     name={item === "light" ? "sun" : "moon"}
