@@ -14,7 +14,6 @@ import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 import { useTranslation } from "@/i18n";
 const hidden = [
-  "account-detail",
   "language",
   "driver-register",
   "merchant-register",
