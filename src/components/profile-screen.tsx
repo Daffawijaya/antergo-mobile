@@ -172,15 +172,7 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
         >
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
-            className="-mb-12 rounded-xl bg-surface p-4 active:opacity-90"
-            style={{
-              shadowColor: "#111827",
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.015,
-              shadowRadius: 48,
-              elevation: 2,
-              boxShadow: "0 10px 56px rgba(17, 24, 39, 0.02)",
-            }}
+            className="-mb-12 rounded-xl bg-surface p-4 shadow-lg active:opacity-90"
           >
             <View className="flex-row items-center gap-3">
               {avatar ? (
