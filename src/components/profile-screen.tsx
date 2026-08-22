@@ -84,7 +84,7 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
   const pillWidth = toggleWidth > 0 ? (toggleWidth - 8) / 2 : 0;
   const pillLeft = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, pillWidth],
+    outputRange: [4, pillWidth + 4],
   });
   // ────────────────────────────────────────────────────────────────
 
