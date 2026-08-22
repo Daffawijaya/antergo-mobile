@@ -31,7 +31,7 @@ export function PlaceMarker({
 
   return (
     // Wrapper sized to pin only — anchor stays at pin tip
-    <View style={{ width: pinW, height: pinH }}>
+    <View style={{ width: pinW, height: pinH, overflow: "visible" }}>
       {/* Pin SVG */}
       <Svg width={pinW} height={pinH} viewBox="0 0 26 32" fill="none">
         <Path
@@ -59,29 +59,35 @@ export function PlaceMarker({
         <IconSvg name={icon} size={12 * scale} />
       </View>
 
-      {/* Text label — absolute, overflows to the side */}
+      {/* Text label — absolute wrapper with explicit width for proper line-breaking */}
       {label ? (
-        <Text
+        <View
           style={{
             position: "absolute",
             top: 6,
             ...(textPosition === "right"
               ? { left: pinW + 4 }
               : { right: pinW + 4 }),
-            fontSize: 11 * scale,
-            fontWeight: "600",
-            fontFamily: "Outfit_600SemiBold",
-            color: textColor,
-            maxWidth: 110,
-            lineHeight: 14 * scale,
-            textShadowColor: "#FFFFFF",
-            textShadowOffset: { width: 1, height: 1 },
-            textShadowRadius: 3,
-          } as any}
-          numberOfLines={2}
+            width: 250,
+            alignItems: textPosition === "left" ? "flex-end" : undefined,
+          }}
         >
-          {label}
-        </Text>
+          <Text
+            style={{
+              fontSize: 11 * scale,
+              fontWeight: "600",
+              fontFamily: "Outfit_600SemiBold",
+              color: textColor,
+              lineHeight: 14 * scale,
+              textShadowColor: "#FFFFFF",
+              textShadowOffset: { width: 1, height: 1 },
+              textShadowRadius: 3,
+            } as any}
+            numberOfLines={2}
+          >
+            {label}
+          </Text>
+        </View>
       ) : null}
     </View>
   );
