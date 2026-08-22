@@ -23,4 +23,9 @@ export const screenTransitions = {
   none: {
     animation: "none",
   },
+  mapModal: {
+    animation: "none",
+    presentation: "transparentModal",
+    contentStyle: { backgroundColor: "transparent" },
+  },
 } as const;

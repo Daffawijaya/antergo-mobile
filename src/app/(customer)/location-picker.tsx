@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
   FaDotCircleIcon,
@@ -7,6 +7,9 @@ import {
 } from "@/components/brand-icons";
 import {
   ActivityIndicator,
+  Animated,
+  BackHandler,
+  Dimensions,
   Pressable,
   Text,
   View,
@@ -98,6 +101,35 @@ export default function LocationPickerScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animating = useRef(false);
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+  const mapOpacity = useRef(new Animated.Value(0)).current;
+  const topTranslateY = useRef(new Animated.Value(-80)).current;
+  const bottomTranslateY = useRef(new Animated.Value(300)).current;
+
+  const animateBack = useCallback(() => {
+    if (animating.current) return;
+    animating.current = true;
+    Animated.parallel([
+      Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
+      Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
+    ]).start(() => router.back());
+  }, [mapOpacity, topTranslateY, bottomTranslateY, router]);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(mapOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(topTranslateY, { toValue: 0, damping: 20, stiffness: 120, mass: 0.8, useNativeDriver: true }),
+      Animated.spring(bottomTranslateY, { toValue: 0, damping: 20, stiffness: 120, mass: 0.8, useNativeDriver: true }),
+    ]).start();
+  }, [mapOpacity, topTranslateY, bottomTranslateY]);
+
+  useEffect(() => {
+    const handler = () => { animateBack(); return true; };
+    const sub = BackHandler.addEventListener("hardwareBackPress", handler);
+    return () => sub.remove();
+  }, [animateBack]);
   // On web the URL params may not be available on the very first render, so
   // pick up the search-selected location as soon as it arrives and make the
   // map go straight there (adjusting state during render is the React-recommended
@@ -151,50 +183,49 @@ export default function LocationPickerScreen() {
       setBusy(false);
     }
   };
+  const animateOutAnd = (cb: () => void) => {
+    if (animating.current) return;
+    animating.current = true;
+    Animated.parallel([
+      Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
+      Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
+    ]).start(() => cb());
+  };
   const confirm = () => {
     if (!coordinate) {
       setError(t("location.selectFirst"));
       return;
     }
     setSelection(purpose, { coordinate, address });
-    // The counterpart location (pickup <-> destination). If it is not filled
-    // yet, go back to the location search screen with the counterpart field
-    // active so the user fills it next (the confirmed location shows in its
-    // own field); only when both sides are filled does the flow return to the
-    // screen it started from.
     const other = OTHER_PURPOSES[purpose];
     if (other && !selections[other]) {
-      // Both screens are pushed on the customer stack: pop back to the
-      // existing search screen with the counterpart field active instead of
-      // pushing a duplicate (POP_TO also updates the target route's params).
-      router.dismissTo({
-        pathname: "/(customer)/location-search",
-        params: { purpose: other, returnTo: params.returnTo },
-      });
+      animateOutAnd(() =>
+        router.dismissTo({
+          pathname: "/(customer)/location-search",
+          params: { purpose: other, returnTo: params.returnTo },
+        }),
+      );
       return;
     }
-    // Pop back to the screen the flow started from — this screen and the
-    // search screen above it are both stack pushes, so dismissing to the
-    // target removes them both.
-    if (params.returnTo) router.dismissTo(params.returnTo as never);
-    else router.back();
+    if (params.returnTo) animateOutAnd(() => router.dismissTo(params.returnTo as never));
+    else animateBack();
   };
   return (
     <View
       style={{ flex: 1, backgroundColor: colors.background }}
     >
       <View style={{ flex: 1 }}>
-        <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
-        <View
+        <Animated.View style={{ flex: 1, opacity: mapOpacity }}>
+          <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
+        </Animated.View>
+        <Animated.View
           className="flex-row items-center gap-2"
-          style={{ position: "absolute", left: 20, right: 20, top: Math.max(insets.top + 8, 24) }}
+          style={{ position: "absolute", left: 20, right: 20, top: Math.max(insets.top + 8, 24), transform: [{ translateY: topTranslateY }] }}
         >
           <BackButton
             floating
-            // Back pops to the search screen below this one on the customer
-            // stack (it keeps its purpose/returnTo params, so the flow resumes
-            // where it left off).
-            onPress={() => router.back()}
+            onPress={animateBack}
           />
           <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
             {isPickup ? (
@@ -206,7 +237,7 @@ export default function LocationPickerScreen() {
               {t(TOP_LABEL_KEYS[purpose])}
             </Text>
           </View>
-        </View>
+        </Animated.View>
         <Pressable
           onPress={() => void gps()}
           className="h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
@@ -218,7 +249,7 @@ export default function LocationPickerScreen() {
             color={mode === "dark" ? "#FFFFFF" : "#000000"}
           />
         </Pressable>
-        <View
+        <Animated.View
           className="rounded-t-[28px] bg-surface px-5 pt-4 elevation-lg"
           style={{
             position: "absolute",
@@ -226,6 +257,7 @@ export default function LocationPickerScreen() {
             right: 0,
             bottom: 0,
             paddingBottom: Math.max(insets.bottom, 20),
+            transform: [{ translateY: bottomTranslateY }],
           }}
         >
           <View className="mb-4 flex-row items-center gap-3">
@@ -255,7 +287,7 @@ export default function LocationPickerScreen() {
               {t(LABEL_KEYS[purpose].cta)}
             </Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
     </View>
   );

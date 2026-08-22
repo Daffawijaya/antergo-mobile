@@ -36,7 +36,7 @@ export default function CustomerLayout() {
       <Stack.Screen name="merchant-register" />
       <Stack.Screen name="chat/[id]" />
       <Stack.Screen name="location-search" options={screenTransitions.modal} />
-      <Stack.Screen name="location-picker" options={screenTransitions.modal} />
+      <Stack.Screen name="location-picker" options={screenTransitions.mapModal} />
     </Stack>
   );
 }
