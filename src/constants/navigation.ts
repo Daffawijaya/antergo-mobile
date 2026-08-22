@@ -11,8 +11,8 @@ export const screenTransitions = {
     presentation: "transparentModal",
   },
   modal: {
-    animation: "slide_from_bottom",
-    animationDuration: 350,
+    animation: Platform.OS === "ios" ? "simple_push" : "slide_from_right",
+    animationDuration: 220,
   },
   none: {
     animation: "none",
