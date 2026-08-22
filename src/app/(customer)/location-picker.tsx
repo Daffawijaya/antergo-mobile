@@ -10,6 +10,7 @@ import {
   Animated,
   BackHandler,
   Dimensions,
+  Keyboard,
   Pressable,
   Text,
   View,
@@ -17,9 +18,10 @@ import {
 import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { LocationPickerMap } from "@/components/location-picker-map";
+import { LocationPickerMap, type PlaceData, type RegionBounds } from "@/components/location-picker-map";
 import { BackButton } from "@/components/ui";
 import { Colors } from "@/constants/colors";
+import { apiNearbyMerchants, apiNearbyPlaces, type MapBounds } from "@/lib/api/geocode";
 import {
   coordinateFromLocation,
   requestCurrentLocation,
@@ -95,6 +97,10 @@ export default function LocationPickerScreen() {
       : previous?.coordinate;
   const [coordinate, setCoordinate] = useState<Coordinate | undefined>(initial);
   const { t } = useTranslation();
+  // Nearby merchants shown as store pins on the map
+  const [merchants, setMerchants] = useState<PlaceData[]>([]);
+  const merchantTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visibleBounds = useRef<RegionBounds | null>(null);
   const [address, setAddress] = useState(
     params.address ?? previous?.address ?? t("location.dragToSet"),
   );
@@ -118,6 +124,7 @@ export default function LocationPickerScreen() {
   }, [mapOpacity, topTranslateY, bottomTranslateY, router]);
 
   useEffect(() => {
+    Keyboard.dismiss();
     Animated.parallel([
       Animated.timing(mapOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
       Animated.spring(topTranslateY, { toValue: 0, damping: 20, stiffness: 120, mass: 0.8, useNativeDriver: true }),
@@ -160,12 +167,82 @@ export default function LocationPickerScreen() {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void updateAddress(point), 500);
   };
+
+  const onRegionChange = (bounds: RegionBounds) => {
+    visibleBounds.current = bounds;
+    // Fetch when map stops moving
+    if (merchantTimer.current) clearTimeout(merchantTimer.current);
+    merchantTimer.current = setTimeout(() => void fetchMerchants(bounds), 600);
+  };
+
+  const fetchMerchants = async (bounds: MapBounds) => {
+    try {
+      const center: Coordinate = {
+        latitude: (bounds.sw.latitude + bounds.ne.latitude) / 2,
+        longitude: (bounds.sw.longitude + bounds.ne.longitude) / 2,
+      };
+      const [merchantResults, placeResults] = await Promise.allSettled([
+        apiNearbyMerchants(bounds, 25),
+        apiNearbyPlaces(center, 10),
+      ]);
+
+      const pins: PlaceData[] = [];
+
+      // App merchants (DB) — green store pins
+      if (merchantResults.status === "fulfilled") {
+        for (const m of merchantResults.value) {
+          pins.push({
+            id: `merchant-${m.id}`,
+            coordinate: m.coordinate,
+            name: m.name,
+            color: Colors.primary,
+            icon: "store",
+          });
+        }
+      }
+
+      // Geoapify POIs (Big Mall, mosques, schools, etc.) — blue landmark pins
+      if (placeResults.status === "fulfilled") {
+        for (const p of placeResults.value) {
+          if (pins.some((pin) => pin.name.toLowerCase() === p.name.toLowerCase())) continue;
+          pins.push({
+            id: `place-${p.name}-${p.coordinate.latitude}`,
+            coordinate: p.coordinate,
+            name: p.name,
+            color: "#6366F1",
+            icon: "pin",
+          });
+        }
+      }
+
+      setMerchants(pins);
+    } catch {
+      // Silently ignore — overlays are a nice-to-have
+    }
+  };
+
+  const onPlacePress = (place: PlaceData) => {
+    setCoordinate(place.coordinate);
+    setAddress(place.name);
+  };
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
+      if (merchantTimer.current) clearTimeout(merchantTimer.current);
     },
     [],
   );
+  // Fetch nearby merchants once when we have an initial coordinate
+  useEffect(() => {
+    if (initial) {
+      const d = 0.005;
+      void fetchMerchants({
+        sw: { latitude: initial.latitude - d, longitude: initial.longitude - d },
+        ne: { latitude: initial.latitude + d, longitude: initial.longitude + d },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const gps = async () => {
     setError("");
     setBusy(true);
@@ -217,7 +294,13 @@ export default function LocationPickerScreen() {
     >
       <View style={{ flex: 1 }}>
         <Animated.View style={{ flex: 1, opacity: mapOpacity }}>
-          <LocationPickerMap coordinate={coordinate} onChange={mapChanged} />
+          <LocationPickerMap
+            coordinate={coordinate}
+            onChange={mapChanged}
+            onRegionChange={onRegionChange}
+            places={merchants}
+            onPlacePress={onPlacePress}
+          />
         </Animated.View>
         <Animated.View
           className="flex-row items-center gap-2"

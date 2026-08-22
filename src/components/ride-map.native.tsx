@@ -10,18 +10,29 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppIcon } from "@/components/app-icon";
+import { PlaceMarker } from "@/components/place-marker";
 import { Colors, Elevation, Radius } from "@/constants/colors";
 import { getMapStyleUrl } from "@/constants/map-style";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
 
+type PlaceData = {
+  id: string | number;
+  coordinate: Coordinate;
+  name: string;
+  color?: string;
+  icon?: string;
+};
+
 type Props = {
   pickup?: Coordinate;
   destination?: Coordinate;
   driver?: Coordinate;
+  places?: PlaceData[];
   onMapPress?: (coordinate: Coordinate) => void;
   onPickupChange?: (coordinate: Coordinate) => void;
   onDestinationChange?: (coordinate: Coordinate) => void;
+  onPlacePress?: (place: PlaceData) => void;
   showsUserLocation?: boolean;
   focus?: "pickup" | "destination" | "all";
 };
@@ -35,7 +46,9 @@ export function RideMap({
   pickup,
   destination,
   driver,
+  places,
   onMapPress,
+  onPlacePress,
   showsUserLocation,
   focus = "all",
 }: Props) {
@@ -98,6 +111,22 @@ export function RideMap({
         {pickup ? <MapPin id="pickup" coordinate={pickup} color={Colors.primary} /> : null}
         {destination ? <MapPin id="destination" coordinate={destination} color="#FA2C19" /> : null}
         {driver ? <MapPin id="driver" coordinate={driver} color={Colors.primaryDark} icon="bike" /> : null}
+        {places?.map((place) => (
+          <Marker
+            key={place.id}
+            id={`place-${place.id}`}
+            lngLat={[place.coordinate.longitude, place.coordinate.latitude]}
+            anchor="bottom"
+            onPress={() => onPlacePress?.(place)}
+          >
+            <PlaceMarker
+              label={place.name}
+              color={place.color ?? Colors.primary}
+              icon={place.icon ?? "store"}
+              scale={0.9}
+            />
+          </Marker>
+        ))}
         {showsUserLocation ? <UserLocation /> : null}
       </Map>
     </View>

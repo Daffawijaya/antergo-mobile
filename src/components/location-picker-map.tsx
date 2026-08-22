@@ -1,22 +1,42 @@
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { type Region } from "react-native-maps";
+import MapView, { Marker, type Region } from "react-native-maps";
 import { LocationPickerMarker } from "@/components/brand-icons";
-import { Elevation, Radius } from "@/constants/colors";
+import { PlaceMarker } from "@/components/place-marker";
+import { Colors, Elevation, Radius } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
 import { useAppTheme } from "@/stores/theme-store";
+
+export type PlaceData = {
+  id: string | number;
+  coordinate: Coordinate;
+  name: string;
+  color?: string;
+  icon?: string;
+};
 const JAKARTA = {
   latitude: -6.2,
   longitude: 106.816666,
   latitudeDelta: 0.025,
   longitudeDelta: 0.025,
 };
+export type RegionBounds = {
+  sw: Coordinate;
+  ne: Coordinate;
+};
+
 export function LocationPickerMap({
   coordinate,
   onChange,
+  onRegionChange,
+  places,
+  onPlacePress,
 }: {
   coordinate?: Coordinate;
   onChange: (value: Coordinate) => void;
+  onRegionChange?: (bounds: RegionBounds) => void;
+  places?: PlaceData[];
+  onPlacePress?: (place: PlaceData) => void;
 }) {
   const ref = useRef<MapView>(null);
   const userMovedMap = useRef(false);
@@ -29,9 +49,19 @@ export function LocationPickerMap({
       );
   }, [coordinate]);
   const changed = (region: Region, details?: { isGesture?: boolean }) => {
-    // Android also fires this callback when initialRegion/animateToRegion
-    // positions the map. Treating that as a user move reverse-geocodes the
-    // selected POI and replaces names such as "Big Mall" with its street.
+    // Calculate approximate bounds from region
+    const halfLat = region.latitudeDelta / 2;
+    const halfLon = region.longitudeDelta / 2;
+    const sw: Coordinate = {
+      latitude: region.latitude - halfLat,
+      longitude: region.longitude - halfLon,
+    };
+    const ne: Coordinate = {
+      latitude: region.latitude + halfLat,
+      longitude: region.longitude + halfLon,
+    };
+    onRegionChange?.({ sw, ne });
+
     const isUserMove = details?.isGesture === true || userMovedMap.current;
     userMovedMap.current = false;
     if (!isUserMove) return;
@@ -54,6 +84,22 @@ export function LocationPickerMap({
         }}
         onRegionChangeComplete={changed}
       />
+      {places?.map((place, index) => (
+        <Marker
+          key={place.id}
+          coordinate={place.coordinate}
+          tracksViewChanges={false}
+          onPress={() => onPlacePress?.(place)}
+        >
+          <PlaceMarker
+            label={place.name}
+            color={place.color ?? Colors.primary}
+            icon={place.icon ?? "store"}
+            scale={0.85}
+            textPosition={index % 2 === 0 ? "right" : "left"}
+          />
+        </Marker>
+      ))}
       <View pointerEvents="none" style={styles.pin}>
         <LocationPickerMarker
           size={40}

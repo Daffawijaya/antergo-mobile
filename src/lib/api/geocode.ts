@@ -25,6 +25,55 @@ export async function apiSearchLocations(
   return data.data ?? [];
 }
 
+export type NearbyMerchant = {
+  id: number;
+  name: string;
+  coordinate: Coordinate;
+  distance: number;
+  category_id: number | null;
+};
+
+export type MapBounds = {
+  sw: Coordinate;
+  ne: Coordinate;
+};
+
+export async function apiNearbyMerchants(
+  bounds: MapBounds,
+  limit = 25,
+): Promise<NearbyMerchant[]> {
+  const { data } = await apiClient.get<{ data: NearbyMerchant[] }>(
+    "/geocode/merchants-nearby",
+    {
+      params: {
+        sw_lat: bounds.sw.latitude,
+        sw_lon: bounds.sw.longitude,
+        ne_lat: bounds.ne.latitude,
+        ne_lon: bounds.ne.longitude,
+        limit,
+      },
+    },
+  );
+  return data.data ?? [];
+}
+
+export async function apiNearbyPlaces(
+  coordinate: Coordinate,
+  limit = 10,
+): Promise<ApiSearchResult[]> {
+  const { data } = await apiClient.get<{ data: ApiSearchResult[] }>(
+    "/geocode/nearby",
+    {
+      params: {
+        lat: coordinate.latitude,
+        lon: coordinate.longitude,
+        limit,
+      },
+    },
+  );
+  return data.data ?? [];
+}
+
 export type ApiReverseGeocodeResult = {
   coordinate: Coordinate;
   name: string;

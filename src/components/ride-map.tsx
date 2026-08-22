@@ -8,14 +8,25 @@ import MapView, {
 
 import { Colors, Elevation, Radius } from "@/constants/colors";
 import type { Coordinate } from "@/lib/location";
+import { PlaceMarker } from "@/components/place-marker";
+
+type PlaceData = {
+  id: string | number;
+  coordinate: Coordinate;
+  name: string;
+  color?: string;
+  icon?: string;
+};
 
 type Props = {
   pickup?: Coordinate;
   destination?: Coordinate;
   driver?: Coordinate;
+  places?: PlaceData[];
   onMapPress?: (coordinate: Coordinate) => void;
   onPickupChange?: (coordinate: Coordinate) => void;
   onDestinationChange?: (coordinate: Coordinate) => void;
+  onPlacePress?: (place: PlaceData) => void;
   showsUserLocation?: boolean;
   focus?: "pickup" | "destination" | "all";
 };
@@ -31,9 +42,11 @@ export function RideMap({
   pickup,
   destination,
   driver,
+  places,
   onMapPress,
   onPickupChange,
   onDestinationChange,
+  onPlacePress,
   showsUserLocation,
   focus = "all",
 }: Props) {
@@ -99,6 +112,20 @@ export function RideMap({
             pinColor={Colors.primaryDark}
           />
         ) : null}
+        {places?.map((place) => (
+          <Marker
+            key={place.id}
+            coordinate={place.coordinate}
+            onPress={() => onPlacePress?.(place)}
+          >
+            <PlaceMarker
+              label={place.name}
+              color={place.color ?? Colors.primary}
+              icon={place.icon ?? "store"}
+              scale={0.9}
+            />
+          </Marker>
+        ))}
       </MapView>
     </View>
   );
