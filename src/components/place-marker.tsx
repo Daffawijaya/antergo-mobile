@@ -64,13 +64,15 @@ export function PlaceMarker({
         <View
           style={{
             position: "absolute",
-            top: 6,
+            top: -3,
             ...(textPosition === "right"
               ? { left: pinW + 4 }
               : { right: pinW + 4 }),
             width: 120,
+            height: pinH,
             flexDirection: "row",
             justifyContent: textPosition === "left" ? "flex-end" : "flex-start",
+            alignItems: "center",
           }}
         >
           <Text
