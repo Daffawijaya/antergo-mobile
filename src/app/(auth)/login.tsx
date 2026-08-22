@@ -101,8 +101,9 @@ function LoginField({
       >
         <TextInput
           placeholderTextColor="#9CA3AF"
-          className="flex-1 rounded-lg px-4 py-0 text-base"
+          className="flex-1 rounded-lg py-0 text-base"
           style={{
+            paddingHorizontal: 16,
             color: colors.text,
             backgroundColor: colors.surface,
             minHeight: 50,
