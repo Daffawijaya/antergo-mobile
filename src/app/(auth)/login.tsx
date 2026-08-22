@@ -92,24 +92,21 @@ function LoginField({
       <Text style={[styles.fieldLabel, { color: "#000000" }]}>{label}</Text>
 
       <View
-        style={[
-          styles.inputWrap,
-          {
-            borderColor: noBorder ? "transparent" : borderColor,
-            backgroundColor: colors.surface,
-            borderWidth: noBorder ? 0 : 1,
-          },
-        ]}
+        className="flex-row items-center rounded-lg pr-1.5"
+        style={{
+          borderColor: noBorder ? "transparent" : borderColor,
+          backgroundColor: colors.surface,
+          borderWidth: noBorder ? 0 : 1,
+        }}
       >
         <TextInput
           placeholderTextColor="#9CA3AF"
-          style={[
-            styles.input,
-            {
-              color: colors.text,
-              backgroundColor: colors.surface,
-            },
-          ]}
+          className="flex-1 rounded-lg px-4 py-0 text-base"
+          style={{
+            color: colors.text,
+            backgroundColor: colors.surface,
+            minHeight: 50,
+          }}
           onFocus={(event) => {
             setFocused(true);
             onFocus?.(event);
