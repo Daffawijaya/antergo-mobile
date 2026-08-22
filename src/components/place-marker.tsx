@@ -82,6 +82,7 @@ export function PlaceMarker({
               fontFamily: "Outfit_600SemiBold",
               color: textColor,
               lineHeight: 14 * scale,
+              textAlign: textPosition === "left" ? "right" : "left",
               textShadowColor: "#FFFFFF",
               textShadowOffset: { width: 1, height: 1 },
               textShadowRadius: 3,

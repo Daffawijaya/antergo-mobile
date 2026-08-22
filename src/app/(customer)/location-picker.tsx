@@ -21,7 +21,7 @@ import {
 import { LocationPickerMap, type PlaceData, type RegionBounds } from "@/components/location-picker-map";
 import { BackButton } from "@/components/ui";
 import { Colors } from "@/constants/colors";
-import { apiNearbyMerchants, apiNearbyPlaces, type MapBounds } from "@/lib/api/geocode";
+import { apiNearbyMerchants, type MapBounds } from "@/lib/api/geocode";
 import { filterViewportMarkers } from "@/lib/viewport-markers";
 import {
   coordinateFromLocation,
@@ -189,45 +189,17 @@ export default function LocationPickerScreen() {
 
   const fetchMerchants = async (bounds: MapBounds) => {
     try {
-      const center: Coordinate = {
-        latitude: (bounds.sw.latitude + bounds.ne.latitude) / 2,
-        longitude: (bounds.sw.longitude + bounds.ne.longitude) / 2,
-      };
-      const [merchantResults, placeResults] = await Promise.allSettled([
-        apiNearbyMerchants(bounds, 25),
-        apiNearbyPlaces(center, 10),
-      ]);
+      const merchantResults = await apiNearbyMerchants(bounds, 50);
 
-      const pins: PlaceData[] = [];
-
-      // App merchants (DB) — green store pins
-      if (merchantResults.status === "fulfilled") {
-        for (const m of merchantResults.value) {
-          pins.push({
-            id: `merchant-${m.id}`,
-            coordinate: m.coordinate,
-            name: m.name,
-            color: Colors.primary,
-            icon: "store",
-          });
-        }
-      }
-
-      // Geoapify POIs (Big Mall, mosques, schools, etc.) — blue landmark pins
-      if (placeResults.status === "fulfilled") {
-        for (const p of placeResults.value) {
-          if (pins.some((pin) => pin.name.toLowerCase() === p.name.toLowerCase())) continue;
-          pins.push({
-            id: `place-${p.name}-${p.coordinate.latitude}`,
-            coordinate: p.coordinate,
-            name: p.name,
-            color: "#6366F1",
-            icon: "pin",
-          });
-        }
-      }
-
-      setMerchants(pins);
+      setMerchants(
+        merchantResults.map((m) => ({
+          id: `merchant-${m.id}`,
+          coordinate: m.coordinate,
+          name: m.name,
+          color: Colors.primary,
+          icon: "store",
+        })),
+      );
     } catch {
       // Silently ignore — overlays are a nice-to-have
     }
@@ -323,7 +295,7 @@ export default function LocationPickerScreen() {
             floating
             onPress={animateBack}
           />
-          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface px-4 elevation-md">
+          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface px-4 shadow-lg">
             {isPickup ? (
               <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
             ) : (
@@ -336,7 +308,7 @@ export default function LocationPickerScreen() {
         </Animated.View>
         <Pressable
           onPress={() => void gps()}
-          className="h-12 w-12 items-center justify-center rounded-full bg-surface elevation-md"
+          className="h-12 w-12 items-center justify-center rounded-full bg-surface shadow-lg"
           style={{ position: "absolute", right: 20, bottom: 168 }}
         >
           <AppIcon
@@ -379,7 +351,7 @@ export default function LocationPickerScreen() {
             onPress={confirm}
             className={`min-h-12 py-3.5 items-center justify-center rounded-full bg-brand ${!coordinate || busy ? "opacity-50" : "active:opacity-80"}`}
           >
-            <Text className="font-bold text-base text-white">
+            <Text className="font-bold text-base text-on-brand">
               {t(LABEL_KEYS[purpose].cta)}
             </Text>
           </Pressable>
