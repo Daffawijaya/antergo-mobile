@@ -388,7 +388,6 @@ function TypingPlaceholder() {
   return (
     <Text className="text-base text-muted">
       {displayText}
-      <Text className="text-muted">|</Text>
     </Text>
   );
 }
