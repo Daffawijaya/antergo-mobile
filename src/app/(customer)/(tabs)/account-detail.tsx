@@ -1,8 +1,7 @@
 import { isAxiosError } from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Image } from "expo-image";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { ActionSheet } from "@/components/action-sheet";
@@ -12,8 +11,10 @@ import { FormField, Notice, Screen } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { roleAvatar } from "@/lib/user-avatar";
+import { getDriverApplication } from "@/lib/api/resources";
 import { useAppTheme } from "@/stores/theme-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import type { ApiErrorPayload } from "@/types/api";
 import { updateCustomerPhoto } from "@/lib/api/auth";
@@ -25,7 +26,12 @@ export default function AccountDetailScreen() {
   const { colors } = useAppTheme();
   const user = useAuthStore((state) => state.user);
   const activeRole = useAuthStore((state) => state.activeRole);
-  const avatar = roleAvatar(user, activeRole);
+  const { data: driverProfile } = useQuery({
+    queryKey: ["driver-profile"],
+    queryFn: () => getDriverApplication(),
+    enabled: activeRole === "driver",
+  });
+  const avatar = activeRole === "driver" ? driverProfile?.photo_url_full : roleAvatar(user, activeRole);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const refreshUser = useAuthStore((state) => state.refreshUser);
   const [name, setName] = useState(user?.name ?? "");
@@ -215,10 +221,9 @@ export default function AccountDetailScreen() {
           {avatarSource ? (
             <View className="h-28 w-28 overflow-hidden rounded-full">
               <Image
-                key={avatarSource}
                 source={{ uri: avatarSource }}
                 className="h-full w-full"
-                contentFit="cover"
+                resizeMode="cover"
               />
             </View>
           ) : (
