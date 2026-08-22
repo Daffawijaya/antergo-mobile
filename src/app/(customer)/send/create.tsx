@@ -308,7 +308,7 @@ export default function CreateSendScreen() {
         <View className="px-5 pb-14" style={{ paddingTop: insets.top + 8 }}>
           <Svg
             width={screenWidth}
-            height="188"
+            height="220"
             style={{ position: "absolute", top: 0, left: 0, right: 0 }}
           >
             <Defs>
