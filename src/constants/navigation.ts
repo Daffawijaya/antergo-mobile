@@ -14,6 +14,10 @@ export const screenTransitions = {
     animation: Platform.OS === "ios" ? "simple_push" : "slide_from_right",
     animationDuration: 220,
   },
+  slideDown: {
+    animation: Platform.OS === "ios" ? "simple_push" : "slide_from_top",
+    animationDuration: 220,
+  },
   none: {
     animation: "none",
   },

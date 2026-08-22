@@ -29,7 +29,7 @@ export default function CustomerLayout() {
       <Stack.Screen name="ride/create" options={screenTransitions.overlayPush} />
       <Stack.Screen name="ride/[id]" />
       <Stack.Screen name="jastip/create" options={screenTransitions.overlayPush} />
-      <Stack.Screen name="search" />
+      <Stack.Screen name="search" options={screenTransitions.slideDown} />
       <Stack.Screen name="account-detail" />
       <Stack.Screen name="language" />
       <Stack.Screen name="driver-register" />
