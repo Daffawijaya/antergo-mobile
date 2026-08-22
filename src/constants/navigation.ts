@@ -11,6 +11,11 @@ export const screenTransitions = {
     animationDuration: 220,
     presentation: "transparentModal",
   },
+  slideFromBottom: {
+    animation: "slide_from_bottom",
+    animationDuration: 300,
+    presentation: "card",
+  },
   modal: {
     animation: "slide_from_bottom",
     animationDuration: 220,
