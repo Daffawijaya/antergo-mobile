@@ -169,7 +169,6 @@ export function FormField({
   error,
   style,
   multiline,
-  className: inputClassName,
   ...props
 }: TextInputProps & { label: string; error?: string }) {
   return (
@@ -180,8 +179,8 @@ export function FormField({
       <TextInput
         placeholderTextColor="#9CA3AF"
         multiline={multiline}
-        className={`min-h-12 rounded-lg border bg-surface px-[15px] font-sans text-base text-foreground ${multiline ? "min-h-[92px] pt-3.5" : ""} ${error ? "border-danger bg-surface-muted" : "border-border"} ${inputClassName ?? ""}`}
-        style={style}
+        className={`min-h-12 rounded-lg border bg-surface font-sans text-base text-foreground ${multiline ? "min-h-[92px] pt-3.5" : ""} ${error ? "border-danger bg-surface-muted" : "border-border"}`}
+        style={[{ paddingHorizontal: 15 }, style]}
         textAlignVertical={multiline ? "top" : "center"}
         {...props}
       />
