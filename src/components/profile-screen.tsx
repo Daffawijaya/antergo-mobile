@@ -470,12 +470,12 @@ function SettingsRow({
   return onPress ? (
     <Pressable
       onPress={onPress}
-      className={`min-h-14 flex-row items-center gap-2 border-b border-border ${danger ? "mt-2 rounded-lg border-b-0" : ""}`}
+      className={`min-h-14 flex-row items-center gap-2 ${danger ? "mt-2 rounded-lg" : ""}`}
     >
       {content}
     </Pressable>
   ) : (
-    <View className="min-h-14 flex-row items-center gap-2 border-b border-border">
+    <View className="min-h-14 flex-row items-center gap-2">
       {content}
     </View>
   );

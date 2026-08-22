@@ -363,8 +363,8 @@ function TypingPlaceholder() {
     let timeout: ReturnType<typeof setTimeout>;
 
     if (!isDeleting && displayText === currentFull) {
-      // Pause before deleting
-      timeout = setTimeout(() => setIsDeleting(true), 1800);
+      // Pause before deleting (~7s to read)
+      timeout = setTimeout(() => setIsDeleting(true), 7000);
     } else if (isDeleting && displayText === "") {
       // Move to next placeholder
       setIsDeleting(false);
