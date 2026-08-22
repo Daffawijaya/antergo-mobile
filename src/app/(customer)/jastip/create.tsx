@@ -324,16 +324,33 @@ export default function CreateJastipScreen() {
     const state = useLocationPickerStore.getState();
     const dest = state.selections["jastip-destination"];
     const current = state.currentLocation;
-    const moved =
-      !!dest &&
-      (!current ||
+    // Hanya clear destination jika user menggeser dari lokasi default.
+    // Kalau currentLocation belum ada (null), jangan clear — GPS mungkin
+    // belum sempat load, itu bukan berarti user menggeser.
+    if (dest && current) {
+      const destMoved =
         dest.coordinate.latitude !== current.coordinate.latitude ||
-        dest.coordinate.longitude !== current.coordinate.longitude);
-    if (moved) {
-      state.clearSelection("jastip-destination");
-      void state.refreshCurrentLocation();
+        dest.coordinate.longitude !== current.coordinate.longitude;
+      if (destMoved) {
+        state.clearSelection("jastip-destination");
+        void state.refreshCurrentLocation();
+      }
     }
-    state.clearSelection("jastip-purchase");
+    // Purchase location juga hanya clear jika digeser.
+    // Cek apakah purchase masih sesuai currentLocation.
+    const purchaseLocs = locations.filter(
+      (loc) => loc.latitude !== null && loc.longitude !== null,
+    );
+    if (current && purchaseLocs.length > 0) {
+      const anyMoved = purchaseLocs.some(
+        (loc) =>
+          loc.latitude !== current.coordinate.latitude ||
+          loc.longitude !== current.coordinate.longitude,
+      );
+      if (anyMoved) {
+        state.clearSelection("jastip-purchase");
+      }
+    }
     if (router.canGoBack()) {
       router.back();
     } else {
