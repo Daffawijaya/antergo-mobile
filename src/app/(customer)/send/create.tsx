@@ -547,14 +547,7 @@ function LocationCard({
   const { colors } = useAppTheme();
   return (
     <View
-      className="rounded-xl bg-surface px-4 py-5"
-      style={{
-        shadowColor: "#111827",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.07,
-        shadowRadius: 14,
-        elevation: 6,
-      }}
+      className="rounded-xl bg-surface px-4 py-5 shadow-lg"
     >
       <View className="flex-row">
         <View className="flex-1">

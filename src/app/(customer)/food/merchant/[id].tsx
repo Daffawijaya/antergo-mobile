@@ -284,15 +284,7 @@ export default function MerchantDetailScreen() {
 
             {/* ---- Merchant card (overlapping cover) ---- */}
             <View
-              className="-mt-6 mx-4 flex-row overflow-hidden rounded-xl p-3"
-              style={{
-                backgroundColor: colors.surface,
-                shadowColor: "#111827",
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.07,
-                shadowRadius: 14,
-                elevation: 6,
-              }}
+              className="-mt-6 mx-4 flex-row overflow-hidden rounded-xl bg-surface p-3 shadow-lg"
             >
               {query.data.logo ? (
                 <Image

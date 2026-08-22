@@ -480,14 +480,7 @@ export default function CreateJastipScreen() {
       {/* ── Antar ke? (destination) ──────────────────────── */}
       <View className="px-5" style={{ marginTop: -46 }}>
         <View
-          className="rounded-xl bg-surface px-4 py-5"
-          style={{
-            shadowColor: "#111827",
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.07,
-            shadowRadius: 14,
-            elevation: 6,
-          }}
+          className="rounded-xl bg-surface px-4 py-5 shadow-lg"
         >
           <Pressable
             accessibilityRole="button"
@@ -803,14 +796,7 @@ function UnitDropdown({
           <View className="flex-1 items-center justify-center bg-black/40">
             <TouchableWithoutFeedback>
               <View
-                className="w-72 max-h-80 rounded-lg bg-surface p-2"
-                style={{
-                  shadowColor: "#111827",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 12,
-                  elevation: 8,
-                }}
+                className="w-72 max-h-80 rounded-lg bg-surface p-2 shadow-lg"
               >
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {!customMode ? (
