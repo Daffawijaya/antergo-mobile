@@ -404,7 +404,7 @@ export default function CreateJastipScreen() {
       <View className="px-5 pb-10" style={{ paddingTop: insets.top + 8 }}>
         <Svg
           width={screenWidth}
-          height="140"
+          height="120"
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
           <Defs>
