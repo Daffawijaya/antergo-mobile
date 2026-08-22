@@ -13,6 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
   View,
+  type ImageSourcePropType,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -99,6 +101,9 @@ export default function CreateJastipScreen() {
   const [errors, setErrors] = useState<string[]>([]);
   const [collapsedLocations, setCollapsedLocations] = useState<Set<number>>(
     new Set(),
+  );
+  const [vehicleType, setVehicleType] = useState<"motorcycle" | "car">(
+    "motorcycle",
   );
 
   const totalItemCount = useMemo(() => {
@@ -246,7 +251,7 @@ export default function CreateJastipScreen() {
         errs.push(`${t("jastip.shoppingList")} #${i + 1}: ${t("jastip.minItems")}`);
       }
       for (const it of validItems) {
-        if (it.quantity.trim() !== "" && Number(it.quantity) === 0) {
+        if (it.quantity?.trim() !== "" && Number(it.quantity) === 0) {
           errs.push(`${it.name || "Barang"} tidak boleh 0`);
         }
       }
@@ -287,9 +292,9 @@ export default function CreateJastipScreen() {
       })),
       destination_address: destination.address,
       destination_latitude: destination.coordinate.latitude,
-      destination_longitude: destination.coordinate.longitude,
-      advance_amount: Number(advanceAmount) || 0,
-      driver_note: driverNote.trim() || undefined,
+      destination_longitude: destination.coordinate.longitude,        advance_amount: Number(advanceAmount) || 0,
+        vehicle_type: vehicleType,
+        driver_note: driverNote.trim() || undefined,
     };
 
     mutation.mutate(payload);
@@ -483,6 +488,11 @@ export default function CreateJastipScreen() {
             </Text>
           </Pressable>
         </View>
+      </View>
+
+      {/* ── Pilih kendaraan ──────────────────────────────── */}
+      <View className="px-5 pt-4">
+        <VehicleSelector value={vehicleType} onChange={setVehicleType} />
       </View>
 
       {/* ── Beli di mana? ────────────────────────────────── */}
@@ -853,5 +863,90 @@ function UnitDropdown({
         </TouchableWithoutFeedback>
       </Modal>
     </>
+  );
+}
+
+/* ── Vehicle Selector ───────────────────────────────────── */
+
+const VEHICLE_IMAGES = {
+  motorcycle: require("../../../../assets/images/icon/bikee.png"),
+  car: require("../../../../assets/images/icon/carr.png"),
+} as const;
+
+const VEHICLES: {
+  type: "motorcycle" | "car";
+  label: string;
+}[] = [
+  { type: "motorcycle", label: "Motor" },
+  { type: "car", label: "Mobil" },
+];
+
+function VehicleSelector({
+  value,
+  onChange,
+}: {
+  value: "motorcycle" | "car";
+  onChange: (type: "motorcycle" | "car") => void;
+}) {
+  return (
+    <View className="gap-3">
+      <Text className="font-extrabold text-[17px] text-foreground">
+        Pilih kendaraan
+      </Text>
+      <View className="flex-row gap-3">
+        {VEHICLES.map((vehicle) => (
+          <VehicleCard
+            key={vehicle.type}
+            label={vehicle.label}
+            image={VEHICLE_IMAGES[vehicle.type]}
+            selected={value === vehicle.type}
+            onPress={() => onChange(vehicle.type)}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function VehicleCard({
+  label,
+  image,
+  selected,
+  onPress,
+}: {
+  label: string;
+  image: ImageSourcePropType;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { mode } = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="flex-1 flex-row items-center justify-between rounded-[14px] px-4 py-4 active:opacity-80"
+      style={{
+        backgroundColor: selected
+          ? mode === "dark"
+            ? "#453600"
+            : "#ffec8e"
+          : mode === "dark"
+            ? "#242525"
+            : "#F3F3F3",
+      }}
+    >
+      <Text
+        className="font-extrabold text-[15px] leading-5"
+        style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
+      >
+        {label}
+      </Text>
+      <Image
+        source={image}
+        style={{ width: 44, height: 44 }}
+        resizeMode="contain"
+        accessibilityLabel={label}
+      />
+    </Pressable>
   );
 }

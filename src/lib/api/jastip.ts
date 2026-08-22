@@ -22,6 +22,7 @@ export interface CreateJastipPayload {
   destination_latitude: number;
   destination_longitude: number;
   advance_amount: number;
+  vehicle_type: "motorcycle" | "car";
   driver_note?: string;
 }
 
