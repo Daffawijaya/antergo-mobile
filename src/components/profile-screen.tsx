@@ -48,7 +48,7 @@ const roleImage = (role: AppRole) => {
   return require("@/assets/icon/merchant.png");
 };
 
-export function ProfileScreen() {
+export function ProfileScreen({ showBackButton = false }: { showBackButton?: boolean } = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
@@ -127,11 +127,31 @@ export function ProfileScreen() {
           paddingBottom: 24,
         }}
       >
+        {showBackButton && (
+          <View
+            className="px-5"
+            style={{ paddingTop: insets.top + 8, zIndex: 10 }}
+          >
+            <View className="mt-2 flex-row items-center">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("common.back")}
+                onPress={() => router.back()}
+                className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
+              >
+                <AppIcon name="back" size={26} color={colors.text} />
+              </Pressable>
+            </View>
+          </View>
+        )}
         <WarmGradientBg height={380} />
-        <View className="px-4" style={{ paddingTop: insets.top + 16 }}>
+        <View
+          className="px-4"
+          style={{ paddingTop: showBackButton ? 16 : insets.top + 16 }}
+        >
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
-            className="-mb-12 rounded-lg bg-surface p-4 active:opacity-90"
+            className="-mb-12 rounded-xl bg-surface p-4 active:opacity-90"
             style={{
               shadowColor: "#111827",
               shadowOffset: { width: 0, height: 6 },
@@ -198,7 +218,7 @@ export function ProfileScreen() {
                   <Pressable
                     key={role}
                     onPress={() => void setActiveRole(role)}
-                    className={`flex-1 rounded-lg border p-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
+                    className={`flex-1 rounded-xl border p-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
                     style={
                       selected
                         ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }

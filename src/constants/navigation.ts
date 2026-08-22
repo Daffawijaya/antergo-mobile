@@ -4,6 +4,7 @@ export const screenTransitions = {
   push: {
     animation: Platform.OS === "ios" ? "simple_push" : "slide_from_right",
     animationDuration: 220,
+    presentation: "card",
   },
   overlayPush: {
     animation: "slide_from_right",

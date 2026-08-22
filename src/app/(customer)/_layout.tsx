@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { Platform } from "react-native";
 import { screenTransitions } from "@/constants/navigation";
 import { useAppTheme } from "@/stores/theme-store";
 
@@ -31,7 +32,14 @@ export default function CustomerLayout() {
       <Stack.Screen name="jastip/create" options={screenTransitions.overlayPush} />
       <Stack.Screen name="search" options={screenTransitions.slideDown} />
       <Stack.Screen name="account-detail" options={screenTransitions.overlayPush} />
-      <Stack.Screen name="profile-view" options={screenTransitions.overlayPush} />
+      <Stack.Screen
+        name="profile-view"
+        options={{
+          headerShown: false,
+          presentation: "card",
+          animation: Platform.OS === "android" ? "ios_from_right" : "simple_push",
+        }}
+      />
       <Stack.Screen name="language" />
       <Stack.Screen name="driver-register" />
       <Stack.Screen name="merchant-register" />
