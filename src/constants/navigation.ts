@@ -12,7 +12,7 @@ export const screenTransitions = {
   },
   modal: {
     animation: "slide_from_bottom",
-    animationDuration: 220,
+    animationDuration: 350,
   },
   none: {
     animation: "none",
