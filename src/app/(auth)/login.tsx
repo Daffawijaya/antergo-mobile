@@ -89,7 +89,7 @@ function LoginField({
 
   return (
     <View style={styles.field}>
-      <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.fieldLabel, { color: "#FFFFFF" }]}>{label}</Text>
 
       <View
         style={[
@@ -172,14 +172,14 @@ export default function LoginScreen() {
           <View style={styles.container}>
             <View style={styles.brand}>
               <Image
-                source={require("../../../assets/logo/antegoblack.png")}
+                source={require("../../../assets/logo/antegowhite.png")}
                 style={styles.logo}
                 resizeMode="contain"
                 accessibilityLabel="anterGo"
               />
             </View>
 
-            <Text style={[styles.title, { color: colors.text }]}>
+            <Text style={[styles.title, { color: "#FFFFFF" }]}>
               {t("auth.welcomeBack")}
             </Text>
 
@@ -249,7 +249,7 @@ export default function LoginScreen() {
                 />
 
                 <Text
-                  style={[styles.forgot, { color: "#000000" }]}
+                  style={[styles.forgot, { color: "#FFFFFF" }]}
                   accessibilityLabel={t("auth.forgotPassword")}
                 >
                   {t("auth.forgotPassword")}
@@ -281,11 +281,11 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            <Text style={[styles.footer, { color: "#000000" }]}>
+            <Text style={[styles.footer, { color: "#FFFFFF" }]}>
               {t("auth.noAccount")}{" "}
               <Link
                 href="./register"
-                style={[styles.link, { color: "#000000" }]}
+                style={[styles.link, { color: "#FFFFFF" }]}
               >
                 {t("auth.register")}
               </Link>
