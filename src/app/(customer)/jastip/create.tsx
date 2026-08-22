@@ -662,9 +662,9 @@ export default function CreateJastipScreen() {
         {/* Add location button */}
         <Pressable
           onPress={() => setLocations((prev) => [...prev, emptyLocation()])}
-          className="mt-4 items-center rounded-xl border border-dashed border-brand/40 bg-brand/5 py-3.5 active:opacity-70"
+          className="mt-4 items-center rounded-xl border border-secondary/40 bg-secondary-soft py-3.5 active:opacity-70"
         >
-          <Text className="font-bold text-sm text-brand">
+          <Text className="font-bold text-sm text-secondary">
             {t("jastip.addLocation")}
           </Text>
         </Pressable>

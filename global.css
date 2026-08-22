@@ -10,8 +10,11 @@
   --color-brand-soft: #fff4cc;
   --color-on-brand: #1f1400;
   --color-danger: #dc2626;
-  --color-purple: #9C27B1;
-  --color-on-purple: #FFFFFF;
+  --color-secondary: #9C27B1;
+  --color-secondary-pressed: #7B1FA2;
+  --color-secondary-dark: #4A148C;
+  --color-secondary-soft: #F3E5F5;
+  --color-on-secondary: #FFFFFF;
   --font-sans: "Outfit_400Regular";
   --font-medium: "Outfit_500Medium";
   --font-semibold: "Outfit_600SemiBold";
