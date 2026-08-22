@@ -295,7 +295,7 @@ export default function LocationPickerScreen() {
             floating
             onPress={animateBack}
           />
-          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface px-4 shadow-lg">
+          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface px-4 shadow-md">
             {isPickup ? (
               <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
             ) : (
@@ -308,7 +308,7 @@ export default function LocationPickerScreen() {
         </Animated.View>
         <Pressable
           onPress={() => void gps()}
-          className="h-12 w-12 items-center justify-center rounded-full bg-surface shadow-lg"
+          className="h-12 w-12 items-center justify-center rounded-full bg-surface shadow-md"
           style={{ position: "absolute", right: 20, bottom: 168 }}
         >
           <AppIcon
