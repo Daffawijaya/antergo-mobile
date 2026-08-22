@@ -109,11 +109,10 @@ function ProductRow({
 
         {/* Plus button / counter — absolute bottom-right of the row */}
         {!isOutOfStock && (
-          <View className="absolute bottom-3 right-3">
+          <View className="absolute bottom-3 right-4">
             {hasItem ? (
               <View
-                className="flex-row items-center rounded-full border border-brand"
-                style={{ backgroundColor: "rgba(255,255,255,0.92)" }}
+                className="flex-row items-center rounded-full border border-brand bg-transparent"
               >
                 <Pressable
                   disabled={disabled}
@@ -139,7 +138,7 @@ function ProductRow({
                 onPress={onAdd}
                 className="h-8 w-8 items-center justify-center rounded-full bg-brand"
               >
-                <Text className="font-bold text-lg leading-none text-white">
+                <Text className="font-bold text-lg leading-none text-black">
                   +
                 </Text>
               </Pressable>
@@ -228,12 +227,12 @@ export default function MerchantDetailScreen() {
   const handleBack = () => router.back();
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+    <SafeAreaView className="flex-1" style={{ minHeight: "100%", backgroundColor: colors.background }} edges={["left", "right", "bottom"]}>
       {/* ---- Scrollable content ---- */}
       <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="grow pb-4 gap-3"
+        contentContainerClassName="grow gap-3 pb-20"
       >
         {/* Loading / Error states */}
         {query.isLoading ? (
@@ -401,12 +400,12 @@ export default function MerchantDetailScreen() {
             }
           >
             {/* Left: Keranjang • N pesanan */}
-            <Text className="text-sm text-white">
-              <a className="font-bold">Keranjang •</a> {totalCartItems} Pesanan
+            <Text className="text-sm text-black">
+              <Text className="font-bold">Keranjang •</Text> {totalCartItems} Pesanan
             </Text>
 
             {/* Right: price */}
-            <Text className="font-bold text-sm text-white">
+            <Text className="font-bold text-sm text-black">
               {formatRupiah(totalPrice)}
             </Text>
           </Pressable>

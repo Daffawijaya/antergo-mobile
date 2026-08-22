@@ -65,10 +65,10 @@ export function CustomerChip({
   return (
     <Pressable
       onPress={onPress}
-      className={`min-h-9 items-center justify-center rounded-full border px-3.5 ${selected ? "border-brand bg-brand" : "border-border bg-surface"}`}
+      className={`min-h-9 items-center justify-center rounded-full px-3.5 ${selected ? "bg-surface-muted" : "bg-transparent"}`}
     >
       <Text
-        className={`font-semibold text-sm ${selected ? "text-on-brand" : "text-foreground"}`}
+        className={`font-semibold text-sm ${selected ? "text-foreground" : "text-muted"}`}
       >
         {label}
       </Text>
