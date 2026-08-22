@@ -58,8 +58,8 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const content = (
     <View
-      className={`flex-1 gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
-      style={[{ paddingTop: padded ? insets.top : undefined }, contentStyle]}
+      className={`gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
+      style={[{ flex: 1, paddingTop: padded ? insets.top : undefined }, contentStyle]}
     >
       {children}
     </View>

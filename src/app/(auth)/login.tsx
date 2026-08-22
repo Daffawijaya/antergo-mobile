@@ -1,3 +1,10 @@
+import { Notice } from "@/components/ui";
+import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
+import { useTranslation } from "@/i18n";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { loginSchema, type LoginForm } from "@/schemas/auth";
+import { useAuthStore } from "@/stores/auth-store";
+import { useAppTheme } from "@/stores/theme-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
@@ -13,13 +20,8 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
-import { Notice, Screen } from "@/components/ui";
-import { Colors, Radius, Spacing, Typography } from "@/constants/colors";
-import { useTranslation } from "@/i18n";
-import { getApiErrorMessage } from "@/lib/api/client";
-import { type LoginForm, loginSchema } from "@/schemas/auth";
-import { useAuthStore } from "@/stores/auth-store";
-import { useAppTheme } from "@/stores/theme-store";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 // Dark logo for light backgrounds, light logo for dark backgrounds.
 const LOGOS = {
@@ -27,30 +29,86 @@ const LOGOS = {
   dark: require("../../../assets/logo/antegodark.png"),
 } as const;
 
+function LoginGradientBackground() {
+  return (
+    <Svg
+      pointerEvents="none"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="none"
+      style={StyleSheet.absoluteFill}
+    >
+      <Defs>
+        <LinearGradient
+          id="loginBackground"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%"
+        >
+          <Stop offset="0%" stopColor="#FFD84F" />
+          <Stop offset="28%" stopColor="#FFC247" />
+          <Stop offset="58%" stopColor="#FFAD3D" />
+          <Stop offset="80%" stopColor="#FF9A3B" />
+          <Stop offset="100%" stopColor="#FF7F3F" />
+        </LinearGradient>
+      </Defs>
+
+      <Rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill="url(#loginBackground)"
+      />
+    </Svg>
+  );
+}
+
 function LoginField({
   label,
   error,
   right,
+  noBorder,
   ...props
-}: TextInputProps & { label: string; error?: string; right?: ReactNode }) {
+}: TextInputProps & {
+  label: string;
+  error?: string;
+  right?: ReactNode;
+  noBorder?: boolean;
+}) {
   const { colors } = useAppTheme();
   const [focused, setFocused] = useState(false);
   const { onFocus, onBlur, ...rest } = props;
-  const borderColor = error ? Colors.danger : focused ? Colors.primary : colors.border;
+
+  const borderColor = error
+    ? Colors.danger
+    : focused
+      ? Colors.primary
+      : colors.border;
+
   return (
     <View style={styles.field}>
       <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
+
       <View
         style={[
           styles.inputWrap,
-          { borderColor, backgroundColor: colors.surface },
+          {
+            borderColor: noBorder ? "transparent" : borderColor,
+            backgroundColor: colors.surface,
+            borderWidth: noBorder ? 0 : 1,
+          },
         ]}
       >
         <TextInput
           placeholderTextColor="#9CA3AF"
           style={[
             styles.input,
-            { color: colors.text, backgroundColor: colors.surface },
+            {
+              color: colors.text,
+              backgroundColor: colors.surface,
+            },
           ]}
           onFocus={(event) => {
             setFocused(true);
@@ -62,8 +120,10 @@ function LoginField({
           }}
           {...rest}
         />
+
         {right}
       </View>
+
       {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </View>
   );
@@ -71,147 +131,186 @@ function LoginField({
 
 export default function LoginScreen() {
   const login = useAuthStore((state) => state.login);
+
   const [serverError, setServerError] = useState<string>();
   const [showPassword, setShowPassword] = useState(false);
-  const { mode, colors } = useAppTheme();  const { t } = useTranslation();
-  const { control,
+
+  const { mode, colors } = useAppTheme();
+  const { t } = useTranslation();
+
+  const {
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
+
   const submit = handleSubmit(async (values) => {
     setServerError(undefined);
+
     try {
       await login(values);
     } catch (error) {
       setServerError(getApiErrorMessage(error));
     }
   });
+
   return (
-    <Screen scroll={false} contentStyle={styles.screen}>
-      <View style={styles.container}>
-        <View style={styles.brand}>
-          <Image
-            source={LOGOS[mode]}
-            style={styles.logo}
-            resizeMode="contain"
-            accessibilityLabel="anterGo"
-          />
-        </View>
+    <View style={styles.root}>
+      <LoginGradientBackground />
 
-        <Text style={[styles.title, { color: colors.text }]}>
-          {t("auth.welcomeBack")}
-        </Text>
-
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field }) => (
-              <LoginField
-                label={t("auth.email")}
-                placeholder="nama@email.com"
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                onSubmitEditing={submit}
-                value={field.value}
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                error={errors.email?.message}
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={["top", "bottom", "left", "right"]}
+      >
+        <View style={styles.screen}>
+          <View style={styles.container}>
+            <View style={styles.brand}>
+              <Image
+                source={require("../../../assets/logo/antegoblack.png")}
+                style={styles.logo}
+                resizeMode="contain"
+                accessibilityLabel="anterGo"
               />
-            )}
-          />
-          <View style={styles.passwordBlock}>
-            <Controller
-              control={control}
-              name="password"
-              render={({ field }) => (
-                <LoginField
-                  label={t("auth.password")}
-                  placeholder={t("auth.enterPassword")}
-                  secureTextEntry={!showPassword}
-                  autoComplete="current-password"
-                  textContentType="password"
-                  returnKeyType="done"
-                  onSubmitEditing={submit}
-                  value={field.value}
-                  onBlur={field.onBlur}
-                  onChangeText={field.onChange}
-                  error={errors.password?.message}
-                  right={
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        showPassword
-                          ? t("auth.hidePassword")
-                          : t("auth.showPassword")
+            </View>
+
+            <Text style={[styles.title, { color: colors.text }]}>
+              {t("auth.welcomeBack")}
+            </Text>
+
+            <View style={styles.form}>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field }) => (
+                  <LoginField
+                    label={t("auth.email")}
+                    placeholder="nama@email.com"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                    onSubmitEditing={submit}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChangeText={field.onChange}
+                    error={errors.email?.message}
+                  />
+                )}
+              />
+
+              <View style={styles.passwordBlock}>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field }) => (
+                  <LoginField
+                    label={t("auth.password")}
+                    placeholder={t("auth.enterPassword")}
+                    secureTextEntry={!showPassword}
+                    autoComplete="current-password"
+                    textContentType="password"
+                    returnKeyType="done"
+                    onSubmitEditing={submit}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChangeText={field.onChange}
+                    error={errors.password?.message}
+                    noBorder
+                      right={
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            showPassword
+                              ? t("auth.hidePassword")
+                              : t("auth.showPassword")
+                          }
+                          onPress={() => setShowPassword((visible) => !visible)}
+                          hitSlop={10}
+                          style={({ pressed }) => [
+                            styles.eye,
+                            pressed && styles.eyePressed,
+                          ]}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} color={colors.muted} />
+                          ) : (
+                            <Eye size={20} color={colors.muted} />
+                          )}
+                        </Pressable>
                       }
-                      onPress={() => setShowPassword((visible) => !visible)}
-                      hitSlop={10}
-                      style={({ pressed }) => [
-                        styles.eye,
-                        pressed && styles.eyePressed,
-                      ]}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={20} color={colors.muted} />
-                      ) : (
-                        <Eye size={20} color={colors.muted} />
-                      )}
-                    </Pressable>
-                  }
+                    />
+                  )}
                 />
-              )}
-            />
-            {/* Placeholder — alur lupa password belum tersedia. */}
-            <Text
-              style={[styles.forgot, { color: Colors.primary }]}
-              accessibilityLabel={t("auth.forgotPassword")}
-            >
-              {t("auth.forgotPassword")}
+
+                <Text
+                  style={[styles.forgot, { color: "#FFFFFF" }]}
+                  accessibilityLabel={t("auth.forgotPassword")}
+                >
+                  {t("auth.forgotPassword")}
+                </Text>
+              </View>
+
+              {serverError ? (
+                <Notice tone="danger">{serverError}</Notice>
+              ) : null}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled: isSubmitting,
+                }}
+                disabled={isSubmitting}
+                onPress={submit}
+                style={({ pressed }) => [
+                  styles.submit,
+                  pressed && !isSubmitting && styles.submitPressed,
+                  isSubmitting && styles.submitDisabled,
+                ]}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color={Colors.onPrimary} />
+                ) : (
+                  <Text style={styles.submitText}>{t("auth.login")}</Text>
+                )}
+              </Pressable>
+            </View>
+
+            <Text style={[styles.footer, { color: "#FFFFFF" }]}>
+              {t("auth.noAccount")}{" "}
+              <Link
+                href="./register"
+                style={[styles.link, { color: "#FFFFFF" }]}
+              >
+                {t("auth.register")}
+              </Link>
             </Text>
           </View>
-
-          {serverError ? <Notice tone="danger">{serverError}</Notice> : null}
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isSubmitting }}
-            disabled={isSubmitting}
-            onPress={submit}
-            style={({ pressed }) => [
-              styles.submit,
-              pressed && !isSubmitting && styles.submitPressed,
-              isSubmitting && styles.submitDisabled,
-            ]}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color={Colors.onPrimary} />
-            ) : (
-              <Text style={styles.submitText}>{t("auth.login")}</Text>
-            )}
-          </Pressable>
         </View>
-
-        <Text style={[styles.footer, { color: colors.muted }]}>
-          {t("auth.noAccount")}{" "}
-          <Link href="./register" style={[styles.link, { color: Colors.primary }]}>
-            {t("auth.register")}
-          </Link>
-        </Text>
-      </View>
-    </Screen>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#FFB13D",
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
   screen: {
+    flex: 1,
     justifyContent: "center",
-    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.xxl,
+    paddingVertical: Spacing.xxxl,
   },
   container: {
     width: "100%",
@@ -222,7 +321,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.xxxl,
   },
-  logo: { width: 168, height: 35 },
+  logo: {
+    width: 168,
+    height: 35,
+  },
   title: {
     ...Typography.sectionTitle,
     marginBottom: Spacing.xl + Spacing.sm,
@@ -230,7 +332,9 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.lg,
   },
-  field: { gap: Spacing.sm },
+  field: {
+    gap: Spacing.sm,
+  },
   fieldLabel: {
     ...Typography.metadata,
     fontWeight: "700",
@@ -260,7 +364,9 @@ const styles = StyleSheet.create({
   eye: {
     padding: Spacing.xs,
   },
-  eyePressed: { opacity: 0.6 },
+  eyePressed: {
+    opacity: 0.6,
+  },
   forgot: {
     alignSelf: "flex-end",
     ...Typography.metadata,
@@ -270,17 +376,27 @@ const styles = StyleSheet.create({
     minHeight: 52,
     marginTop: Spacing.sm,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
-  submitPressed: { backgroundColor: Colors.primaryPressed },
-  submitDisabled: { opacity: 0.5 },
-  submitText: { ...Typography.button, color: "#FFFFFF" },
+  submitPressed: {
+    backgroundColor: Colors.secondary,
+    opacity: 0.8,
+  },
+  submitDisabled: {
+    opacity: 0.5,
+  },
+  submitText: {
+    ...Typography.button,
+    color: "#FFFFFF",
+  },
   footer: {
     marginTop: Spacing.xxxl,
     textAlign: "center",
     ...Typography.body,
   },
-  link: { fontWeight: "800" },
+  link: {
+    fontWeight: "800",
+  },
 });
