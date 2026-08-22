@@ -225,8 +225,7 @@ export default function MerchantDetailScreen() {
   );
   const hasCart = totalCartItems > 0;
 
-  const handleBack = () =>
-    returnTo ? router.replace(returnTo as never) : router.back();
+  const handleBack = () => router.back();
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>

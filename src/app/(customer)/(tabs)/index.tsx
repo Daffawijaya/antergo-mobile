@@ -242,7 +242,7 @@ function MerchantSection({
           {t("home.noMerchantFood")}
         </Text>
       ) : (
-        <View className="flex-row flex-wrap gap-2.5">
+        <View className="flex-row flex-wrap gap-4">
           {merchants.slice(0, 6).map((merchant) => (
             <Pressable
               key={merchant.id}
@@ -305,7 +305,7 @@ function ProductSection({
           {t("home.noProducts")}
         </Text>
       ) : (
-        <View className="flex-row flex-wrap gap-2.5">
+        <View className="flex-row flex-wrap gap-4">
           {products.map((product) => (
             <Pressable
               key={product.id}
