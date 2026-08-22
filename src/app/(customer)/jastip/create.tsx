@@ -404,7 +404,7 @@ export default function CreateJastipScreen() {
       <View className="px-5 pb-10" style={{ paddingTop: insets.top + 8 }}>
         <Svg
           width={screenWidth}
-          height="100"
+          height="140"
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
           <Defs>
@@ -417,11 +417,11 @@ export default function CreateJastipScreen() {
             >
               <Stop
                 offset="0%"
-                stopColor={mode === "dark" ? "#423500" : "#FFF9E6"}
+                stopColor={mode === "dark" ? "#0D2A3D" : "#E8F5FD"}
               />
               <Stop
                 offset="100%"
-                stopColor={mode === "dark" ? "#2B2410" : "#FFE7A0"}
+                stopColor={mode === "dark" ? "#0A1F2E" : "#BAE1FF"}
               />
             </LinearGradient>
           </Defs>
