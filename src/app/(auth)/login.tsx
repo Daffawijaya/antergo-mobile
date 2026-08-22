@@ -343,7 +343,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: Radius.md,
-    borderWidth: 1,
     paddingRight: Spacing.sm + 2,
   },
   input: {
