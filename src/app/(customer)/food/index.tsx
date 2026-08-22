@@ -37,8 +37,8 @@ const SERVICE_ICONS = {
 // but is kept light enough for the white text to read well.
 const SERVICE_GRADIENTS = {
   food: {
-    light: { from: "#6D28D9", to: "#8B5CF6" },
-    dark: { from: "#4C1D95", to: "#5B21B6" },
+    light: { from: "#7B1FA2", to: "#9C27B1" },
+    dark: { from: "#4A148C", to: "#7B1FA2" },
   },
   shopping: {
     light: { from: "#BE185D", to: "#EC4899" },
