@@ -583,7 +583,7 @@ function SearchField({
       >
         {marker}
       </View>
-      <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-[14px] border border-border bg-surface px-4">
+      <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl border border-border bg-surface px-4">
         <TextInput
           ref={inputRef}
           autoFocus={autoFocus}

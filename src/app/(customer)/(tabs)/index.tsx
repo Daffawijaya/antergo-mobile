@@ -134,10 +134,10 @@ export default function CustomerHome() {
       className="gap-0 bg-background"
     >
       <WarmGradientBg height={520} />
-      <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
+      <View className="flex-row items-center gap-2.5 px-4" style={{ paddingTop: insets.top + 16 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
-          className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4"
+          className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface-muted px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />
           <TypingPlaceholder />
@@ -170,7 +170,7 @@ export default function CustomerHome() {
         </View>
       </View>
       <View className="flex-row gap-2.5 px-4 pb-2.5">
-        <BalanceCardBg className="flex-[0.8]">
+        <BalanceCardBg className="flex-1 rounded-xl">
           <View>
             <Text className="text-xs text-on-purple">{t("home.balance")}</Text>
             <Text className="font-bold text-base text-on-purple">Rp0</Text>
@@ -179,7 +179,7 @@ export default function CustomerHome() {
             <Text className="font-extrabold text-on-purple">A</Text>
           </View>
         </BalanceCardBg>
-        <TopupCardBg className="flex-1">
+        <TopupCardBg className="flex-1 rounded-xl">
           <View>
             <Text className="text-xs text-on-brand">{t("home.payAll")}</Text>
             <Text className="font-bold text-[15px] text-on-brand">

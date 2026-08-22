@@ -227,7 +227,7 @@ export default function LocationPickerScreen() {
             floating
             onPress={animateBack}
           />
-          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
+          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-xl bg-surface px-4 elevation-md">
             {isPickup ? (
               <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
             ) : (

@@ -394,7 +394,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => Style
     alignItems: "center",
     gap: 8,
     paddingHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: colors.surfaceMuted,
   },
   input: {
