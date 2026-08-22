@@ -578,7 +578,8 @@ export default function CreateJastipScreen() {
                     onChangeText={(v) => updateLocation(locIdx, { placeName: v })}
                     placeholder={t("jastip.placeName")}
                     placeholderTextColor="#9CA3AF"
-                    className="min-h-12 rounded-lg border border-border bg-surface px-4 text-base text-foreground"
+                    className="min-h-12 rounded-lg border border-border bg-surface text-base text-foreground"
+                    style={{ paddingHorizontal: 16 }}
                   />
 
                   {/* ── Items ────────────────────────────── */}
@@ -598,7 +599,8 @@ export default function CreateJastipScreen() {
                           }
                           placeholder={t("jastip.itemName")}
                           placeholderTextColor="#9CA3AF"
-                          className="min-h-12 flex-1 rounded-lg border border-border bg-surface px-4 text-base text-foreground"
+                          className="min-h-12 flex-1 rounded-lg border border-border bg-surface text-base text-foreground"
+                          style={{ paddingHorizontal: 16 }}
                         />
                         <TextInput
                           value={item.quantity}
