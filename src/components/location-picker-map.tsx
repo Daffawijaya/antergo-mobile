@@ -29,12 +29,14 @@ export function LocationPickerMap({
   coordinate,
   onChange,
   onRegionChange,
+  onZoomChange,
   places,
   onPlacePress,
 }: {
   coordinate?: Coordinate;
   onChange: (value: Coordinate) => void;
   onRegionChange?: (bounds: RegionBounds) => void;
+  onZoomChange?: (zoom: number) => void;
   places?: PlaceData[];
   onPlacePress?: (place: PlaceData) => void;
 }) {
@@ -61,6 +63,9 @@ export function LocationPickerMap({
       longitude: region.longitude + halfLon,
     };
     onRegionChange?.({ sw, ne });
+    // Approximate zoom from latitudeDelta (at equator)
+    const approxZoom = Math.round(Math.log2(360 / region.latitudeDelta));
+    onZoomChange?.(approxZoom);
 
     const isUserMove = details?.isGesture === true || userMovedMap.current;
     userMovedMap.current = false;

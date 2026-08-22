@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
   FaDotCircleIcon,
@@ -22,6 +22,7 @@ import { LocationPickerMap, type PlaceData, type RegionBounds } from "@/componen
 import { BackButton } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { apiNearbyMerchants, apiNearbyPlaces, type MapBounds } from "@/lib/api/geocode";
+import { filterViewportMarkers } from "@/lib/viewport-markers";
 import {
   coordinateFromLocation,
   requestCurrentLocation,
@@ -101,6 +102,7 @@ export default function LocationPickerScreen() {
   const [merchants, setMerchants] = useState<PlaceData[]>([]);
   const merchantTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const visibleBounds = useRef<RegionBounds | null>(null);
+  const currentZoom = useRef(16);
   const [address, setAddress] = useState(
     params.address ?? previous?.address ?? t("location.dragToSet"),
   );
@@ -174,6 +176,16 @@ export default function LocationPickerScreen() {
     if (merchantTimer.current) clearTimeout(merchantTimer.current);
     merchantTimer.current = setTimeout(() => void fetchMerchants(bounds), 600);
   };
+
+  const onZoomChange = (zoom: number) => {
+    currentZoom.current = zoom;
+  };
+
+  // Filter markers based on zoom level + viewport bounds for even spread
+  const visibleMerchants = useMemo(() => {
+    if (!visibleBounds.current || !merchants.length) return merchants;
+    return filterViewportMarkers(merchants, visibleBounds.current, currentZoom.current);
+  }, [merchants]);
 
   const fetchMerchants = async (bounds: MapBounds) => {
     try {
@@ -298,7 +310,8 @@ export default function LocationPickerScreen() {
             coordinate={coordinate}
             onChange={mapChanged}
             onRegionChange={onRegionChange}
-            places={merchants}
+            onZoomChange={onZoomChange}
+            places={visibleMerchants}
             onPlacePress={onPlacePress}
           />
         </Animated.View>
