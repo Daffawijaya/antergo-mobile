@@ -10,6 +10,7 @@ import { useTranslation } from "@/i18n";
 import type { Merchant, Product, ServiceVariant } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -138,7 +139,7 @@ export default function CustomerHome() {
           className="min-h-12 flex-1 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />
-          <Text className="text-base text-muted">{t("home.search")}</Text>
+          <TypingPlaceholder />
         </Pressable>
         <Pressable
           onPress={() => router.push("/(customer)/(tabs)/profile")}
@@ -342,5 +343,52 @@ function ProductSection({
         </View>
       )}
     </View>
+  );
+}
+
+const SEARCH_PLACEHOLDERS = [
+  "Mau makan apa?",
+  "Mau beli apa?",
+  "Mau cari apa?",
+];
+
+function TypingPlaceholder() {
+  const [textIndex, setTextIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentFull = SEARCH_PLACEHOLDERS[textIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!isDeleting && displayText === currentFull) {
+      // Pause before deleting
+      timeout = setTimeout(() => setIsDeleting(true), 1800);
+    } else if (isDeleting && displayText === "") {
+      // Move to next placeholder
+      setIsDeleting(false);
+      setTextIndex((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
+    } else if (isDeleting) {
+      // Delete one character
+      timeout = setTimeout(
+        () => setDisplayText(currentFull.slice(0, displayText.length - 1)),
+        40,
+      );
+    } else {
+      // Type one character
+      timeout = setTimeout(
+        () => setDisplayText(currentFull.slice(0, displayText.length + 1)),
+        70,
+      );
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, textIndex]);
+
+  return (
+    <Text className="text-base text-muted">
+      {displayText}
+      <Text className="text-muted">|</Text>
+    </Text>
   );
 }
