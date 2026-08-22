@@ -17,8 +17,10 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useTranslation } from "@/i18n";
 import type { ApiErrorPayload } from "@/types/api";
 import { updateCustomerPhoto } from "@/lib/api/auth";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AccountDetailScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useAppTheme();
   const user = useAuthStore((state) => state.user);
@@ -164,7 +166,7 @@ export default function AccountDetailScreen() {
   return (
     <Screen
       padded={false}
-      contentStyle={{ gap: 20, paddingHorizontal: 20, paddingTop: 8 }}
+      contentStyle={{ gap: 20, paddingHorizontal: 20, paddingTop: insets.top + 8 }}
       header={
         <ActionSheet
           visible={photoSheetVisible}
