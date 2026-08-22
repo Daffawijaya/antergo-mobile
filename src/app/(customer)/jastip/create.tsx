@@ -569,7 +569,7 @@ export default function CreateJastipScreen() {
                     >
                       {loc.address || t("jastip.whereToBuy")}
                     </Text>
-                    <AppIcon name="forward" size={18} color={colors.muted} />
+
                   </Pressable>
 
                   {/* Place name */}
@@ -639,7 +639,7 @@ export default function CreateJastipScreen() {
 
                   <Pressable
                     onPress={() => addItem(locIdx)}
-                    className="py-3 active:opacity-70"
+                    className="-mt-1 py-2 active:opacity-70"
                   >
                     <Text className="text-sm font-semibold text-brand">
                       + {t("jastip.addItem")}

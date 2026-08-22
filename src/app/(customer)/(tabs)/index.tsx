@@ -172,11 +172,11 @@ export default function CustomerHome() {
       <View className="flex-row gap-2.5 px-4 pb-2.5">
         <BalanceCardBg className="flex-1 rounded-xl">
           <View>
-            <Text className="text-xs text-on-purple">{t("home.balance")}</Text>
-            <Text className="font-bold text-base text-on-purple">Rp0</Text>
+            <Text className="text-xs text-white">{t("home.balance")}</Text>
+            <Text className="font-bold text-base text-white">Rp0</Text>
           </View>
-          <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-on-purple/30 bg-on-purple/20">
-            <Text className="font-extrabold text-on-purple">A</Text>
+          <View className="h-7 w-7 items-center justify-center rounded-full border-2 border-white/30 bg-white/20">
+            <Text className="font-extrabold text-white">A</Text>
           </View>
         </BalanceCardBg>
         <TopupCardBg className="flex-1 rounded-xl">

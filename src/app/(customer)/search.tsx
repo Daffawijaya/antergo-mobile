@@ -149,7 +149,7 @@ export default function SearchScreen() {
               {destination?.address || t("search.pickAddress")}
             </Text>
           </Pressable>
-          <AppIcon name="down" size={22} color={colors.text} />
+
         </View>
 
         <View style={styles.searchBox}>

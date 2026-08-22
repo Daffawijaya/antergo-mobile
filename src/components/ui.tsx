@@ -29,6 +29,11 @@ const buttonTextClasses = {
   secondary: "text-foreground",
   danger: "text-danger",
 } as const;
+const buttonLoaderColors = {
+  primary: Colors.onPrimary,
+  secondary: Colors.primary,
+  danger: Colors.danger,
+} as const;
 
 export function Screen({
   children,
@@ -218,26 +223,10 @@ export function Button({
       className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""} ${className}`}
     >
       {loading ? (
-        <ActivityIndicator
-          color={
-            variant === "primary"
-              ? Colors.onPrimary
-              : variant === "danger"
-                ? Colors.danger
-                : Colors.primary
-          }
-        />
+        <ActivityIndicator color={buttonLoaderColors[variant]} />
       ) : (
         <Text
-          className="font-extrabold text-[15px] leading-5"
-          style={{
-            color:
-              variant === "primary"
-                ? Colors.onPrimary
-                : variant === "danger"
-                  ? Colors.danger
-                  : colors.text,
-          }}
+          className={`font-extrabold text-[15px] leading-5 ${buttonTextClasses[variant]}`}
         >
           {title}
         </Text>
