@@ -16,7 +16,6 @@ import { useTranslation } from "@/i18n";
 const hidden = [
   "account-detail",
   "language",
-  "search",
   "driver-register",
   "merchant-register",
   "chat/[id]",
