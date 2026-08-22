@@ -59,7 +59,7 @@ export function PlaceMarker({
         <IconSvg name={icon} size={12 * scale} />
       </View>
 
-      {/* Text label — absolute wrapper with explicit width for proper line-breaking */}
+      {/* Text label — wrapper with explicit width for proper line-breaking */}
       {label ? (
         <View
           style={{
@@ -68,8 +68,9 @@ export function PlaceMarker({
             ...(textPosition === "right"
               ? { left: pinW + 4 }
               : { right: pinW + 4 }),
-            width: 250,
-            alignItems: textPosition === "left" ? "flex-end" : undefined,
+            width: 120,
+            flexDirection: "row",
+            justifyContent: textPosition === "left" ? "flex-end" : "flex-start",
           }}
         >
           <Text
