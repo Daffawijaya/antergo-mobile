@@ -135,7 +135,7 @@ export default function CustomerHome() {
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
-          className="h-12 flex-1 flex-row items-center gap-3 rounded-xl bg-surface px-4"
+          className="h-12 flex-1 flex-row items-center gap-3 rounded-xl bg-surface-muted px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />
           <Text className="text-base text-muted">{t("home.search")}</Text>
