@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import {
+  Animated,
+  BackHandler,
+  Dimensions,
   Image,
   Keyboard,
   Pressable,
@@ -27,6 +30,41 @@ export default function SearchScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+  const translateY = useRef(new Animated.Value(-SCREEN_HEIGHT)).current;
+  const animating = useRef(false);
+
+  const animateBack = useCallback(() => {
+    if (animating.current) return;
+    animating.current = true;
+    Keyboard.dismiss();
+    Animated.timing(translateY, {
+      toValue: -SCREEN_HEIGHT,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => router.back());
+  }, [translateY, SCREEN_HEIGHT, router]);
+
+  useEffect(() => {
+    Animated.spring(translateY, {
+      toValue: 0,
+      damping: 20,
+      stiffness: 120,
+      mass: 0.8,
+      useNativeDriver: true,
+    }).start();
+  }, [translateY]);
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const handler = () => {
+      animateBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", handler);
+    return () => sub.remove();
+  }, [animateBack]);
+
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -80,6 +118,10 @@ export default function SearchScreen() {
     });
 
   return (
+    <View style={styles.container}>
+    <Animated.View
+      style={[styles.screen, { transform: [{ translateY }] }]}
+    >
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -87,7 +129,7 @@ export default function SearchScreen() {
         contentContainerStyle={styles.scroll}
       >
         <View style={styles.locationRow}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={animateBack} style={styles.back}>
             <AppIcon name="back" size={26} color={colors.text} />
           </Pressable>
           <Pressable
@@ -266,6 +308,8 @@ export default function SearchScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+    </Animated.View>
+    </View>
   );
 }
 
@@ -308,6 +352,15 @@ function FilterChip({
 }
 
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
+  container: { flex: 1 },
+  screen: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.background,
+  },
   safe: { flex: 1, backgroundColor: colors.background },
   scroll: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 30 },
   locationRow: {

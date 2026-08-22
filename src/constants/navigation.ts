@@ -16,8 +16,9 @@ export const screenTransitions = {
     presentation: "transparentModal",
   },
   slideDown: {
-    animation: "fade_from_bottom",
-    animationDuration: 220,
+    animation: "none",
+    presentation: "transparentModal",
+    contentStyle: { backgroundColor: "transparent" },
   },
   none: {
     animation: "none",
