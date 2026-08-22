@@ -172,7 +172,7 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
         >
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
-            className="-mb-12 rounded-xl bg-surface p-4 shadow-lg active:opacity-90"
+            className="-mb-12 rounded-xl bg-surface p-4 shadow-lg"
           >
             <View className="flex-row items-center gap-3">
               {avatar ? (
