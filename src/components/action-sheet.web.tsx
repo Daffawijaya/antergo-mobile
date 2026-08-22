@@ -359,7 +359,7 @@ export function ActionSheet({
       >
         <View className="flex-1 bg-black/80 p-4">
           <View className="mx-auto w-full max-w-3xl flex-1 justify-center">
-            <View className="overflow-hidden rounded-3xl bg-black">
+            <View className="overflow-hidden rounded-2xl bg-black">
               <div
                 style={{
                   position: "relative",
@@ -416,7 +416,7 @@ export function ActionSheet({
               </div>
             </View>
 
-            <View className="mt-4 gap-3 rounded-3xl bg-surface p-4">
+            <View className="mt-4 gap-3 rounded-2xl bg-surface p-4">
               {cameraError ? (
                 <Button title="Coba Lagi" onPress={() => void startCamera()} />
               ) : (

@@ -45,7 +45,7 @@ export function CustomerPanel({
   title,
 }: PropsWithChildren<{ title?: string }>) {
   return (
-    <View className="gap-3 rounded-[18px] bg-surface-muted p-4">
+    <View className="gap-3 rounded-[14px] bg-surface-muted p-4">
       {title ? (
         <Text className="font-bold text-base text-foreground">{title}</Text>
       ) : null}

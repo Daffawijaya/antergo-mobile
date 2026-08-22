@@ -19,10 +19,10 @@ import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
 
 const buttonClasses = {
-  primary: "bg-brand",
-  secondary: "border border-border bg-surface",
+  primary: "bg-brand rounded-full",
+  secondary: "rounded-xl border border-border bg-surface",
   danger:
-    "border border-danger bg-surface-muted",
+    "rounded-xl border border-danger bg-surface-muted",
 } as const;
 const buttonTextClasses = {
   primary: "text-on-brand",
@@ -156,7 +156,7 @@ export function Card({
 }>) {
   return (
     <View
-      className={`${muted ? "bg-surface-muted" : "border border-border bg-surface elevation-sm"} gap-3 rounded-[18px] p-4 ${className}`}
+      className={`${muted ? "bg-surface-muted" : "border border-border bg-surface elevation-sm"} gap-3 rounded-lg p-4 ${className}`}
       style={style}
     >
       {children}
@@ -179,7 +179,7 @@ export function FormField({
       <TextInput
         placeholderTextColor="#9CA3AF"
         multiline={multiline}
-        className={`min-h-12 rounded-[14px] border bg-surface px-[15px] font-sans text-base text-foreground ${multiline ? "min-h-[92px] pt-3.5" : ""} ${error ? "border-danger bg-surface-muted" : "border-border"}`}
+        className={`min-h-12 rounded-lg border bg-surface px-[15px] font-sans text-base text-foreground ${multiline ? "min-h-[92px] pt-3.5" : ""} ${error ? "border-danger bg-surface-muted" : "border-border"}`}
         style={style}
         textAlignVertical={multiline ? "top" : "center"}
         {...props}
@@ -215,7 +215,7 @@ export function Button({
       accessibilityRole="button"
       disabled={inactive}
       onPress={onPress}
-      className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center rounded-[14px] active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""} ${className}`}
+      className={`${compact ? "min-h-9 px-3.5" : "min-h-12 px-4"} items-center justify-center active:opacity-80 ${buttonClasses[variant]} ${inactive ? "opacity-50" : ""} ${className}`}
     >
       {loading ? (
         <ActivityIndicator
@@ -360,7 +360,7 @@ export function Notice({
 }: PropsWithChildren<{ tone?: keyof typeof noticeClasses }>) {
   return (
     <View
-      className={`rounded-[14px] p-3 ${noticeClasses[tone]
+      className={`rounded-lg p-3 ${noticeClasses[tone]
         .split(" ")
         .filter((item) => item.startsWith("bg-") || item.startsWith("dark:bg-"))
         .join(" ")}`}

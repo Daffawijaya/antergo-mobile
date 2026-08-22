@@ -131,7 +131,7 @@ export function ProfileScreen() {
         <View className="px-4" style={{ paddingTop: insets.top + 16 }}>
           <Pressable
             onPress={() => router.push("/(customer)/account-detail")}
-            className="-mb-12 rounded-2xl bg-surface p-4 active:opacity-90"
+            className="-mb-12 rounded-lg bg-surface p-4 active:opacity-90"
             style={{
               shadowColor: "#111827",
               shadowOffset: { width: 0, height: 6 },
@@ -198,7 +198,7 @@ export function ProfileScreen() {
                   <Pressable
                     key={role}
                     onPress={() => void setActiveRole(role)}
-                    className={`flex-1 rounded-[18px] border p-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
+                    className={`flex-1 rounded-lg border p-4 active:opacity-80 ${selected ? "border-[#FFB900]" : "border-border bg-surface"}`}
                     style={
                       selected
                         ? { backgroundColor: mode === "dark" ? "#2B2410" : "#FFF9E6" }
@@ -417,7 +417,7 @@ function SettingsRow({
   return onPress ? (
     <Pressable
       onPress={onPress}
-      className={`min-h-14 flex-row items-center gap-2 border-b border-border ${danger ? "mt-2 rounded-2xl border-b-0" : ""}`}
+      className={`min-h-14 flex-row items-center gap-2 border-b border-border ${danger ? "mt-2 rounded-lg border-b-0" : ""}`}
     >
       {content}
     </Pressable>

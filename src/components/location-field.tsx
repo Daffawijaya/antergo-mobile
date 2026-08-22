@@ -21,7 +21,7 @@ export function LocationRouteCard({
   };
 }) {
   return (
-    <View className="rounded-3xl bg-surface px-4 py-2 elevation-sm">
+    <View className="rounded-2xl bg-surface px-4 py-2 elevation-sm">
       <LocationRow {...pickup} kind="pickup" />
       <View className="ml-5 h-3 w-0.5 bg-border" />
       <LocationRow {...destination} kind="destination" />
@@ -35,7 +35,7 @@ export function LocationField(props: {
   onPress: () => void;
 }) {
   return (
-    <View className="rounded-2xl border border-border bg-surface px-3">
+    <View className="rounded-xl border border-border bg-surface px-3">
       <LocationRow {...props} kind="pickup" />
     </View>
   );

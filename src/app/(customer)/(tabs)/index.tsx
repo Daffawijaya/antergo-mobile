@@ -135,7 +135,7 @@ export default function CustomerHome() {
       <View className="flex-row items-center gap-2.5 px-4 pb-4" style={{ paddingTop: insets.top + 8 }}>
         <Pressable
           onPress={() => router.push("/(customer)/search")}
-          className="h-12 flex-1 flex-row items-center gap-3 rounded-2xl bg-surface px-4"
+          className="h-12 flex-1 flex-row items-center gap-3 rounded-xl bg-surface px-4"
         >
           <AppIcon name="search" size={24} color="#737373" />
           <Text className="text-base text-muted">{t("home.search")}</Text>
@@ -168,7 +168,7 @@ export default function CustomerHome() {
         </View>
       </View>
       <View className="flex-row gap-2.5 px-4 pb-2.5">
-        <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
+        <View className="min-h-[66px] flex-[0.8] flex-row items-center justify-between rounded-xl border border-border bg-surface px-3">
           <View>
             <Text className="text-xs text-muted">{t("home.balance")}</Text>
             <Text className="font-bold text-base text-foreground">Rp0</Text>
@@ -177,7 +177,7 @@ export default function CustomerHome() {
             <Text className="font-extrabold text-brand-dark">A</Text>
           </View>
         </View>
-        <View className="min-h-[66px] flex-1 flex-row items-center justify-between rounded-2xl border border-border bg-surface px-3">
+        <View className="min-h-[66px] flex-1 flex-row items-center justify-between rounded-xl border border-border bg-surface px-3">
           <View>
             <Text className="text-xs text-muted">{t("home.payAll")}</Text>
             <Text className="font-bold text-[15px] text-foreground">
@@ -245,7 +245,7 @@ function MerchantSection({
             <Pressable
               key={merchant.id}
               onPress={() => onPress(merchant)}
-              className="w-[48%] grow overflow-hidden rounded-2xl border border-border bg-surface active:opacity-75"
+              className="w-[48%] grow overflow-hidden rounded-xl border border-border bg-surface active:opacity-75"
             >
               {merchant.logo ? (
                 <Image
@@ -308,7 +308,7 @@ function ProductSection({
             <Pressable
               key={product.id}
               onPress={() => onPress(product)}
-              className="w-[48%] grow overflow-hidden rounded-2xl border border-border bg-surface active:opacity-75"
+              className="w-[48%] grow overflow-hidden rounded-xl border border-border bg-surface active:opacity-75"
             >
               {product.image ? (
                 <Image

@@ -312,7 +312,7 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
     /* All-merchants styles */
     merchantCard: {
       backgroundColor: colors.surface,
-      borderRadius: 16,
+      borderRadius: 9,
       padding: 14,
       marginBottom: 12,
       borderWidth: 1,
@@ -327,12 +327,12 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
     merchantLogo: {
       width: 44,
       height: 44,
-      borderRadius: 12,
+      borderRadius: 9,
     },
     merchantLogoPlaceholder: {
       width: 44,
       height: 44,
-      borderRadius: 12,
+      borderRadius: 9,
       backgroundColor: colors.surfaceMuted,
       alignItems: "center",
       justifyContent: "center",

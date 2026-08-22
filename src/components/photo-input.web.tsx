@@ -250,7 +250,7 @@ export function PhotoInput({
         <Text className="text-sm leading-5 text-muted">{helper}</Text>
 
         <View
-          className={`relative overflow-hidden rounded-2xl border border-border bg-surface-muted ${
+          className={`relative overflow-hidden rounded-xl border border-border bg-surface-muted ${
             isDocument ? "aspect-[1.58]" : "aspect-[4/3]"
           }`}
         >
@@ -323,7 +323,7 @@ export function PhotoInput({
       >
         <View className="flex-1 bg-black/80 p-4">
           <View className="mx-auto w-full max-w-3xl flex-1 justify-center">
-            <View className="overflow-hidden rounded-3xl bg-black">
+            <View className="overflow-hidden rounded-2xl bg-black">
               <div
                 style={{
                   position: "relative",
@@ -380,7 +380,7 @@ export function PhotoInput({
               </div>
             </View>
 
-            <View className="mt-4 gap-3 rounded-3xl bg-surface p-4">
+            <View className="mt-4 gap-3 rounded-2xl bg-surface p-4">
               {cameraError ? (
                 <Button title="Coba Lagi" onPress={() => void startCamera()} />
               ) : (

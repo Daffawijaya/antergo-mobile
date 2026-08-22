@@ -80,7 +80,7 @@ function ProductRow({
           {product.image ? (
             <Image
               source={{ uri: product.image }}
-              className="h-full w-full rounded-[14px]"
+              className="h-full w-full rounded-[12px]"
               resizeMode="cover"
             />
           ) : (
@@ -284,7 +284,7 @@ export default function MerchantDetailScreen() {
 
             {/* ---- Merchant card (overlapping cover) ---- */}
             <View
-              className="-mt-6 mx-4 flex-row overflow-hidden rounded-2xl p-3"
+              className="-mt-6 mx-4 flex-row overflow-hidden rounded-xl p-3"
               style={{
                 backgroundColor: colors.surface,
                 shadowColor: "#111827",
@@ -297,7 +297,7 @@ export default function MerchantDetailScreen() {
               {query.data.logo ? (
                 <Image
                   source={{ uri: query.data.logo }}
-                  className="h-[100px] w-[100px] rounded-[14px]"
+                  className="h-[100px] w-[100px] rounded-[12px]"
                   resizeMode="cover"
                 />
               ) : (
@@ -356,7 +356,7 @@ export default function MerchantDetailScreen() {
                           {CATEGORY_LABELS[catKey]}
                         </Text>
                         <View
-                          className="rounded-2xl"
+                          className="rounded-xl"
                           style={{ backgroundColor: colors.surface }}
                         >
                           {prods.map((product, idx) => {

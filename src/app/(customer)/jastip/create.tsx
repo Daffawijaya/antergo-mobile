@@ -48,7 +48,7 @@ const UNIT_OPTIONS = [
 
 const emptyItem = (): JastipItem => ({
   name: "",
-  quantity: "1",
+  quantity: "",
   unit: "",
   price: "",
   note: "",
@@ -245,6 +245,11 @@ export default function CreateJastipScreen() {
       if (validItems.length === 0) {
         errs.push(`${t("jastip.shoppingList")} #${i + 1}: ${t("jastip.minItems")}`);
       }
+      for (const it of validItems) {
+        if (it.quantity.trim() !== "" && Number(it.quantity) === 0) {
+          errs.push(`${it.name || "Barang"} tidak boleh 0`);
+        }
+      }
     }
 
     const total = Number(advanceAmount);
@@ -275,7 +280,7 @@ export default function CreateJastipScreen() {
           .filter((it) => it.name.trim())
           .map((it) => ({
             name: it.name.trim(),
-            quantity: it.quantity?.trim() || undefined,
+            quantity: it.quantity?.trim() || "1",
             unit: it.unit?.trim() || undefined,
             note: it.note?.trim() || undefined,
           })),
@@ -453,7 +458,7 @@ export default function CreateJastipScreen() {
       {/* ── Antar ke? (destination) ──────────────────────── */}
       <View className="px-5" style={{ marginTop: -46 }}>
         <View
-          className="rounded-2xl bg-surface px-4 py-5"
+          className="rounded-xl bg-surface px-4 py-5"
           style={{
             shadowColor: "#111827",
             shadowOffset: { width: 0, height: 6 },
@@ -533,7 +538,7 @@ export default function CreateJastipScreen() {
                   {/* Location picker */}
                   <Pressable
                     onPress={() => openPickupPicker(locIdx)}
-                    className="flex-row items-center rounded-[14px] border border-border bg-surface px-[15px] min-h-12 active:opacity-70"
+                    className="flex-row items-center rounded-lg border border-border bg-surface px-4 min-h-12 active:opacity-70"
                   >
                     <View className="w-6 items-center justify-center">
                       <FaDotCircleIcon size={16} color={PICKUP_BLUE} />
@@ -553,7 +558,7 @@ export default function CreateJastipScreen() {
                     onChangeText={(v) => updateLocation(locIdx, { placeName: v })}
                     placeholder={t("jastip.placeName")}
                     placeholderTextColor="#9CA3AF"
-                    className="min-h-12 rounded-[14px] border border-border bg-surface px-[15px] text-base text-foreground"
+                    className="min-h-12 rounded-lg border border-border bg-surface px-4 text-base text-foreground"
                   />
 
                   {/* ── Items ────────────────────────────── */}
@@ -563,9 +568,6 @@ export default function CreateJastipScreen() {
 
                   {loc.items.map((item, itemIdx) => (
                     <View key={itemIdx}>
-                      {itemIdx > 0 && (
-                        <View className="my-2.5 h-px bg-border" />
-                      )}
 
                       {/* Single row: Nama · Jumlah · Satuan · X */}
                       <View className="flex-row items-center gap-2">
@@ -576,13 +578,20 @@ export default function CreateJastipScreen() {
                           }
                           placeholder={t("jastip.itemName")}
                           placeholderTextColor="#9CA3AF"
-                          className="min-h-12 flex-1 rounded-[14px] border border-border bg-surface px-[15px] text-base text-foreground"
+                          className="min-h-12 flex-1 rounded-lg border border-border bg-surface px-4 text-base text-foreground"
                         />
-                        <QuantityCounter
+                        <TextInput
                           value={item.quantity}
-                          onChange={(v) =>
-                            updateItem(locIdx, itemIdx, { quantity: v })
+                          onChangeText={(v) =>
+                            updateItem(locIdx, itemIdx, {
+                              quantity: v.replace(/[^0-9]/g, ""),
+                            })
                           }
+                          placeholder="jml"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="numeric"
+                          textAlign="center"
+                          className="min-h-12 w-[48px] rounded-lg border border-border bg-surface px-1.5 text-base text-foreground"
                         />
                         <UnitDropdown
                           value={item.unit}
@@ -593,11 +602,11 @@ export default function CreateJastipScreen() {
                         <Pressable
                           onPress={() => removeItem(locIdx, itemIdx)}
                           hitSlop={8}
-                          className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
+                          className="active:opacity-60"
                         >
                           <AppIcon
-                            name="close"
-                            size={20}
+                            name="x"
+                            size={28}
                             color="#9CA3AF"
                             strokeWidth={1.5}
                           />
@@ -631,7 +640,7 @@ export default function CreateJastipScreen() {
         {/* Add location button */}
         <Pressable
           onPress={() => setLocations((prev) => [...prev, emptyLocation()])}
-          className="mt-4 items-center rounded-2xl border-2 border-dashed border-brand/40 bg-brand/5 py-3.5 active:opacity-70"
+          className="mt-4 items-center rounded-xl border border-dashed border-brand/40 bg-brand/5 py-3.5 active:opacity-70"
         >
           <Text className="font-bold text-sm text-brand">
             {t("jastip.addLocation")}
@@ -641,12 +650,12 @@ export default function CreateJastipScreen() {
 
       {/* ── Bottom section ───────────────────────────────── */}
       <View className="gap-4 px-5 pt-4">
-        {/* Perkiraan Total Harga */}
+        {/* Perkiraan Harga */}
         <View className="gap-3">
           <Text className="font-extrabold text-[17px] text-foreground">
-            Perkiraan Total Harga
+            Perkiraan Harga
           </Text>
-          <View className="rounded-[14px] border border-border bg-surface px-[15px]">
+          <View className="rounded-lg border border-border bg-surface px-5">
             <View className="min-h-12 flex-row items-center gap-1">
               <Text className="text-base text-muted">Rp</Text>
               <TextInput
@@ -672,7 +681,7 @@ export default function CreateJastipScreen() {
 
         {/* Summary */}
         {totalItemCount > 0 ? (
-          <View className="rounded-2xl border border-border bg-surface p-4">
+          <View className="rounded-xl border border-border bg-surface p-4">
             <Text className="font-extrabold text-[15px] text-foreground">
               Ringkasan
             </Text>
@@ -712,44 +721,6 @@ export default function CreateJastipScreen() {
   );
 }
 
-/* ── Quantity Counter (+/- buttons) ────────────────────── */
-
-function QuantityCounter({
-  value,
-  onChange,
-}: {
-  value?: string;
-  onChange: (v: string) => void;
-}) {
-  const num = Number(value) || 1;
-
-  const decrement = () => {
-    if (num > 1) onChange(String(num - 1));
-  };
-  const increment = () => onChange(String(num + 1));
-
-  return (
-    <View className="h-9 flex-row items-center gap-0">
-      <Pressable
-        onPress={decrement}
-        disabled={num <= 1}
-        className="h-7 w-7 items-center justify-center rounded-full bg-surface-muted"
-        style={num <= 1 ? { opacity: 0.3 } : undefined}
-      >
-        <Text className="font-bold text-sm text-foreground">−</Text>
-      </Pressable>
-      <Text className="min-w-[18px] text-center text-sm font-semibold text-foreground">
-        {num}
-      </Text>
-      <Pressable
-        onPress={increment}
-        className="h-7 w-7 items-center justify-center rounded-full bg-surface-muted"
-      >
-        <Text className="font-bold text-sm text-foreground">+</Text>
-      </Pressable>
-    </View>
-  );
-}
 
 /* ── Unit Dropdown ───────────────────────────────────────── */
 
@@ -789,7 +760,7 @@ function UnitDropdown({
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className="min-h-12 min-w-[72px] flex-row items-center justify-between rounded-[14px] border border-border bg-surface px-[15px]"
+        className="min-h-12 w-[80px] flex-row items-center justify-between rounded-lg border border-border bg-surface px-2"
       >
         <Text
           numberOfLines={1}
@@ -805,7 +776,7 @@ function UnitDropdown({
           <View className="flex-1 items-center justify-center bg-black/40">
             <TouchableWithoutFeedback>
               <View
-                className="w-72 max-h-80 rounded-2xl bg-surface p-2"
+                className="w-72 max-h-80 rounded-lg bg-surface p-2"
                 style={{
                   shadowColor: "#111827",
                   shadowOffset: { width: 0, height: 4 },
@@ -821,7 +792,7 @@ function UnitDropdown({
                         <Pressable
                           key={opt.value}
                           onPress={() => handleSelect(opt.value)}
-                          className={`rounded-xl px-4 py-3 ${opt.value === value ? "bg-brand/10" : ""}`}
+                          className={`rounded-lg px-4 py-3 ${opt.value === value ? "bg-brand/10" : ""}`}
                         >
                           <Text
                             className={`text-sm ${opt.value === value ? "font-bold text-brand" : "text-foreground"}`}
@@ -834,7 +805,7 @@ function UnitDropdown({
                       <View className="my-1 h-px bg-border" />
                       <Pressable
                         onPress={() => setCustomMode(true)}
-                        className="rounded-xl px-4 py-3"
+                        className="rounded-lg px-4 py-3"
                       >
                         <Text className="text-sm font-semibold text-brand">
                           {t("jastip.typeManual")}
@@ -853,12 +824,12 @@ function UnitDropdown({
                         placeholder="Contoh: Lembar"
                         placeholderTextColor="#9CA3AF"
                         onSubmitEditing={handleCustomSubmit}
-                        className="min-h-10 rounded-xl border border-border bg-surface px-3 text-sm text-foreground"
+                        className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground"
                       />
                       <View className="flex-row gap-2">
                         <Pressable
                           onPress={() => setCustomMode(false)}
-                          className="flex-1 items-center justify-center rounded-xl border border-border py-2.5"
+                          className="flex-1 items-center justify-center rounded-lg border border-border py-2.5"
                         >
                           <Text className="text-sm font-semibold text-muted">
                             Kembali
@@ -866,7 +837,7 @@ function UnitDropdown({
                         </Pressable>
                         <Pressable
                           onPress={handleCustomSubmit}
-                          className="flex-1 items-center justify-center rounded-xl bg-brand py-2.5"
+                          className="flex-1 items-center justify-center rounded-lg bg-brand py-2.5"
                         >
                           <Text className="text-sm font-bold text-on-brand">
                             Pilih

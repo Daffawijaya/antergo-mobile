@@ -489,7 +489,7 @@ function LocationCard({
 }) {
   const { colors } = useAppTheme();
   return (
-    <View className="mt-4 rounded-2xl bg-surface px-4 py-5">
+    <View className="mt-4 rounded-xl bg-surface px-4 py-5">
       <View className="flex-row">
         <View className="flex-1">
           <LocationRow

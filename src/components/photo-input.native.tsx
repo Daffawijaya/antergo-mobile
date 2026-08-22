@@ -103,7 +103,7 @@ export function PhotoInput({
       <Text className="text-sm leading-5 text-muted">{helper}</Text>
 
       <View
-        className={`relative overflow-hidden rounded-2xl border border-border bg-surface-muted ${
+        className={`relative overflow-hidden rounded-xl border border-border bg-surface-muted ${
           document ? "aspect-[1.58]" : "aspect-[4/3]"
         }`}
       >

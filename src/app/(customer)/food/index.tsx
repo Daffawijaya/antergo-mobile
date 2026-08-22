@@ -301,7 +301,7 @@ export default function CommerceCatalogScreen() {
             onBack={handleBack}
           />
         </View>
-        <View className="mt-4 flex-row items-center gap-2 rounded-2xl bg-surface px-4 elevation-md">
+        <View className="mt-4 flex-row items-center gap-2 rounded-xl bg-surface px-4 elevation-md">
           <AppIcon name="search" size={23} color={colors.muted} />
           <TextInput
             value={query}
@@ -418,10 +418,10 @@ export default function CommerceCatalogScreen() {
                   {merchant.logo ? (
                     <Image
                       source={{ uri: merchant.logo }}
-                      className="h-24 w-24 rounded-2xl"
+                      className="h-24 w-24 rounded-xl"
                     />
                   ) : (
-                    <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
+                    <View className="h-24 w-24 items-center justify-center rounded-xl bg-surface-muted">
                       <AppIcon name="store" size={34} color={Colors.primary} />
                     </View>
                   )}
@@ -472,10 +472,10 @@ export default function CommerceCatalogScreen() {
                 {product.image ? (
                   <Image
                     source={{ uri: product.image }}
-                    className="h-24 w-24 rounded-2xl"
+                    className="h-24 w-24 rounded-xl"
                   />
                 ) : (
-                  <View className="h-24 w-24 items-center justify-center rounded-2xl bg-surface-muted">
+                  <View className="h-24 w-24 items-center justify-center rounded-xl bg-surface-muted">
                     <Text className="text-4xl">🛍️</Text>
                   </View>
                 )}
@@ -507,7 +507,7 @@ export default function CommerceCatalogScreen() {
             <Pressable
               disabled={page <= 1}
               onPress={() => setPage((value) => value - 1)}
-              className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page <= 1 ? "opacity-40" : ""}`}
+              className={`rounded-lg bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page <= 1 ? "opacity-40" : ""}`}
             >
               <Text className="font-semibold text-brand-dark">{t("common.previous")}</Text>
             </Pressable>
@@ -517,7 +517,7 @@ export default function CommerceCatalogScreen() {
             <Pressable
               disabled={page >= paginator.last_page}
               onPress={() => setPage((value) => value + 1)}
-              className={`rounded-xl bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page >= paginator.last_page ? "opacity-40" : ""}`}
+              className={`rounded-lg bg-brand-soft px-4 py-2.5 dark:bg-surface-muted ${page >= paginator.last_page ? "opacity-40" : ""}`}
             >
               <Text className="font-semibold text-brand-dark">{t("common.next")}</Text>
             </Pressable>

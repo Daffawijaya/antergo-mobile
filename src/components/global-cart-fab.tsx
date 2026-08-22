@@ -49,7 +49,7 @@ export function GlobalCartFab() {
           pathname: "/(customer)/food/cart",
         })
       }
-      className={`absolute ${fabBottom} right-5 h-14 w-14 items-center justify-center rounded-2xl bg-white`}
+      className={`absolute ${fabBottom} right-5 h-14 w-14 items-center justify-center rounded-xl bg-white`}
       style={{
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },

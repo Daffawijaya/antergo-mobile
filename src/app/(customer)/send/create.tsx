@@ -547,7 +547,7 @@ function LocationCard({
   const { colors } = useAppTheme();
   return (
     <View
-      className="rounded-2xl bg-surface px-4 py-5"
+      className="rounded-xl bg-surface px-4 py-5"
       style={{
         shadowColor: "#111827",
         shadowOffset: { width: 0, height: 6 },
@@ -636,7 +636,7 @@ function SuggestionRow({
         <Pressable
           key={order.id}
           onPress={() => onSelect(order)}
-          className="min-w-[150px] max-w-[220px] rounded-2xl border border-border bg-surface px-3.5 py-3 active:opacity-75"
+          className="min-w-[150px] max-w-[220px] rounded-xl border border-border bg-surface px-3.5 py-3 active:opacity-75"
         >
           <Text className="text-[11px] font-medium leading-4 text-muted">
             Kirim ke
@@ -712,7 +712,7 @@ function VehicleCard({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      className="flex-1 flex-row items-center justify-between rounded-[18px] px-4 py-4 active:opacity-80"
+      className="flex-1 flex-row items-center justify-between rounded-[14px] px-4 py-4 active:opacity-80"
       style={{
         backgroundColor: selected
           ? mode === "dark"
