@@ -143,7 +143,7 @@ export default function CustomerHome() {
           <TypingPlaceholder />
         </Pressable>
         <Pressable
-          onPress={() => router.push("/(customer)/(tabs)/profile")}
+          onPress={() => router.push("/(customer)/profile-view")}
           className="h-12 w-12 items-center justify-center overflow-hidden rounded-full active:opacity-70"
         >
           {avatar ? (

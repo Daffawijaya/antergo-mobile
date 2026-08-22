@@ -31,6 +31,7 @@ export default function CustomerLayout() {
       <Stack.Screen name="jastip/create" options={screenTransitions.overlayPush} />
       <Stack.Screen name="search" options={screenTransitions.slideDown} />
       <Stack.Screen name="account-detail" options={screenTransitions.overlayPush} />
+      <Stack.Screen name="profile-view" options={screenTransitions.overlayPush} />
       <Stack.Screen name="language" />
       <Stack.Screen name="driver-register" />
       <Stack.Screen name="merchant-register" />
