@@ -252,28 +252,36 @@ export default function MerchantDetailScreen() {
         ) : query.data ? (
           <>
             {/* ---- Cover image + header ---- */}
-            <View className="-mx-5 bg-surface-muted">
+            <View className="relative">
               {/* Cover image */}
-              {query.data.cover_image ? (
-                <Image
-                  source={{ uri: query.data.cover_image }}
-                  className="h-[100px] w-full"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="h-[100px] w-full items-center justify-center bg-surface-muted"></View>
-              )}
+              <View className="-mx-5 h-[130px] items-center justify-center overflow-hidden bg-surface-muted">
+                {query.data.cover_image ? (
+                  <Image
+                    source={{ uri: query.data.cover_image }}
+                    className="h-[130px] w-full"
+                    resizeMode="cover"
+                  />
+                ) : null}
+              </View>
 
               {/* Header overlay */}
-              <View className="absolute top-0 w-full px-4">
+              <View className="absolute left-0 top-0 w-full px-4">
                 <SafeAreaView edges={["top"]}>
-                  <View className="flex-row items-center gap-2 px-9 pb-2 pt-5">
+                  <View className="flex-row items-center pb-2 pt-5">
                     <Pressable
                       accessibilityLabel="Kembali"
                       onPress={handleBack}
-                      className="ml-0.5 h-10 w-10 items-center justify-center rounded-full bg-black/30"
+                      style={{
+                        height: 36,
+                        width: 36,
+                        borderRadius: 18,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1,
+                      }}
                     >
-                      <AppIcon name="back" size={22} color="#FFFFFF" />
+                      <AppIcon name="back" size={20} color="#FFFFFF" />
                     </Pressable>
                   </View>
                 </SafeAreaView>
@@ -282,7 +290,7 @@ export default function MerchantDetailScreen() {
 
             {/* ---- Merchant card (overlapping cover) ---- */}
             <View
-              className="-mt-6 mx-4 flex-row overflow-hidden rounded-xl bg-surface p-3 shadow-lg"
+              className="-mt-9 mx-4 flex-row overflow-hidden rounded-xl bg-surface p-3 shadow-lg"
             >
               {query.data.logo ? (
                 <Image
