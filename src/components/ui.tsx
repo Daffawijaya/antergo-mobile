@@ -251,7 +251,7 @@ export function BackButton({
       accessibilityRole="button"
       accessibilityLabel="Kembali"
       onPress={onPress}
-      className={`h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface elevation-md" : "bg-transparent"}`}
+      className={`h-10 w-10 items-center justify-center rounded-full active:opacity-70 ${floating ? "bg-surface shadow-md" : "-ml-3 bg-transparent"}`}
     >
       <AppIcon name="back" size={26} color={color} />
     </Pressable>

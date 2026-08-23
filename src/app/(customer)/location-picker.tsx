@@ -114,6 +114,9 @@ export default function LocationPickerScreen() {
   const mapOpacity = useRef(new Animated.Value(0)).current;
   const topTranslateY = useRef(new Animated.Value(-80)).current;
   const bottomTranslateY = useRef(new Animated.Value(300)).current;
+  // Seluruh layar ikut fade saat keluar; karena modalnya transparan,
+  // halaman di bawahnya terlihat fade-in mulus.
+  const rootOpacity = useRef(new Animated.Value(1)).current;
 
   const animateBack = useCallback(() => {
     if (animating.current) return;
@@ -122,8 +125,9 @@ export default function LocationPickerScreen() {
       Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
       Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
       Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
+      Animated.timing(rootOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
     ]).start(() => router.back());
-  }, [mapOpacity, topTranslateY, bottomTranslateY, router]);
+  }, [mapOpacity, topTranslateY, bottomTranslateY, rootOpacity, router]);
 
   useEffect(() => {
     Keyboard.dismiss();
@@ -251,6 +255,7 @@ export default function LocationPickerScreen() {
       Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
       Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
       Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
+      Animated.timing(rootOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
     ]).start(() => cb());
   };
   const confirm = () => {
@@ -273,8 +278,8 @@ export default function LocationPickerScreen() {
     else animateBack();
   };
   return (
-    <View
-      style={{ flex: 1, backgroundColor: colors.background }}
+    <Animated.View
+      style={{ flex: 1, backgroundColor: colors.background, opacity: rootOpacity }}
     >
       <View style={{ flex: 1 }}>
         <Animated.View style={{ flex: 1, opacity: mapOpacity }}>
@@ -306,17 +311,25 @@ export default function LocationPickerScreen() {
             </Text>
           </View>
         </Animated.View>
-        <Pressable
-          onPress={() => void gps()}
-          className="h-12 w-12 items-center justify-center rounded-full bg-surface shadow-md"
-          style={{ position: "absolute", right: 20, bottom: 168 }}
+        <Animated.View
+          style={{
+            position: "absolute",
+            right: 20,
+            bottom: 155,
+            transform: [{ translateY: bottomTranslateY }],
+          }}
         >
-          <AppIcon
-            name="locate"
-            size={23}
-            color={mode === "dark" ? "#FFFFFF" : "#000000"}
-          />
-        </Pressable>
+          <Pressable
+            onPress={() => void gps()}
+            className="h-12 w-12 items-center justify-center rounded-full bg-surface shadow-md"
+          >
+            <AppIcon
+              name="locate"
+              size={23}
+              color={mode === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
+        </Animated.View>
         <Animated.View
           className="rounded-t-[28px] bg-surface px-5 pt-4 elevation-lg"
           style={{
@@ -357,6 +370,6 @@ export default function LocationPickerScreen() {
           </Pressable>
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
