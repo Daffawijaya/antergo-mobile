@@ -1,5 +1,4 @@
 import { AppIcon } from "@/components/app-icon";
-import { HiUserCircleIcon } from "@/components/brand-icons";
 import { Screen, StatusState } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { listMerchants, listNearbyProducts } from "@/lib/api/food";
@@ -153,7 +152,11 @@ export default function CustomerHome() {
               resizeMode="cover"
             />
           ) : (
-            <HiUserCircleIcon size={48} color={Colors.muted} />
+            <Image
+              source={require("../../../../assets/images/noimages.jpg")}
+              className="h-full w-full"
+              resizeMode="cover"
+            />
           )}
         </Pressable>
       </View>

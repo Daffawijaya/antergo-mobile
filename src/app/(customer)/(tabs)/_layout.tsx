@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { AnimatedTabButton } from "@/components/animated-tab-button";
 import { GlobalCartFab } from "@/components/global-cart-fab";
 import {
   BsChatTextFillIcon,
@@ -30,6 +31,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: "#767676",
         tabBarHideOnKeyboard: true,
+        tabBarButton: (props) => <AnimatedTabButton {...props} />,
         tabBarStyle: {
           height: 76,
           paddingTop: 5,

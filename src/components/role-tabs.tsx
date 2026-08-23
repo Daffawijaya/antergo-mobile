@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { AnimatedTabButton } from "@/components/animated-tab-button";
 import {
   FaRegUserIcon,
   FaUserIcon,
@@ -26,6 +27,7 @@ export function RoleTabs({
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarHideOnKeyboard: true,
+        tabBarButton: (props) => <AnimatedTabButton {...props} />,
         tabBarStyle: {
           height: 78,
           paddingTop: 8,

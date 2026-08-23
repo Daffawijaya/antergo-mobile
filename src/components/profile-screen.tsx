@@ -1,5 +1,5 @@
 import { AppIcon } from "@/components/app-icon";
-import { FaWhatsappIcon, HiUserCircleIcon } from "@/components/brand-icons";
+import { FaWhatsappIcon } from "@/components/brand-icons";
 import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -184,7 +184,13 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
                   />
                 </View>
               ) : (
-                <HiUserCircleIcon size={64} color={colors.muted} />
+                <View className="h-16 w-16 overflow-hidden rounded-full">
+                  <Image
+                    source={require("../../assets/images/noimages.jpg")}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                  />
+                </View>
               )}
               <View className="min-w-0 flex-1">
                 <Text

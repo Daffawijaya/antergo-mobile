@@ -200,7 +200,8 @@ const id = {
   "cart.allOrdersDesc": "Gabungan seluruh item dari semua UMKM.",
   "cart.foodCart": "Keranjang Makanan",
   "cart.shoppingCart": "Keranjang Belanja",
-  "cart.subtotalPreview": "Subtotal hanya preview. Harga dan stok final divalidasi backend.",
+  "cart.subtotalPreview":
+    "Subtotal hanya preview. Harga dan stok final divalidasi backend.",
   "cart.empty": "Keranjang masih kosong.",
   "cart.searchMerchant": "Cari Toko",
   "cart.startShopping": "Mulai Belanja",
@@ -210,7 +211,8 @@ const id = {
   "cart.pricePreview": "Harga preview",
   "cart.stockKnown": "Stok diketahui",
   "cart.subtotalPreviewLabel": "Subtotal preview",
-  "cart.checkoutNote": "Biaya antar, biaya layanan, harga, dan total akhir dihitung saat checkout.",
+  "cart.checkoutNote":
+    "Biaya antar, biaya layanan, harga, dan total akhir dihitung saat checkout.",
   "cart.removeConfirm": "Hapus semua item dari cart?",
 
   /* ── checkout ───────────────────────────────────────────── */
@@ -226,7 +228,8 @@ const id = {
   "driver.stepOf": "Langkah {step} dari 3",
   "driver.profile": "Profil Driver",
   "driver.photo": "Foto Driver",
-  "driver.photoHint": "Pastikan wajah jelas, hanya satu orang, dan pencahayaan cukup.",
+  "driver.photoHint":
+    "Pastikan wajah jelas, hanya satu orang, dan pencahayaan cukup.",
   "driver.accountName": "Nama akun",
   "driver.phoneNumber": "Nomor ponsel",
   "driver.nik": "NIK",
@@ -234,7 +237,8 @@ const id = {
   "driver.nextToDocuments": "Lanjut ke Dokumen",
   "driver.documents": "Dokumen",
   "driver.ktpPhoto": "Foto KTP",
-  "driver.ktpHint": "Pastikan seluruh dokumen masuk frame, tulisan terbaca, tidak blur, dan tanpa pantulan.",
+  "driver.ktpHint":
+    "Pastikan seluruh dokumen masuk frame, tulisan terbaca, tidak blur, dan tanpa pantulan.",
   "driver.nextToVehicles": "Lanjut ke Kendaraan",
   "driver.vehicles": "Kendaraan",
   "driver.motorcycle": "Motor",
@@ -246,7 +250,8 @@ const id = {
   "driver.plateNumber": "Nomor polisi",
   "driver.color": "Warna",
   "driver.vehiclePhoto": "Foto Kendaraan",
-  "driver.vehiclePhotoHint": "Pastikan kendaraan terlihat jelas dan nomor polisi dapat dibaca.",
+  "driver.vehiclePhotoHint":
+    "Pastikan kendaraan terlihat jelas dan nomor polisi dapat dibaca.",
   "driver.simCPhoto": "Foto SIM C",
   "driver.simCHint": "SIM C hanya perlu diunggah satu kali untuk semua motor.",
   "driver.simAPhoto": "Foto SIM A",
@@ -256,7 +261,8 @@ const id = {
   "driver.simCRequired": "SIM C diperlukan untuk motor.",
   "driver.submitRegistration": "Kirim Pendaftaran",
   "driver.fillVehicleData": "Lengkapi semua data dan foto kendaraan.",
-  "driver.fillProfile": "Lengkapi profil, dokumen, kendaraan, dan SIM yang sesuai.",
+  "driver.fillProfile":
+    "Lengkapi profil, dokumen, kendaraan, dan SIM yang sesuai.",
 
   /* ── documents ──────────────────────────────────────────── */
   "documents.title": "Dokumen & SIM",
@@ -276,7 +282,8 @@ const id = {
   "merchantRegister.subtitle": "Daftarkan toko dan mulai menerima pesanan",
   "merchantRegister.businessInfo": "Informasi Toko",
   "merchantRegister.businessPhoto": "Foto Toko",
-  "merchantRegister.businessPhotoHint": "Gunakan logo, foto toko, atau foto produk terbaikmu.",
+  "merchantRegister.businessPhotoHint":
+    "Gunakan logo, foto toko, atau foto produk terbaikmu.",
   "merchantRegister.category": "Kategori *",
   "merchantRegister.businessName": "Nama UMKM",
   "merchantRegister.description": "Deskripsi (opsional)",
@@ -310,7 +317,8 @@ const id = {
   "rating.title": "Penilaian",
   "rating.yourRating": "Penilaian Anda",
   "rating.giveRating": "Beri Penilaian",
-  "rating.availableAfter": "Penilaian tersedia setelah driver mengonfirmasi pembayaran tunai.",
+  "rating.availableAfter":
+    "Penilaian tersedia setelah driver mengonfirmasi pembayaran tunai.",
   "rating.target": "Target",
   "rating.merchant": "Toko",
   "rating.driver": "Driver",
@@ -367,7 +375,8 @@ const id = {
   "actionSheet.pickingFile": "Memilih foto…",
   "actionSheet.cameraFailed": "Gagal mengambil foto",
   "actionSheet.photoFailed": "Foto gagal diproses",
-  "actionSheet.cameraPermission": "Izin kamera ditolak. Izinkan akses kamera melalui pengaturan situs Chrome.",
+  "actionSheet.cameraPermission":
+    "Izin kamera ditolak. Izinkan akses kamera melalui pengaturan situs Chrome.",
   "actionSheet.cameraUnavailable": "Browser ini tidak mendukung akses kamera.",
   "actionSheet.cameraPreviewError": "Preview kamera tidak dapat ditampilkan.",
   "actionSheet.cameraNotReady": "Kamera belum siap. Silakan coba lagi.",
@@ -414,7 +423,8 @@ const id = {
   "location.searchingAddress": "Mencari alamat…",
   "location.currentUnavailable": "Lokasi saat ini tidak tersedia.",
   "location.selectFirst": "Pilih lokasi terlebih dahulu.",
-  "location.notFound": "Lokasi tidak ditemukan. Coba kata kunci yang lebih lengkap.",
+  "location.notFound":
+    "Lokasi tidak ditemukan. Coba kata kunci yang lebih lengkap.",
   "location.lastSelected": "Terakhir dipilih",
   "location.searchResults": "Hasil pencarian",
   "location.pickOnMap": "Pilih di peta",
@@ -434,7 +444,8 @@ const id = {
 
   /* ── food order detail ─────────────────────────────────── */
   "foodOrder.title": "Pesanan Makanan",
-  "foodOrder.statusUpdate": "Status diperbarui setiap 5 detik selama order aktif.",
+  "foodOrder.statusUpdate":
+    "Status diperbarui setiap 5 detik selama order aktif.",
   "foodOrder.merchant": "Merchant",
   "foodOrder.deliveryFee": "Ongkir",
   "foodOrder.total": "Total",
@@ -448,7 +459,8 @@ const id = {
   /* ── ride order detail ─────────────────────────────────── */
   "rideOrder.detail": "Detail Perjalanan",
   "rideOrder.detailTitle": "Detail perjalanan",
-  "rideOrder.statusUpdate": "Status diperbarui otomatis selama perjalanan aktif.",
+  "rideOrder.statusUpdate":
+    "Status diperbarui otomatis selama perjalanan aktif.",
   "rideOrder.total": "Total",
   "rideOrder.phone": "Telepon",
   "rideOrder.vehicle": "Kendaraan",

@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { AnimatedTabButton } from "@/components/animated-tab-button";
 import {
   BsChatTextFillIcon,
   BsChatTextIcon,
@@ -26,6 +27,7 @@ export default function DriverLayout() {
           tabBarActiveTintColor: Colors.primary,
           tabBarInactiveTintColor: colors.muted,
           tabBarHideOnKeyboard: true,
+          tabBarButton: (props) => <AnimatedTabButton {...props} />,
           tabBarStyle: {
             height: 72,
             paddingTop: 8,

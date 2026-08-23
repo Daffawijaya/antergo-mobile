@@ -6,7 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { ActionSheet } from "@/components/action-sheet";
 import { AppIcon } from "@/components/app-icon";
-import { HiMiniCameraIcon, HiUserCircleIcon } from "@/components/brand-icons";
+import { HiMiniCameraIcon } from "@/components/brand-icons";
 import { FormField, Notice, Screen } from "@/components/ui";
 import { Colors } from "@/constants/colors";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -220,7 +220,13 @@ export default function AccountDetailScreen() {
               />
             </View>
           ) : (
-            <HiUserCircleIcon size={112} color={colors.muted} />
+            <View className="h-28 w-28 overflow-hidden rounded-full">
+              <Image
+                source={require("../../../assets/images/noimages.jpg")}
+                className="h-full w-full"
+                resizeMode="cover"
+              />
+            </View>
           )}
           <View className="absolute bottom-1 right-1 rounded-full bg-surface p-2 shadow-sm">
             <HiMiniCameraIcon size={16} color={colors.text} />

@@ -1,3 +1,17 @@
+import { AppIcon } from "@/components/app-icon";
+import {
+  FaChevronRightIcon,
+  FaDotCircleIcon,
+  HiLocationMarkerIcon,
+} from "@/components/brand-icons";
+import { Button, FormField, Notice, Screen } from "@/components/ui";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { createRide } from "@/lib/api/rides";
+import { orderKeys } from "@/lib/query-keys";
+import { createRideSchema, type CreateRideForm } from "@/schemas/ride";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
+import { useAppTheme } from "@/stores/theme-store";
+import type { ApiErrorPayload } from "@/types/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -7,20 +21,6 @@ import { Controller, useForm } from "react-hook-form";
 import { Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
-import { AppIcon } from "@/components/app-icon";
-import {
-  FaChevronRightIcon,
-  FaDotCircleIcon,
-  HiLocationMarkerIcon,
-} from "@/components/brand-icons";
-import { Button, FormField, Notice, Screen } from "@/components/ui";
-import { createRide } from "@/lib/api/rides";
-import { getApiErrorMessage } from "@/lib/api/client";
-import { orderKeys } from "@/lib/query-keys";
-import { createRideSchema, type CreateRideForm } from "@/schemas/ride";
-import { useLocationPickerStore } from "@/stores/location-picker-store";
-import { useAppTheme } from "@/stores/theme-store";
-import type { ApiErrorPayload } from "@/types/api";
 
 const defaults: CreateRideForm = {
   pickup_address: "",
@@ -91,7 +91,8 @@ export default function CreateRideScreen() {
   const serviceLabel = serviceType === "car" ? "Mobil" : "Motor";
   // Promo copy follows the service: bike sells on price (hemat), car on
   // comfort (nyaman).
-  const promoTitle = serviceType === "car" ? "Perjalanan Nyaman" : "Perjalanan Hemat";
+  const promoTitle =
+    serviceType === "car" ? "Perjalanan Nyaman" : "Perjalanan Hemat";
   const promoSubtitle =
     serviceType === "car" ? "Driver siap antar" : "Driver siap jemput";
   const promoSubtitle2 =
@@ -114,9 +115,7 @@ export default function CreateRideScreen() {
         const point =
           state.currentLocation ?? (await state.refreshCurrentLocation());
         if (cancelled || !point) return;
-        useLocationPickerStore
-          .getState()
-          .setSelection("ride-pickup", point);
+        useLocationPickerStore.getState().setSelection("ride-pickup", point);
       })();
       return () => {
         cancelled = true;
@@ -321,20 +320,18 @@ export default function CreateRideScreen() {
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
           <Defs>
-            <LinearGradient
-              id="bike-hero"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
+            <LinearGradient id="bike-hero" x1="0%" y1="0%" x2="100%" y2="0%">
               <Stop offset="0%" stopColor={gradient.from} />
               <Stop offset="100%" stopColor={gradient.to} />
             </LinearGradient>
           </Defs>
           {/* The yellow only covers the hero itself; everything below the
               wave is the white fill running to the bottom of the screen. */}
-          <Rect width="100%" height={heroHeight || 300} fill="url(#bike-hero)" />
+          <Rect
+            width="100%"
+            height={heroHeight || 300}
+            fill="url(#bike-hero)"
+          />
           {heroWidth > 0 ? (
             <Path
               d={buildWavePath(heroWidth, heroHeight || 300, waveFillBottom)}
@@ -412,9 +409,7 @@ export default function CreateRideScreen() {
           setFormBottom(y + height);
         }}
       >
-        {locationError ? (
-          <Notice tone="danger">{locationError}</Notice>
-        ) : null}
+        {locationError ? <Notice tone="danger">{locationError}</Notice> : null}
         <View className="gap-4">
           <Text className="font-extrabold text-[17px] text-foreground">
             Catatan untuk driver
@@ -452,13 +447,7 @@ export default function CreateRideScreen() {
   );
 }
 
-function HeroHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
+function HeroHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
     <View className="mt-2 flex-row items-center">
       <Pressable
@@ -469,7 +458,10 @@ function HeroHeader({
       >
         <AppIcon name="back" size={26} color="#FFFFFF" />
       </Pressable>
-      <Text className="font-bold text-[22px] leading-7" style={{ color: "#FFFFFF" }}>
+      <Text
+        className="font-bold text-[22px] leading-7"
+        style={{ color: "#FFFFFF" }}
+      >
         {title}
       </Text>
     </View>
