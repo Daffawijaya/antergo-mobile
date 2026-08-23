@@ -109,7 +109,7 @@ function ProductRow({
 
         {/* Plus button / counter — absolute bottom-right of the row */}
         {!isOutOfStock && (
-          <View className="absolute bottom-3 right-4">
+          <View className="absolute bottom-3 right-0">
             {hasItem ? (
               <View
                 className="flex-row items-center rounded-full border border-brand bg-transparent"
