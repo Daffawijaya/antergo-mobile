@@ -116,12 +116,15 @@ export default function CartScreen() {
   return (
     <Animated.View style={{ flex: 1, transform: [{ translateY: slideY }] }}>
     <Screen padded={false} scrollBottomPadding={false}>
-      <View className="px-5 pb-6" style={{ paddingTop: insets.top + 8 }}>
+      <View className="pb-6" style={{ paddingTop: insets.top + 8 }}>
+      <View className="px-5">
       <BackButton onPress={animateClose} title={t("cart.title")} />
+      </View>
 
       {isSingleMode ? (
         /* ---- Single merchant view ---- */
         <>
+          <View className="px-5 gap-4">
           <PageHeader
             title={singleCart!.merchant.name}
             description={t("cart.subtotalPreview")}
@@ -209,10 +212,12 @@ export default function CartScreen() {
               />
             </>
           )}
+          </View>
         </>
       ) : (
         /* ---- All merchants view ---- */
         <>
+          <View className="gap-4">
           {!allMerchantEntries.length ? (
             <StatusState
               type="empty"
@@ -245,7 +250,7 @@ export default function CartScreen() {
                           },
                         })
                       }
-                      className="py-3 active:opacity-70"
+                      className="py-3 px-5 active:opacity-70"
                     >
                       <Text style={styles.merchantName}>
                         {cart.merchant.name}
@@ -266,6 +271,7 @@ export default function CartScreen() {
               })}
 
               {/* Grand total */}
+              <View className="px-5 gap-4">
               <Card>
                 <KeyValue
                   label={`Total ${allMerchantEntries.length} ${t("home.umkmAnterGo")} • ${totalAllItems} item`}
@@ -300,8 +306,10 @@ export default function CartScreen() {
                   if (confirm(t("cart.removeConfirm"))) clearAll();
                 }}
               />
+              </View>
             </>
           )}
+          </View>
         </>
       )}
       </View>
@@ -386,7 +394,7 @@ function CartItemRow({
       )}
     >
       <View>
-        <View className="flex-row items-start gap-3 py-3">
+        <View className="flex-row items-start gap-3 py-3 px-5">
         <View className="h-[72px] w-[72px]">
           {item.product.image ? (
             <Image
