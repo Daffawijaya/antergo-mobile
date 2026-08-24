@@ -291,7 +291,9 @@ export default function LocationPickerScreen() {
       exitScreen(() => router.back());
       return;
     }
-    exitScreen(goBackToForm);
+    // Lokasi terakhir: langsung ke halaman fitur tanpa menunggu animasi —
+    // kalau menunggu, halaman search di bawah sempat terlihat sebentar.
+    goBackToForm();
   };
   return (
     <Animated.View
