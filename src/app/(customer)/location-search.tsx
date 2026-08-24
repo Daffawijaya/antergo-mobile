@@ -173,7 +173,10 @@ export default function LocationSearchScreen() {
         .startsWith(candidate.title.toLowerCase())
         ? `${candidate.title}, ${candidate.address}`
         : candidate?.address;
-    router.push({
+    // replace (bukan push): supaya stack jadi form → peta saja. Saat peta
+    // dikonfirmasi, satu router.back() beranimasi langsung ke halaman fitur
+    // tanpa memperlihatkan halaman cari tempat sebentar.
+    router.replace({
       pathname: "/(customer)/location-picker",
       params: {
         purpose,
@@ -329,11 +332,22 @@ export default function LocationSearchScreen() {
             // dismissTo pops back to the target route and drops this screen; on
             // web the stack history contains the pushed screen, so the pop is
             // reliable. Falls back to router.back() when no returnTo was given.
-            onPress={() =>
-              params.returnTo
-                ? router.dismissTo(params.returnTo as never)
-                : router.back()
-            }
+            onPress={() => {
+              if (!params.returnTo) {
+                router.back();
+                return;
+              }
+              // Pecah returnTo (bisa mengandung "?service=...") jadi
+              // {pathname, params} agar dismissTo match rute di stack dan
+              // pop-nya tetap beranimasi, bukan lompat instan.
+              const [pathname, qs] = params.returnTo.split("?");
+              const parsed = Object.fromEntries(new URLSearchParams(qs ?? ""));
+              router.dismissTo(
+                (Object.keys(parsed).length
+                  ? { pathname, params: parsed }
+                  : { pathname }) as never,
+              );
+            }}
             className="h-10 w-10 -ml-3 items-center justify-center rounded-full active:opacity-70"
           >
             <AppIcon name="back" size={26} color={HERO_TEXT} />

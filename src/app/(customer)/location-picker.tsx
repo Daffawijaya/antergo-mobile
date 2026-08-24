@@ -109,25 +109,16 @@ export default function LocationPickerScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const animating = useRef(false);
   const SCREEN_HEIGHT = Dimensions.get("window").height;
   const mapOpacity = useRef(new Animated.Value(0)).current;
   const topTranslateY = useRef(new Animated.Value(-80)).current;
   const bottomTranslateY = useRef(new Animated.Value(300)).current;
-  // Seluruh layar ikut fade saat keluar; karena modalnya transparan,
-  // halaman di bawahnya terlihat fade-in mulus.
-  const rootOpacity = useRef(new Animated.Value(1)).current;
 
+  // Peta me-replace halaman cari tempat di stack, jadi keluar cukup
+  // router.back() — pop beranimasi slide langsung ke halaman fitur.
   const animateBack = useCallback(() => {
-    if (animating.current) return;
-    animating.current = true;
-    Animated.parallel([
-      Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-      Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
-      Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
-      Animated.timing(rootOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-    ]).start(() => router.back());
-  }, [mapOpacity, topTranslateY, bottomTranslateY, rootOpacity, router]);
+    router.back();
+  }, [router]);
 
   useEffect(() => {
     Keyboard.dismiss();
@@ -248,16 +239,6 @@ export default function LocationPickerScreen() {
       setBusy(false);
     }
   };
-  const animateOutAnd = (cb: () => void) => {
-    if (animating.current) return;
-    animating.current = true;
-    Animated.parallel([
-      Animated.timing(mapOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-      Animated.timing(topTranslateY, { toValue: -80, duration: 250, useNativeDriver: true }),
-      Animated.timing(bottomTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
-      Animated.timing(rootOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-    ]).start(() => cb());
-  };
   const confirm = () => {
     if (!coordinate) {
       setError(t("location.selectFirst"));
@@ -266,20 +247,19 @@ export default function LocationPickerScreen() {
     setSelection(purpose, { coordinate, address });
     const other = OTHER_PURPOSES[purpose];
     if (other && !selections[other]) {
-      animateOutAnd(() =>
-        router.dismissTo({
-          pathname: "/(customer)/location-search",
-          params: { purpose: other, returnTo: params.returnTo },
-        }),
-      );
+      // Lokasi satunya belum ada — lanjut ke halaman cari tempat untuk
+      // purpose berikutnya (replace: stack tetap form → satu layar).
+      router.replace({
+        pathname: "/(customer)/location-search",
+        params: { purpose: other, returnTo: params.returnTo },
+      });
       return;
     }
-    if (params.returnTo) animateOutAnd(() => router.dismissTo(params.returnTo as never));
-    else animateBack();
+    router.back();
   };
   return (
-    <Animated.View
-      style={{ flex: 1, backgroundColor: colors.background, opacity: rootOpacity }}
+    <View
+      style={{ flex: 1, backgroundColor: colors.background }}
     >
       <View style={{ flex: 1 }}>
         <Animated.View style={{ flex: 1, opacity: mapOpacity }}>
@@ -370,6 +350,6 @@ export default function LocationPickerScreen() {
           </Pressable>
         </Animated.View>
       </View>
-    </Animated.View>
+    </View>
   );
 }

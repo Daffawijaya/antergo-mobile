@@ -21,6 +21,7 @@ import { useLocationPickerStore} from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
 import { useTranslation } from "@/i18n";
 import { LocationHeader } from "@/components/food-location-header";
+import { GlobalCartFab } from "@/components/global-cart-fab";
 
 type Sort = "latest" | "price-low" | "price-high";
 
@@ -179,22 +180,9 @@ export default function CommerceCatalogScreen() {
   const [heroWidth, setHeroWidth] = useState(0);
   const [heroHeight, setHeroHeight] = useState(0);
   const handleBack = () => {
-    // Jika alamat pengantaran digeser/diubah user (bukan lagi lokasi terkini),
-    // reset dan langsung ambil posisi terkini — jadi saat halaman dibuka lagi
-    // alamat sudah terisi lokasi sekarang tanpa nunggu. Alamat yang masih
-    // lokasi terkini (tidak digeser) tetap dipertahankan.
-    const state = useLocationPickerStore.getState();
-    const destination = state.selections["food-destination"];
-    const current = state.currentLocation;
-    const moved =
-      !!destination &&
-      (!current ||
-        destination.coordinate.latitude !== current.coordinate.latitude ||
-        destination.coordinate.longitude !== current.coordinate.longitude);
-    if (moved) {
-      state.clearSelection("food-destination");
-      void state.refreshCurrentLocation();
-    }
+    // Lokasi tersimpan tidak direset saat keluar — dulu ada heuristik
+    // pembanding koordinat GPS yang sering false-positive (fix GPS selalu
+    // berubah sedikit) sehingga alamat acak terhapus tanpa diedit user.
     router.back();
   };
   const gradient = SERVICE_GRADIENTS[service][mode];
@@ -213,7 +201,8 @@ export default function CommerceCatalogScreen() {
         setSticky((prev) => (prev === shouldStick ? prev : shouldStick));
       }}
       header={
-        sticky ? (
+        <>
+          {sticky ? (
           <View
             className="px-5 py-5"
             style={{
@@ -241,11 +230,14 @@ export default function CommerceCatalogScreen() {
                 className="font-bold text-[22px] leading-7"
                 style={{ color: mode === "dark" ? "#FFFFFF" : "#000000" }}
               >
-                {serviceLabel}
+              {serviceLabel}
               </Text>
             </View>
           </View>
-        ) : null
+          ) : null}
+          {/* FAB di-render di dalam screen ini supaya ikut animasi slide. */}
+          <GlobalCartFab force />
+        </>
       }
     >
       <View

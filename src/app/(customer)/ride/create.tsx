@@ -229,24 +229,9 @@ export default function CreateRideScreen() {
   const [heroHeaderBottom, setHeroHeaderBottom] = useState(0);
   const [sticky, setSticky] = useState(false);
   const handleBack = () => {
-    // Jika lokasi jemput digeser/diubah user (bukan lagi lokasi terkini), reset
-    // dan langsung ambil posisi terkini — jadi saat halaman dibuka lagi lokasi
-    // jemput sudah terisi lokasi sekarang tanpa nunggu. Lokasi jemput yang
-    // masih lokasi terkini (tidak digeser) tetap dipertahankan. Lokasi antar
-    // selalu direset.
-    const state = useLocationPickerStore.getState();
-    const pickup = state.selections["ride-pickup"];
-    const current = state.currentLocation;
-    const moved =
-      !!pickup &&
-      (!current ||
-        pickup.coordinate.latitude !== current.coordinate.latitude ||
-        pickup.coordinate.longitude !== current.coordinate.longitude);
-    if (moved) {
-      state.clearSelection("ride-pickup");
-      void state.refreshCurrentLocation();
-    }
-    state.clearSelection("ride-destination");
+    // Lokasi tersimpan tidak direset saat keluar — dulu lokasi jemput direset
+    // via pembanding koordinat GPS yang sering false-positive, dan lokasi
+    // antar selalu direset; akibatnya alamat acak hilang tanpa diedit user.
     reset();
     router.back();
   };

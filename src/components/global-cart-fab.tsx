@@ -11,14 +11,19 @@ const HIDDEN_ROUTES = [
   "/food/order/",
 ];
 
-export function GlobalCartFab() {
+export function GlobalCartFab({ force = false }: { force?: boolean } = {}) {
   const router = useRouter();
   const pathname = usePathname();
 
   const totalCartItems = useCartStore((s) => s.totalItems());
 
-  // Don't render at all on hidden routes or when cart is empty
-  const shouldHide = HIDDEN_ROUTES.some((route) => pathname.includes(route));
+  // Don't render at all on hidden routes or when cart is empty.
+  // The food/shopping list page renders its own FAB with `force` so it
+  // slides with the screen transition.
+  const shouldHide =
+    HIDDEN_ROUTES.some((route) => pathname.includes(route)) ||
+    (!force &&
+      (pathname.endsWith("/food") || pathname.endsWith("/food/")));
   if (shouldHide || totalCartItems === 0) return null;
 
   // Pathnames that do NOT have a visible tab bar (inner/detail pages)
@@ -36,11 +41,9 @@ export function GlobalCartFab() {
     "driver-register",
     "merchant-register",
   ];
-  const isInnerRoute =
-    INNER_ROUTES.some((r) => pathname.includes(r)) ||
-    pathname.endsWith("/food") ||
-    pathname.endsWith("/food/");
-  const fabBottom = isInnerRoute ? "bottom-7" : "bottom-28";
+  const isInnerRoute = INNER_ROUTES.some((r) => pathname.includes(r));
+  // Halaman makanan/belanja (force) tanpa tab bar: FAB sedikit lebih tinggi.
+  const fabBottom = force ? "bottom-8" : isInnerRoute ? "bottom-7" : "bottom-28";
 
   return (
     <Pressable

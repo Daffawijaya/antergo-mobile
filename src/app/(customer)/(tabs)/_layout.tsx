@@ -38,9 +38,9 @@ export default function TabsLayout() {
           paddingBottom: 20,
           borderTopWidth: 0,
           backgroundColor: colors.surface,
-          // Setara shadow-lg nativewind, dibalik ke atas.
+          // Setara shadow-lg nativewind, dibalik ke atas, opacity 50%.
           boxShadow:
-            "0 -4px 6px -1px rgba(0,0,0,0.1), 0 -2px 4px -2px rgba(0,0,0,0.1)",
+            "0 -10px 15px -3px rgba(0,0,0,0.05), 0 -4px 6px -4px rgba(0,0,0,0.05)",
         },
         tabBarLabelStyle: {
           fontSize: 12,

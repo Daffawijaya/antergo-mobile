@@ -277,6 +277,23 @@ export default function CartScreen() {
               </Card>
 
               <Button
+                title={t("cart.checkout")}
+                onPress={() => {
+                  const first = allMerchantEntries[0];
+                  if (!first) return;
+                  router.push({
+                    pathname: "/(customer)/food/checkout",
+                    params: {
+                      service:
+                        first.items[0]?.product.product_type === "goods"
+                          ? "shopping"
+                          : "food",
+                      merchantId: String(first.merchant.id),
+                    },
+                  });
+                }}
+              />
+              <Button
                 title={t("cart.clearAll")}
                 variant="danger"
                 onPress={() => {
