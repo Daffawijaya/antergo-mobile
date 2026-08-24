@@ -173,10 +173,11 @@ export default function LocationSearchScreen() {
         .startsWith(candidate.title.toLowerCase())
         ? `${candidate.title}, ${candidate.address}`
         : candidate?.address;
-    // replace (bukan push): supaya stack jadi form → peta saja. Saat peta
-    // dikonfirmasi, satu router.back() beranimasi langsung ke halaman fitur
-    // tanpa memperlihatkan halaman cari tempat sebentar.
-    router.replace({
+    // push (bukan replace): search tetap ter-mount di bawah peta, jadi saat
+    // peta ditutup animasinya menyingkap konten ini secara kontinu (tanpa
+    // remount/statik). Konfirmasi lokasi tetap langsung ke halaman fitur
+    // lewat dismissTo(returnTo).
+    router.push({
       pathname: "/(customer)/location-picker",
       params: {
         purpose,
@@ -297,6 +298,14 @@ export default function LocationSearchScreen() {
       setBusyPurpose(null);
       queryRef.current = "";
       lastSearchedRef.current = "";
+      // Balik dari peta setelah mengisi salah satu lokasi: aktifkan input
+      // purpose berikutnya (handoff one-shot dari location-picker).
+      const { nextPurpose, setNextPurpose } =
+        useLocationPickerStore.getState();
+      if (nextPurpose) {
+        setPurpose(nextPurpose);
+        setNextPurpose(null);
+      }
     }, []),
   );
 

@@ -29,6 +29,8 @@ export const screenTransitions = {
   none: {
     animation: "none",
   },
+  // animation "none": transisi buka/tutup ditangani animasi sendiri di
+  // location-picker (native-stack "fade" tidak reliable untuk kasus ini).
   mapModal: {
     animation: "none",
     presentation: "transparentModal",

@@ -23,6 +23,10 @@ type State = {
   // The user's current location, refreshed whenever a create screen opens (or
   // the app starts) so the pickup always starts from where the user really is.
   currentLocation: PickedLocation | null;
+  // One-shot handoff: the map picker tells the search screen underneath which
+  // purpose to activate after confirming one location of a pair.
+  nextPurpose: LocationPurpose | null;
+  setNextPurpose: (purpose: LocationPurpose | null) => void;
   setSelection: (purpose: LocationPurpose, value: PickedLocation) => void;
   clearSelection: (purpose: LocationPurpose) => void;
   // Fetches a fresh GPS fix (falling back to the last known position), stores
@@ -57,6 +61,8 @@ export const useLocationPickerStore = create<State>((set) => {
   return {
     selections: {},
     currentLocation: null,
+    nextPurpose: null,
+    setNextPurpose: (nextPurpose) => set({ nextPurpose }),
     setSelection: (purpose, value) =>
       set((state) => ({ selections: { ...state.selections, [purpose]: value } })),
     clearSelection: (purpose) =>

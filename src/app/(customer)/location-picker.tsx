@@ -10,6 +10,7 @@ import {
   Animated,
   BackHandler,
   Dimensions,
+  InteractionManager,
   Keyboard,
   Pressable,
   Text,
@@ -89,6 +90,7 @@ export default function LocationPickerScreen() {
   const selections = useLocationPickerStore((state) => state.selections);
   const previous = selections[purpose];
   const setSelection = useLocationPickerStore((state) => state.setSelection);
+  const setNextPurpose = useLocationPickerStore((state) => state.setNextPurpose);
   const initial =
     params.latitude && params.longitude
       ? {
@@ -110,24 +112,59 @@ export default function LocationPickerScreen() {
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SCREEN_HEIGHT = Dimensions.get("window").height;
-  const mapOpacity = useRef(new Animated.Value(0)).current;
+  const screenOpacity = useRef(new Animated.Value(0)).current;
   const topTranslateY = useRef(new Animated.Value(-80)).current;
   const bottomTranslateY = useRef(new Animated.Value(300)).current;
 
-  // Peta me-replace halaman cari tempat di stack, jadi keluar cukup
-  // router.back() — pop beranimasi slide langsung ke halaman fitur.
-  const animateBack = useCallback(() => {
-    router.back();
-  }, [router]);
+  const leaving = useRef(false);
 
+  // Masuk: seluruh layar fade-in, card atas slide dari atas, card bawah
+  // dari bawah.
   useEffect(() => {
     Keyboard.dismiss();
-    Animated.parallel([
-      Animated.timing(mapOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+    const enter = Animated.parallel([
+      Animated.timing(screenOpacity, { toValue: 1, duration: 260, useNativeDriver: true }),
       Animated.spring(topTranslateY, { toValue: 0, damping: 20, stiffness: 120, mass: 0.8, useNativeDriver: true }),
       Animated.spring(bottomTranslateY, { toValue: 0, damping: 20, stiffness: 120, mass: 0.8, useNativeDriver: true }),
-    ]).start();
-  }, [mapOpacity, topTranslateY, bottomTranslateY]);
+    ]);
+    const task = InteractionManager.runAfterInteractions(() => enter.start());
+    return () => task.cancel();
+  }, [screenOpacity, topTranslateY, bottomTranslateY]);
+
+  // Keluar: seluruh layar fade-out menyingkap halaman cari lokasi yang tetap
+  // ter-mount di bawahnya, card slide keluar, lalu pop setelah selesai.
+  const exitScreen = useCallback(
+    (navigate: () => void) => {
+      if (leaving.current) return;
+      leaving.current = true;
+      Animated.parallel([
+        Animated.timing(screenOpacity, { toValue: 0, duration: 220, useNativeDriver: true }),
+        Animated.timing(topTranslateY, { toValue: -80, duration: 220, useNativeDriver: true }),
+        Animated.timing(bottomTranslateY, { toValue: 320, duration: 220, useNativeDriver: true }),
+      ]).start(() => navigate());
+    },
+    [screenOpacity, topTranslateY, bottomTranslateY],
+  );
+
+  const animateBack = useCallback(() => {
+    exitScreen(() => router.back());
+  }, [exitScreen, router]);
+
+  // Setelah lokasi dikonfirmasi, langsung ke halaman fitur — pop peta dan
+  // halaman cari lokasi sekaligus, tanpa memperlihatkan search sebentar.
+  const goBackToForm = useCallback(() => {
+    if (!params.returnTo) {
+      router.dismiss(2);
+      return;
+    }
+    const [pathname, qs] = params.returnTo.split("?");
+    const parsed = Object.fromEntries(new URLSearchParams(qs ?? ""));
+    router.dismissTo(
+      (Object.keys(parsed).length
+        ? { pathname, params: parsed }
+        : { pathname }) as never,
+    );
+  }, [params.returnTo, router]);
 
   useEffect(() => {
     const handler = () => { animateBack(); return true; };
@@ -247,31 +284,28 @@ export default function LocationPickerScreen() {
     setSelection(purpose, { coordinate, address });
     const other = OTHER_PURPOSES[purpose];
     if (other && !selections[other]) {
-      // Lokasi satunya belum ada — lanjut ke halaman cari tempat untuk
-      // purpose berikutnya (replace: stack tetap form → satu layar).
-      router.replace({
-        pathname: "/(customer)/location-search",
-        params: { purpose: other, returnTo: params.returnTo },
-      });
+      // Lokasi satunya belum ada — kembali (beranimasi) ke halaman cari
+      // tempat yang masih ter-mount di bawah, lalu aktifkan input purpose
+      // berikutnya lewat handoff store.
+      setNextPurpose(other);
+      exitScreen(() => router.back());
       return;
     }
-    router.back();
+    exitScreen(goBackToForm);
   };
   return (
-    <View
-      style={{ flex: 1, backgroundColor: colors.background }}
+    <Animated.View
+      style={{ flex: 1, backgroundColor: colors.background, opacity: screenOpacity }}
     >
       <View style={{ flex: 1 }}>
-        <Animated.View style={{ flex: 1, opacity: mapOpacity }}>
-          <LocationPickerMap
-            coordinate={coordinate}
-            onChange={mapChanged}
-            onRegionChange={onRegionChange}
-            onZoomChange={onZoomChange}
-            places={visibleMerchants}
-            onPlacePress={onPlacePress}
-          />
-        </Animated.View>
+        <LocationPickerMap
+          coordinate={coordinate}
+          onChange={mapChanged}
+          onRegionChange={onRegionChange}
+          onZoomChange={onZoomChange}
+          places={visibleMerchants}
+          onPlacePress={onPlacePress}
+        />
         <Animated.View
           className="flex-row items-center gap-2"
           style={{ position: "absolute", left: 20, right: 20, top: Math.max(insets.top + 8, 24), transform: [{ translateY: topTranslateY }] }}
@@ -350,6 +384,6 @@ export default function LocationPickerScreen() {
           </Pressable>
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
