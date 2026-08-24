@@ -91,6 +91,7 @@ export default function LocationPickerScreen() {
   const previous = selections[purpose];
   const setSelection = useLocationPickerStore((state) => state.setSelection);
   const setNextPurpose = useLocationPickerStore((state) => state.setNextPurpose);
+  const setReturningToForm = useLocationPickerStore((state) => state.setReturningToForm);
   const initial =
     params.latitude && params.longitude
       ? {
@@ -153,6 +154,7 @@ export default function LocationPickerScreen() {
   // Setelah lokasi dikonfirmasi, langsung ke halaman fitur — pop peta dan
   // halaman cari lokasi sekaligus, tanpa memperlihatkan search sebentar.
   const goBackToForm = useCallback(() => {
+    setReturningToForm(true);
     if (!params.returnTo) {
       router.dismiss(2);
       return;

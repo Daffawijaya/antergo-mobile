@@ -27,6 +27,10 @@ type State = {
   // purpose to activate after confirming one location of a pair.
   nextPurpose: LocationPurpose | null;
   setNextPurpose: (purpose: LocationPurpose | null) => void;
+  // One-shot handoff: set when the map's final confirm jumps straight to the
+  // feature form, so the form can fade its content in over the instant pop.
+  returningToForm: boolean;
+  setReturningToForm: (value: boolean) => void;
   setSelection: (purpose: LocationPurpose, value: PickedLocation) => void;
   clearSelection: (purpose: LocationPurpose) => void;
   // Fetches a fresh GPS fix (falling back to the last known position), stores
@@ -63,6 +67,8 @@ export const useLocationPickerStore = create<State>((set) => {
     currentLocation: null,
     nextPurpose: null,
     setNextPurpose: (nextPurpose) => set({ nextPurpose }),
+    returningToForm: false,
+    setReturningToForm: (returningToForm) => set({ returningToForm }),
     setSelection: (purpose, value) =>
       set((state) => ({ selections: { ...state.selections, [purpose]: value } })),
     clearSelection: (purpose) =>

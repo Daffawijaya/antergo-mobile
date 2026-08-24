@@ -1,6 +1,8 @@
 import type { PropsWithChildren, ReactNode } from "react";
+import { useCallback, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   Text,
@@ -12,10 +14,12 @@ import {
   type ViewStyle,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon } from "@/components/app-icon";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
 
 const buttonClasses = {
   primary: "bg-brand rounded-full",
@@ -33,6 +37,28 @@ const buttonLoaderColors = {
   secondary: Colors.primary,
   danger: Colors.danger,
 } as const;
+
+// Fade-in konten halaman fitur saat kembali dari peta (confirm lokasi
+// terakhir melompat instan ke sini lewat dismissTo) — supaya lompatan itu
+// tetap terasa transisi, bukan statis.
+function useMapReturnFade() {
+  const opacity = useRef(new Animated.Value(1)).current;
+  useFocusEffect(
+    useCallback(() => {
+      const { returningToForm, setReturningToForm } =
+        useLocationPickerStore.getState();
+      if (!returningToForm) return;
+      setReturningToForm(false);
+      opacity.setValue(0);
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        useNativeDriver: true,
+      }).start();
+    }, [opacity]),
+  );
+  return opacity;
+}
 
 export function Screen({
   children,
@@ -54,13 +80,17 @@ export function Screen({
 }>) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const mapReturnOpacity = useMapReturnFade();
   const content = (
-    <View
+    <Animated.View
       className={`gap-4 ${padded ? "px-5 pt-3" : ""} ${className}`}
-      style={[{ flex: 1, paddingTop: padded ? insets.top : undefined }, contentStyle]}
+      style={[
+        { flex: 1, paddingTop: padded ? insets.top : undefined, opacity: mapReturnOpacity },
+        contentStyle,
+      ]}
     >
       {children}
-    </View>
+    </Animated.View>
   );
   return (
     <SafeAreaView
@@ -370,3 +400,4 @@ export function Notice({
     </View>
   );
 }
+
