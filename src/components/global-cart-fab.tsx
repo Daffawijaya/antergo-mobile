@@ -36,26 +36,9 @@ export function GlobalCartFab({
         (pathname.endsWith("/food") || pathname.endsWith("/food/")));
   if (shouldHide || totalCartItems === 0) return null;
 
-  // Pathnames that do NOT have a visible tab bar (inner/detail pages)
-  const INNER_ROUTES = [
-    "food/merchant/",
-    "food/cart",
-    "food/checkout",
-    "food/order/",
-    "ride/create",
-    "ride/",
-    "chat/",
-    "payments",
-    "account-detail",
-    "search",
-    "driver-register",
-    "merchant-register",
-  ];
-  const isInnerRoute = INNER_ROUTES.some((r) => pathname.includes(r));
-  // Selalu terpasang (instance tabs) = posisi juga diam, jangan ikut berubah
-  // saat pathname pindah ke route inner.
-  const fabBottom =
-    force || alwaysVisible ? "bottom-8" : isInnerRoute ? "bottom-7" : "bottom-28";
+  // Selalu terpasang (instance tabs) = posisi juga diam di atas tab bar,
+  // jangan ikut berubah saat pathname pindah ke route inner.
+  const fabBottom = force ? "bottom-8" : "bottom-28";
 
   return (
     <Pressable
