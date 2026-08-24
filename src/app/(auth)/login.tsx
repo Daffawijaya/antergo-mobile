@@ -69,23 +69,13 @@ function LoginField({
   label,
   error,
   right,
-  noBorder,
   ...props
 }: TextInputProps & {
   label: string;
   error?: string;
   right?: ReactNode;
-  noBorder?: boolean;
 }) {
   const { colors } = useAppTheme();
-  const [focused, setFocused] = useState(false);
-  const { onFocus, onBlur, ...rest } = props;
-
-  const borderColor = error
-    ? Colors.danger
-    : focused
-      ? Colors.primary
-      : colors.border;
 
   return (
     <View style={styles.field}>
@@ -93,11 +83,7 @@ function LoginField({
 
       <View
         className="flex-row items-center rounded-lg pr-1.5"
-        style={{
-          borderColor: noBorder ? "transparent" : borderColor,
-          backgroundColor: colors.surface,
-          borderWidth: noBorder ? 0 : 1,
-        }}
+        style={{ backgroundColor: colors.surface }}
       >
         <TextInput
           placeholderTextColor="#9CA3AF"
@@ -105,18 +91,9 @@ function LoginField({
           style={{
             paddingHorizontal: 16,
             color: colors.text,
-            backgroundColor: colors.surface,
             minHeight: 50,
           }}
-          onFocus={(event) => {
-            setFocused(true);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setFocused(false);
-            onBlur?.(event);
-          }}
-          {...rest}
+          {...props}
         />
 
         {right}
@@ -219,7 +196,6 @@ export default function LoginScreen() {
                     onBlur={field.onBlur}
                     onChangeText={field.onChange}
                     error={errors.password?.message}
-                    noBorder
                       right={
                         <Pressable
                           accessibilityRole="button"
