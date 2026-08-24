@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AppThemeProvider } from "@/components/app-theme-provider";
 import { PushNotificationManager } from "@/components/push-notification-manager";
@@ -152,6 +153,7 @@ export default function RootLayout() {
   }
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider>
@@ -161,6 +163,7 @@ export default function RootLayout() {
         </AppThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

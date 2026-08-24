@@ -37,6 +37,7 @@ import {
   Utensils,
   Camera,
   Languages,
+  Trash2,
 } from "lucide-react-native";
 import { IoMdCameraIcon } from "./brand-icons";
 
@@ -80,6 +81,7 @@ const icons = {
   camera: Camera,
   camera_md: IoMdCameraIcon,
   language: Languages,
+  trash: Trash2,
 } as const;
 
 export type AppIconName = keyof typeof icons;

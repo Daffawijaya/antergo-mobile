@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo as useThemeMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo as useThemeMemo, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   Animated,
@@ -11,8 +11,11 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Swipeable } from "react-native-gesture-handler";
 import { AppIcon } from "@/components/app-icon";
 import {
+  BackButton,
   Button,
   Card,
   KeyValue,
@@ -20,7 +23,6 @@ import {
   Screen,
   StatusState,
 } from "@/components/ui";
-import { Colors } from "@/constants/colors";
 import { formatRupiah } from "@/lib/format";
 import { useCartStore } from "@/stores/cart-store";
 import { useAppTheme } from "@/stores/theme-store";
@@ -29,6 +31,8 @@ import { useTranslation } from "@/i18n";
 export default function CartScreen() {
   const { styles } = useScreenStyles();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
   const { merchantId: merchantIdParam, service: rawService } =
     useLocalSearchParams<{
       merchantId?: string;
@@ -111,22 +115,14 @@ export default function CartScreen() {
 
   return (
     <Animated.View style={{ flex: 1, transform: [{ translateY: slideY }] }}>
-    <Screen>
-      <Button
-        title={t("common.back")}
-        variant="secondary"
-        onPress={animateClose}
-      />
+    <Screen padded={false} scrollBottomPadding={false}>
+      <View className="px-5 pb-6" style={{ paddingTop: insets.top + 8 }}>
+      <BackButton onPress={animateClose} title={t("cart.title")} />
 
       {isSingleMode ? (
         /* ---- Single merchant view ---- */
         <>
           <PageHeader
-            eyebrow={
-              singleItems[0]?.product.product_type === "goods"
-                ? t("cart.shoppingCart")
-                : t("cart.foodCart")
-            }
             title={singleCart!.merchant.name}
             description={t("cart.subtotalPreview")}
           />
@@ -217,11 +213,6 @@ export default function CartScreen() {
       ) : (
         /* ---- All merchants view ---- */
         <>
-          <PageHeader
-            eyebrow={t("cart.title")}
-            title={t("cart.allOrders")}
-            description={t("cart.allOrdersDesc")}
-          />
           {!allMerchantEntries.length ? (
             <StatusState
               type="empty"
@@ -241,72 +232,36 @@ export default function CartScreen() {
           ) : (
             <>
               {allMerchantEntries.map((cart) => {
-                const merchantSubtotal = cart.items.reduce(
-                  (s, i) => s + Number(i.product.price) * i.quantity,
-                  0,
-                );
-                const merchantItemCount = cart.items.reduce(
-                  (s, i) => s + i.quantity,
-                  0,
-                );
                 return (
-                  <Pressable
-                    key={cart.merchant.id}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/(customer)/food/cart",
-                        params: {
-                          merchantId: String(cart.merchant.id),
-                          service: "food",
-                        },
-                      })
-                    }
-                    style={styles.merchantCard}
+                  <View key={cart.merchant.id}>
+                    {/* Merchant name — tanpa logo, tap untuk buka keranjang toko */}
+                    <Pressable
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(customer)/food/cart",
+                          params: {
+                            merchantId: String(cart.merchant.id),
+                            service: "food",
+                          },
+                        })
+                      }
+                      className="py-3 active:opacity-70"
+                    >
+                      <Text style={styles.merchantName}>
+                        {cart.merchant.name}
+                      </Text>
+                    </Pressable>
 
-                  >
-                    {/* Merchant header */}
-                    <View style={styles.merchantHeader}>
-                      {cart.merchant.logo ? (
-                        <Image
-                          source={{ uri: cart.merchant.logo }}
-                          style={styles.merchantLogo}
-                        />
-                      ) : (
-                        <View style={styles.merchantLogoPlaceholder}>
-                          <AppIcon
-                            name="store"
-                            size={22}
-                            color={Colors.primary}
-                          />
-                        </View>
-                      )}
-                      <View style={styles.merchantInfo}>
-                        <Text style={styles.merchantName}>
-                          {cart.merchant.name}
-                        </Text>
-                        <Text style={styles.merchantMeta}>
-                          {merchantItemCount} item •{" "}
-                          {formatRupiah(merchantSubtotal)}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Items list */}
+                    {/* Items — baris produk persis halaman detail UMKM */}
                     {cart.items.map((item) => (
-                      <View key={item.product.id} style={styles.itemRow}>
-                        <View style={styles.flex}>
-                          <Text style={styles.itemName} numberOfLines={1}>
-                            {item.quantity}× {item.product.name}
-                          </Text>
-                        </View>
-                        <Text style={styles.itemPrice}>
-                          {formatRupiah(
-                            Number(item.product.price) * item.quantity,
-                          )}
-                        </Text>
-                      </View>
+                      <CartItemRow
+                        key={item.product.id}
+                        item={item}
+                        merchantId={cart.merchant.id}
+                        colors={colors}
+                      />
                     ))}
-                  </Pressable>
+                  </View>
                 );
               })}
 
@@ -349,6 +304,7 @@ export default function CartScreen() {
           )}
         </>
       )}
+      </View>
     </Screen>
     </Animated.View>
   );
@@ -373,59 +329,133 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       fontSize: 18,
     },
     /* All-merchants styles */
-    merchantCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 9,
-      padding: 14,
-      marginBottom: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    merchantHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-      marginBottom: 10,
-    },
-    merchantLogo: {
-      width: 44,
-      height: 44,
-      borderRadius: 9,
-    },
-    merchantLogoPlaceholder: {
-      width: 44,
-      height: 44,
-      borderRadius: 9,
-      backgroundColor: colors.surfaceMuted,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    merchantInfo: { flex: 1 },
     merchantName: {
       color: colors.text,
       fontWeight: "800",
       fontSize: 16,
     },
-    merchantMeta: {
-      color: colors.muted,
-      fontSize: 13,
-      marginTop: 2,
-    },
-    itemRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 6,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    itemName: {
-      color: colors.text,
-      fontSize: 14,
-      fontWeight: "500",
-    },
-    itemPrice: {
-      color: colors.muted,
-      fontSize: 13,
-      fontWeight: "600",
-    },
   });
+
+// Baris item keranjang: gambar kecil di kiri, nama (hitam, lebih besar) +
+// harga satuan di kanannya; di ujung kanan harga total (harga × jumlah) di
+// atas tombol jumlah. Tombol: lingkaran penuh berisi angka — diklik jadi
+// pil − n + seperti counter di halaman detail UMKM.
+function CartItemRow({
+  item,
+  merchantId,
+  colors,
+}: {
+  item: { product: { id: number; name: string; image?: string | null; price: string | number; stock: number; product_type: string }; quantity: number };
+  merchantId: number;
+  colors: { border: string };
+}) {
+  const setQuantity = useCartStore((s) => s.setQuantity);
+  const [expanded, setExpanded] = useState(false);
+  const lineTotal = Number(item.product.price) * item.quantity;
+
+  return (
+    <Swipeable
+      overshootRight={false}
+      // Geser melewati ~50px lalu lepas → terkunci terbuka; geser kanan lagi
+      // untuk menutupnya.
+      rightThreshold={50}
+      renderRightActions={(progress) => (
+        // Mulai +90px (tersembunyi di ujung kanan layar), lalu bergeser ke 0
+        // seiring tarikan — posisi akhirnya tepat di kanan harga & jumlah.
+        <Animated.View
+          style={{
+            width: 90,
+            height: "100%",
+            transform: [
+              {
+                translateX: progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [90, 0],
+                }),
+              },
+            ],
+          }}
+        >
+          <Pressable
+            onPress={() => setQuantity(merchantId, item.product.id, 0)}
+            className="h-full w-full items-center justify-center bg-danger active:opacity-80"
+          >
+            <AppIcon name="trash" size={22} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
+      )}
+    >
+      <View>
+        <View className="flex-row items-start gap-3 py-3">
+        <View className="h-[72px] w-[72px]">
+          {item.product.image ? (
+            <Image
+              source={{ uri: item.product.image }}
+              className="h-full w-full rounded-[10px]"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="h-full w-full items-center justify-center rounded-[10px] bg-surface-muted">
+              <Text className="text-[26px]">
+                {item.product.product_type === "goods" ? "🛍️" : "🍜"}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View className="min-w-0 flex-1 self-center">
+          <Text
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            className="font-semibold text-[17px] leading-[22px] text-foreground"
+          >
+            {item.product.name}
+          </Text>
+        </View>
+
+        {/* Harga × jumlah di atas tombol jumlah */}
+        <View className="items-end gap-1.5 self-center">
+          <Text className="font-bold text-[15px] text-foreground">
+            {formatRupiah(lineTotal)}
+          </Text>
+          {expanded ? (
+            <View className="flex-row items-center rounded-full border border-brand">
+              <Pressable
+                onPress={() => {
+                  if (item.quantity <= 1) setExpanded(false);
+                  setQuantity(merchantId, item.product.id, item.quantity - 1);
+                }}
+                className="h-7 w-7 items-center justify-center"
+              >
+                <Text className="font-bold text-base text-foreground">−</Text>
+              </Pressable>
+              <Text className="min-w-[14px] text-center font-bold text-sm text-foreground">
+                {item.quantity}
+              </Text>
+              <Pressable
+                disabled={item.quantity >= item.product.stock}
+                onPress={() =>
+                  setQuantity(merchantId, item.product.id, item.quantity + 1)
+                }
+                className="h-7 w-7 items-center justify-center"
+              >
+                <Text className="font-bold text-base text-foreground">+</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => setExpanded(true)}
+              className="h-8 w-8 items-center justify-center rounded-full border border-brand active:opacity-80"
+            >
+              <Text className="font-bold text-sm text-foreground">
+                {item.quantity}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+      <View className="h-px" style={{ backgroundColor: colors.border }} />
+      </View>
+    </Swipeable>
+  );
+}
