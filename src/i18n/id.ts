@@ -130,6 +130,7 @@ const id = {
 
   /* ── orders ─────────────────────────────────────────────── */
   "orders.title": "Pesanan",
+  "orders.description": "Pantau pesanan berjalan dan lihat kembali riwayatnya.",
   "orders.all": "Semua",
   "orders.active": "Aktif",
   "orders.history": "Riwayat",

@@ -130,6 +130,7 @@ const en = {
 
   /* ── orders ─────────────────────────────────────────────── */
   "orders.title": "Orders",
+  "orders.description": "Track your ongoing orders and revisit past ones.",
   "orders.all": "All",
   "orders.active": "Active",
   "orders.history": "History",

@@ -10,7 +10,7 @@ import {
   serviceLabelKey,
   ServiceIcon,
 } from "@/components/service-icon";
-import { Button, Screen, StatusState } from "@/components/ui";
+import { Button, PageHeader, Screen, StatusState } from "@/components/ui";
 import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { Colors } from "@/constants/colors";
 import { listCustomerOrders } from "@/lib/api/rides";
@@ -66,13 +66,13 @@ export default function CustomerOrders() {
   );
   return (
     <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
-      <WarmGradientBg height={520} />
-      <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
-        <Text className="font-bold text-[22px] leading-7 text-foreground">
-          {t("orders.title")}
-        </Text>
-      </View>
-      <View className="gap-3 px-5">
+      <WarmGradientBg height={380} />
+      <View className="gap-4 px-4 pb-4" style={{ paddingTop: insets.top + 16 }}>
+        <PageHeader
+          eyebrow="ANTERGO"
+          title={t("orders.title")}
+          description={t("orders.description")}
+        />
         <View style={styles.filters}>
           <CustomerChip
             label={t("orders.all")}
@@ -90,6 +90,8 @@ export default function CustomerOrders() {
             onPress={() => setFilter("history")}
           />
         </View>
+      </View>
+      <View className="gap-3 px-4 pb-4">
         {query.isLoading ? (
           <StatusState type="loading" />
         ) : query.isError ? (
@@ -115,7 +117,7 @@ export default function CustomerOrders() {
             }
           />
         ) : (
-          <View style={styles.list}>
+          <View className="gap-3 px-4">
             {orders.map((order) => (
               <Pressable
                 key={order.id}
@@ -183,15 +185,16 @@ export default function CustomerOrders() {
 }
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   filters: { flexDirection: "row", gap: 7 },
-  list: { borderTopWidth: 1, borderTopColor: colors.border },
   orderRow: {
     minHeight: 108,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 13,
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   copy: { flex: 1, gap: 3 },
   titleRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
