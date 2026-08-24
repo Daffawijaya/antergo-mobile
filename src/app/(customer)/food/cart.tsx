@@ -1,6 +1,16 @@
-import { useMemo as useThemeMemo } from "react";
+import { useCallback, useEffect, useMemo as useThemeMemo, useRef } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  BackHandler,
+  Dimensions,
+  Easing,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import {
   Button,
@@ -65,12 +75,47 @@ export default function CartScreen() {
     0,
   );
 
+  // Panel turun dari atas saat dibuka, naik lagi saat ditutup. Halaman di
+  // bawahnya tetap terlihat (transparentModal).
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+  const slideY = useRef(new Animated.Value(-SCREEN_HEIGHT)).current;
+  const leaving = useRef(false);
+
+  useEffect(() => {
+    Animated.timing(slideY, {
+      toValue: 0,
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [slideY]);
+
+  const animateClose = useCallback(() => {
+    if (leaving.current) return;
+    leaving.current = true;
+    Animated.timing(slideY, {
+      toValue: -SCREEN_HEIGHT,
+      duration: 260,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => router.back());
+  }, [router, slideY]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      animateClose();
+      return true;
+    });
+    return () => sub.remove();
+  }, [animateClose]);
+
   return (
+    <Animated.View style={{ flex: 1, transform: [{ translateY: slideY }] }}>
     <Screen>
       <Button
         title={t("common.back")}
         variant="secondary"
-        onPress={() => router.back()}
+        onPress={animateClose}
       />
 
       {isSingleMode ? (
@@ -305,6 +350,7 @@ export default function CartScreen() {
         </>
       )}
     </Screen>
+    </Animated.View>
   );
 }
 

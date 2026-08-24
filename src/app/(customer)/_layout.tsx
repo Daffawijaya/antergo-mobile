@@ -23,7 +23,7 @@ export default function CustomerLayout() {
         options={screenTransitions.overlayPush}
       />
       <Stack.Screen name="food/index" options={screenTransitions.overlayPush} />
-      <Stack.Screen name="food/cart" />
+      <Stack.Screen name="food/cart" options={screenTransitions.cartModal} />
       <Stack.Screen name="food/checkout" />
       <Stack.Screen name="food/merchant/[id]" options={screenTransitions.slideFromBottom} />
       <Stack.Screen name="food/order/[id]" />

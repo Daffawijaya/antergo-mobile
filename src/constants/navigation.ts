@@ -26,6 +26,14 @@ export const screenTransitions = {
     presentation: "transparentModal",
     contentStyle: { backgroundColor: "transparent" },
   },
+  // Keranjang: turun dari atas seperti panel dropdown, halaman di bawahnya
+  // tetap terlihat. Animasi slide-nya ditangani di food/cart.tsx karena
+  // native-stack tidak punya "slide_from_top".
+  cartModal: {
+    animation: "none",
+    presentation: "transparentModal",
+    contentStyle: { backgroundColor: "transparent" },
+  },
   none: {
     animation: "none",
   },
