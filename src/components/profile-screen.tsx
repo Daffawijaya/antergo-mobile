@@ -25,7 +25,6 @@ import {
   Pressable,
   ScrollView,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -52,7 +51,6 @@ const roleImage = (role: AppRole) => {
 export function ProfileScreen({ showBackButton = false }: { showBackButton?: boolean } = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
   const { mode, colors } = useAppTheme();
   const setThemeMode = useThemeStore((state) => state.setMode);
   const user = useAuthStore((state) => state.user);
@@ -143,7 +141,9 @@ export function ProfileScreen({ showBackButton = false }: { showBackButton?: boo
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={{
           flexGrow: 1,
-          minHeight: screenHeight,
+          // ponytail: viewport scroll, bukan window — biar ga bisa discroll
+          // melewati konten.
+          minHeight: "100%",
           backgroundColor: colors.background,
           paddingBottom: 24,
         }}

@@ -40,7 +40,7 @@ export function GlobalCartFab() {
     INNER_ROUTES.some((r) => pathname.includes(r)) ||
     pathname.endsWith("/food") ||
     pathname.endsWith("/food/");
-  const fabBottom = isInnerRoute ? "bottom-7" : "bottom-24";
+  const fabBottom = isInnerRoute ? "bottom-7" : "bottom-28";
 
   return (
     <Pressable
@@ -51,11 +51,9 @@ export function GlobalCartFab() {
       }
       className={`absolute ${fabBottom} right-5 h-14 w-14 items-center justify-center rounded-xl bg-white`}
       style={{
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-        elevation: 6,
+        // Setara shadow-md nativewind.
+        boxShadow:
+          "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)",
       }}
     >
       <AppIcon name="cart" size={24} color="#000000" />

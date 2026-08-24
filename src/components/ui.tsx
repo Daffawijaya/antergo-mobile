@@ -5,7 +5,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type StyleProp,
@@ -53,7 +52,6 @@ export function Screen({
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   header?: ReactNode;
 }>) {
-  const { height: screenHeight } = useWindowDimensions();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const content = (
@@ -77,7 +75,9 @@ export function Screen({
           style={{ backgroundColor: colors.background }}
           contentContainerStyle={{
             flexGrow: 1,
-            minHeight: screenHeight,
+            // ponytail: "100%" = viewport scroll (bukan window), biar halaman
+            // pendek ga bisa discroll melewati konten.
+            minHeight: "100%",
             backgroundColor: colors.background,
             paddingBottom: scrollBottomPadding ? 16 : 0,
           }}
@@ -227,6 +227,9 @@ export function Button({
       ) : (
         <Text
           className={`font-extrabold text-[15px] leading-5 ${buttonTextClasses[variant]}`}
+          // ponytail: warna teks dikunci via style karena utility text-on-brand
+          // kadang tidak ter-generate nativewind (teks ikut warna bg kuning).
+          style={variant === "primary" ? { color: Colors.onPrimary } : undefined}
         >
           {title}
         </Text>
