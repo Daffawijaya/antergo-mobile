@@ -8,9 +8,10 @@ import {
 } from "@expo-google-fonts/outfit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   StyleSheet,
   Text,
   TextInput,
@@ -52,6 +53,21 @@ function Router() {
   const restoreTheme = useThemeStore((state) => state.restore);
   const restoreLanguage = useLanguageStore((state) => state.restore);
 
+  // Fade the whole app in whenever the theme mode flips, so the switch
+  // doesn't feel like an instant color snap.
+  const themeOpacity = useRef(new Animated.Value(1)).current;
+  const prevMode = useRef(mode);
+  useEffect(() => {
+    if (prevMode.current === mode) return;
+    prevMode.current = mode;
+    themeOpacity.setValue(0);
+    Animated.timing(themeOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [mode, themeOpacity]);
+
   useEffect(() => {
     void restoreSession();
     void restoreTheme();
@@ -75,7 +91,7 @@ function Router() {
     );
 
   return (
-    <>
+    <Animated.View style={{ flex: 1, opacity: themeOpacity }}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -114,7 +130,7 @@ function Router() {
           <Stack.Screen name="(merchant)" />
         </Stack.Protected>
       </Stack>
-    </>
+    </Animated.View>
   );
 }
 
