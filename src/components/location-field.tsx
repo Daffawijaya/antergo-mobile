@@ -1,7 +1,11 @@
 import { Pressable, Text, View } from "react-native";
 import { AppIcon } from "@/components/app-icon";
+import { HiLocationMarkerIcon } from "@/components/brand-icons";
 import { Colors } from "@/constants/colors";
 import { useAppTheme } from "@/stores/theme-store";
+
+// Merah tujuan, senada dengan halaman Kirim.
+const DEST_RED = "#FA2C19";
 
 export function LocationRouteCard({
   pickup,
@@ -40,7 +44,7 @@ export function LocationField(props: {
     </View>
   );
 }
-function LocationRow({
+export function LocationRow({
   label,
   value,
   placeholder,
@@ -63,11 +67,11 @@ function LocationRow({
       <View
         className={`h-10 w-10 items-center justify-center rounded-full ${kind === "pickup" ? "bg-surface-muted" : "bg-surface-muted"}`}
       >
-        <AppIcon
-          name="pin"
-          size={22}
-          color={kind === "pickup" ? Colors.primary : Colors.danger}
-        />
+        {kind === "destination" ? (
+          <HiLocationMarkerIcon size={22} color={DEST_RED} />
+        ) : (
+          <AppIcon name="pin" size={22} color={Colors.primary} />
+        )}
       </View>
       <View className="flex-1 gap-0.5">
         <Text className="font-semibold text-xs text-muted">{label}</Text>

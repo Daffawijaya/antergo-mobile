@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo as useThemeMemo, useRef, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Animated,
   BackHandler,
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui";
 import { formatRupiah } from "@/lib/format";
 import { distanceMeters } from "@/lib/location";
+import { LocationRow } from "@/components/location-field";
 import { useCartStore } from "@/stores/cart-store";
 import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
@@ -83,6 +84,39 @@ export default function CartScreen() {
 
   // ── Fee estimation (delivery fee based on distance + 8% platform fee) ──
   const currentLocation = useLocationPickerStore((s) => s.currentLocation);
+  const destination = useLocationPickerStore(
+    (s) => s.selections["food-destination"],
+  );
+  // Auto-isi lokasi pengantaran dari lokasi terkini kalau belum dipilih,
+  // sama seperti di halaman makanan/belanja.
+  useFocusEffect(
+    useCallback(() => {
+      if (useLocationPickerStore.getState().selections["food-destination"])
+        return;
+      let cancelled = false;
+      void (async () => {
+        const state = useLocationPickerStore.getState();
+        const point =
+          state.currentLocation ?? (await state.refreshCurrentLocation());
+        if (cancelled || !point) return;
+        useLocationPickerStore
+          .getState()
+          .setSelection("food-destination", point);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
+  // Kembali ke keranjang dengan tampilan yang sama setelah pilih lokasi
+  const cartReturnTo = merchantId
+    ? `/(customer)/food/cart?service=${service}&merchantId=${merchantId}`
+    : `/(customer)/food/cart?service=${service}`;
+  const openLocationSearch = () =>
+    router.push({
+      pathname: "/(customer)/location-search",
+      params: { purpose: "food-destination", returnTo: cartReturnTo },
+    });
 
   const estimateDeliveryFee = (
     merchantLat: string | null,
@@ -272,7 +306,15 @@ export default function CartScreen() {
                 </Card>
               ))}
               {singleTotals ? (
-                <Card style={styles.feeCard}>
+                <>
+                  <LocationRow
+                    kind="destination"
+                    label="Lokasi pengantaran"
+                    value={destination?.address}
+                    placeholder="Pilih lokasi pengantaran"
+                    onPress={openLocationSearch}
+                  />
+                  <Card style={styles.feeCard}>
                   <View style={styles.feeRow}>
                     <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(singleTotals.subtotal)}</Text>
@@ -285,7 +327,8 @@ export default function CartScreen() {
                     <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(singleTotals.platformFee)}</Text>
                   </View>
-                </Card>
+                  </Card>
+                </>
               ) : null}
               <Button
                 title={t("cart.clearCart")}
@@ -340,11 +383,12 @@ export default function CartScreen() {
                     </Pressable>
 
                     {/* Items — baris produk persis halaman detail UMKM */}
-                    {cart.items.map((item) => (
+                    {cart.items.map((item, i) => (
                       <CartItemRow
                         key={item.product.id}
                         item={item}
                         merchantId={cart.merchant.id}
+                        isLast={i === cart.items.length - 1}
                         colors={colors}
                       />
                     ))}
@@ -355,7 +399,15 @@ export default function CartScreen() {
               {/* Grand total */}
               <View className="px-5 gap-4">
               {allTotals ? (
-                <Card style={styles.feeCard}>
+                <>
+                  <LocationRow
+                    kind="destination"
+                    label="Lokasi pengantaran"
+                    value={destination?.address}
+                    placeholder="Pilih lokasi pengantaran"
+                    onPress={openLocationSearch}
+                  />
+                  <Card style={styles.feeCard}>
                   <View style={styles.feeRow}>
                     <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(allTotals.subtotal)}</Text>
@@ -368,7 +420,8 @@ export default function CartScreen() {
                     <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(allTotals.platformFee)}</Text>
                   </View>
-                </Card>
+                  </Card>
+                </>
               ) : null}
               </View>
             </>
@@ -480,10 +533,12 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
 function CartItemRow({
   item,
   merchantId,
+  isLast = false,
   colors,
 }: {
   item: { product: { id: number; name: string; image?: string | null; price: string | number; stock: number; product_type: string }; quantity: number };
   merchantId: number;
+  isLast?: boolean;
   colors: { border: string };
 }) {
   const setQuantity = useCartStore((s) => s.setQuantity);
@@ -591,11 +646,13 @@ function CartItemRow({
           )}
         </View>
       </View>
-      {/* Garis pemisah sejajar konten, bukan full width */}
-      <View
-        className="h-px mx-5"
-        style={{ backgroundColor: colors.border }}
-      />
+      {/* Garis pemisah hanya antar item, bukan setelah item terakhir */}
+      {!isLast && (
+        <View
+          className="h-px mx-5"
+          style={{ backgroundColor: colors.border }}
+        />
+      )}
       </View>
     </Swipeable>
   );
