@@ -241,8 +241,8 @@ export default function CreateRideScreen() {
     errors.destination_address?.message ||
     errors.destination_latitude?.message;
   const gradient = BIKE_GRADIENT[mode];
-  // White reads best on the (darker) brand-yellow hero.
-  const heroColor = "#FFFFFF";
+  // Teks promo di hero dibuat hitam sesuai desain (bukan putih).
+  const heroColor = "#000000";
 
   return (
     <Screen
