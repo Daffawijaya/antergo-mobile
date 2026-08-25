@@ -216,6 +216,12 @@ const id = {
     "Biaya antar, biaya layanan, harga, dan total akhir dihitung saat checkout.",
   "cart.viewDetail": "Lihat detail",
   "cart.removeConfirm": "Hapus semua item dari cart?",
+  "cart.subtotal": "Subtotal",
+  "cart.deliveryFee": "Ongkos kirim",
+  "cart.platformFee": "Biaya platform (8%)",
+  "cart.total": "Total",
+  "cart.orderSummary": "Ringkasan Pesanan",
+  "cart.estimatedFee": "Perkiraan. Biaya final dihitung saat checkout.",
 
   /* ── checkout ───────────────────────────────────────────── */
   "checkout.title": "Checkout",

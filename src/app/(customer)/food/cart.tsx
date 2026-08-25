@@ -24,9 +24,16 @@ import {
   StatusState,
 } from "@/components/ui";
 import { formatRupiah } from "@/lib/format";
+import { distanceMeters } from "@/lib/location";
 import { useCartStore } from "@/stores/cart-store";
+import { useLocationPickerStore } from "@/stores/location-picker-store";
 import { useAppTheme } from "@/stores/theme-store";
 import { useTranslation } from "@/i18n";
+
+// ── Fee estimation constants ─────────────────────────────────────────────
+const BASE_FARE = 5000;        // Rp5.000 base delivery fee
+const PRICE_PER_KM = 2000;    // Rp2.000 per km
+const PLATFORM_FEE_RATE = 0.08; // 8% platform fee
 
 export default function CartScreen() {
   const { styles } = useScreenStyles();
@@ -78,6 +85,59 @@ export default function CartScreen() {
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0,
   );
+
+  // ── Fee estimation (delivery fee based on distance + 8% platform fee) ──
+  const currentLocation = useLocationPickerStore((s) => s.currentLocation);
+
+  const estimateDeliveryFee = (
+    merchantLat: string | null,
+    merchantLng: string | null,
+  ) => {
+    if (!currentLocation || !merchantLat || !merchantLng) return 0;
+    const dest = {
+      latitude: Number(merchantLat),
+      longitude: Number(merchantLng),
+    };
+    if (!Number.isFinite(dest.latitude) || !Number.isFinite(dest.longitude))
+      return 0;
+    const distM = distanceMeters(currentLocation.coordinate, dest);
+    const km = Math.max(distM / 1000, 1); // minimum 1 km
+    return Math.round(BASE_FARE + km * PRICE_PER_KM);
+  };
+
+  const computeTotals = (subtotal: number, deliveryFee: number) => {
+    const platformFee = Math.round((subtotal + deliveryFee) * PLATFORM_FEE_RATE);
+    return {
+      subtotal,
+      deliveryFee,
+      platformFee,
+      total: subtotal + deliveryFee + platformFee,
+    };
+  };
+
+  // For single merchant view
+  const singleDeliveryFee = isSingleMode
+    ? estimateDeliveryFee(
+        singleCart!.merchant.latitude,
+        singleCart!.merchant.longitude,
+      )
+    : 0;
+  const singleTotals = isSingleMode
+    ? computeTotals(singleSubtotal, singleDeliveryFee)
+    : null;
+
+  // For all merchants view
+  const allDeliveryFee = allMerchantEntries.reduce(
+    (sum, cart) =>
+      sum + estimateDeliveryFee(cart.merchant.latitude, cart.merchant.longitude),
+    0,
+  );
+  const allTotals = !isSingleMode
+    ? computeTotals(totalAllPrice, allDeliveryFee)
+    : null;
+
+  const displayTotals = singleTotals ?? allTotals;
+  const grandTotal = displayTotals?.total ?? 0;
 
   // Panel turun dari atas saat dibuka, naik lagi saat ditutup. Halaman di
   // bawahnya tetap terlihat (transparentModal).
@@ -216,15 +276,30 @@ export default function CartScreen() {
                   </View>
                 </Card>
               ))}
-              <Card>
-                <KeyValue
-                  label={t("cart.subtotalPreviewLabel")}
-                  value={formatRupiah(singleSubtotal)}
-                />
-                <Text style={styles.muted}>
-                  {t("cart.checkoutNote")}
-                </Text>
-              </Card>
+              {singleTotals ? (
+                <Card>
+                  <Text style={styles.title}>{t("cart.orderSummary")}</Text>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(singleTotals.subtotal)}</Text>
+                  </View>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.deliveryFee")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(singleTotals.deliveryFee)}</Text>
+                  </View>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(singleTotals.platformFee)}</Text>
+                  </View>
+                  <View style={[styles.feeRow, styles.feeTotal]}>
+                    <Text style={styles.feeLabelBold}>{t("cart.total")}</Text>
+                    <Text style={styles.feeValueBold}>{formatRupiah(singleTotals.total)}</Text>
+                  </View>
+                  <Text style={styles.muted}>
+                    {t("cart.estimatedFee")}
+                  </Text>
+                </Card>
+              ) : null}
               <Button
                 title={t("cart.clearCart")}
                 variant="danger"
@@ -292,15 +367,32 @@ export default function CartScreen() {
 
               {/* Grand total */}
               <View className="px-5 gap-4">
-              <Card>
-                <KeyValue
-                  label={`Total ${allMerchantEntries.length} ${t("home.umkmAnterGo")} • ${totalAllItems} item`}
-                  value={formatRupiah(totalAllPrice)}
-                />
-                <Text style={styles.muted}>
-                  {t("cart.checkoutNote")}
-                </Text>
-              </Card>
+              {allTotals ? (
+                <Card>
+                  <Text style={styles.title}>
+                    {`Total ${allMerchantEntries.length} ${t("home.umkmAnterGo")} • ${totalAllItems} item`}
+                  </Text>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(allTotals.subtotal)}</Text>
+                  </View>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.deliveryFee")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(allTotals.deliveryFee)}</Text>
+                  </View>
+                  <View style={styles.feeRow}>
+                    <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
+                    <Text style={styles.feeValue}>{formatRupiah(allTotals.platformFee)}</Text>
+                  </View>
+                  <View style={[styles.feeRow, styles.feeTotal]}>
+                    <Text style={styles.feeLabelBold}>{t("cart.total")}</Text>
+                    <Text style={styles.feeValueBold}>{formatRupiah(allTotals.total)}</Text>
+                  </View>
+                  <Text style={styles.muted}>
+                    {t("cart.estimatedFee")}
+                  </Text>
+                </Card>
+              ) : null}
               </View>
             </>
           )}
@@ -310,7 +402,7 @@ export default function CartScreen() {
       </View>
     </Screen>
     {hasItems ? (
-      <CheckoutBar total={isSingleMode ? singleSubtotal : totalAllPrice} onPress={goCheckout} />
+      <CheckoutBar total={grandTotal} onPress={goCheckout} />
     ) : null}
     </Animated.View>
   );
@@ -371,6 +463,23 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       fontWeight: "800",
       fontSize: 18,
     },
+    /* Fee breakdown styles */
+    feeRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 4,
+    },
+    feeLabel: { color: colors.muted, fontSize: 14 },
+    feeValue: { color: colors.text, fontSize: 14, fontWeight: "600" },
+    feeTotal: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      paddingTop: 8,
+      marginTop: 4,
+    },
+    feeLabelBold: { color: colors.text, fontSize: 15, fontWeight: "800" },
+    feeValueBold: { color: colors.text, fontSize: 15, fontWeight: "800" },
     /* All-merchants styles */
     merchantName: {
       color: colors.text,

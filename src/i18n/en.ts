@@ -214,6 +214,12 @@ const en = {
   "cart.checkoutNote": "Delivery fee, service fee, prices, and final total are calculated at checkout.",
   "cart.viewDetail": "View details",
   "cart.removeConfirm": "Remove all items from cart?",
+  "cart.subtotal": "Subtotal",
+  "cart.deliveryFee": "Delivery fee",
+  "cart.platformFee": "Platform fee (8%)",
+  "cart.total": "Total",
+  "cart.orderSummary": "Order Summary",
+  "cart.estimatedFee": "Estimated. Final fees are calculated at checkout.",
 
   /* ── checkout ───────────────────────────────────────────── */
   "checkout.title": "Checkout",
