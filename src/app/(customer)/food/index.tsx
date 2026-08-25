@@ -431,9 +431,9 @@ export default function CommerceCatalogScreen() {
                       {merchant.address}
                     </Text>
                     <Text
-                      className={`font-semibold text-xs ${merchant.is_open && merchant.is_active ? "text-brand-dark" : "text-danger"}`}
+                      className={`font-semibold text-xs ${(merchant.is_open_now ?? merchant.is_open) && merchant.is_active ? "text-brand-dark" : "text-danger"}`}
                     >
-                      {merchant.is_open && merchant.is_active
+                      {(merchant.is_open_now ?? merchant.is_open) && merchant.is_active
                         ? t("common.open")
                         : t("common.closed")}
                     </Text>

@@ -274,9 +274,9 @@ function MerchantSection({
                   {t("home.umkmKuliner")}
                 </Text>
                 <Text
-                  className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}
+                  className={`font-semibold text-xs ${(merchant.is_open_now ?? merchant.is_open) ? "text-brand-dark" : "text-muted"}`}
                 >
-                  {merchant.is_open ? "Buka" : "Tutup"}
+                  {(merchant.is_open_now ?? merchant.is_open) ? "Buka" : "Tutup"}
                 </Text>
               </View>
             </Pressable>

@@ -64,7 +64,7 @@ export default function MerchantHome() {
           <Card>
             <KeyValue
               label="Status toko"
-              value={profile.data.is_open ? "Buka" : "Tutup"}
+              value={profile.data.is_open_now ? "Buka" : "Tutup"}
             />
             <KeyValue
               label="Status akun"
@@ -79,6 +79,11 @@ export default function MerchantHome() {
               variant={profile.data.is_open ? "secondary" : "primary"}
               loading={mutation.isPending}
               onPress={() => mutation.mutate(!profile.data!.is_open)}
+            />
+            <Button
+              title="Jam Operasional"
+              variant="secondary"
+              onPress={() => router.push("/(merchant)/hours")}
             />
           </Card>
           <Card>

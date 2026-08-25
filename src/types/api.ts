@@ -98,6 +98,8 @@ export type Merchant = {
   cover_image: string | null;
   is_open: boolean;
   is_active: boolean;
+  operational_hours?: Record<string, { open: string; close: string }> | null;
+  is_open_now?: boolean;
   products?: Product[];
   average_rating: number;
   rating_count: number;

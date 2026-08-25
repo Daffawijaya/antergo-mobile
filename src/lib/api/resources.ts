@@ -4,6 +4,7 @@ import { apiClient } from "./client";
 export const getDriverProfile=async()=> (await apiClient.get<{driver:Driver}>("/driver/profile")).data.driver;
 export const setDriverOnline=async(online:boolean)=>(await apiClient.post<{driver:Driver}>(`/driver/${online?"online":"offline"}`)).data.driver;
 export const getMerchantProfile=async()=> (await apiClient.get<{merchant:Merchant}>("/merchant/me")).data.merchant;
+export async function setMerchantHours(input:{hours:Record<string,{open:string;close:string}|null>}){return(await apiClient.post<{message:string;merchant:Merchant}>("/merchant/hours",input)).data.merchant;}
 export const setMerchantOpen=async(open:boolean)=>(await apiClient.post<{merchant:Merchant}>(`/merchant/${open?"open":"close"}`)).data.merchant;
 export const getCustomerOrders=async()=>(await apiClient.get<LaravelPaginator<Order>>("/orders")).data;
 export const getDriverOrders=async()=>({data:(await apiClient.get<{orders:Order[]}>("/driver/orders/available")).data.orders});
