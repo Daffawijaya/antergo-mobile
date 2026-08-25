@@ -326,6 +326,7 @@ export default function CartScreen() {
               ))}
               {singleTotals ? (
                 <>
+                  <View style={styles.sectionDivider} />
                   <LocationRow
                     kind="destination"
                     label="Lokasi pengantaran"
@@ -441,6 +442,7 @@ export default function CartScreen() {
               <View className="px-5 gap-4">
               {allTotals ? (
                 <>
+                  <View style={styles.sectionDivider} />
                   <LocationRow
                     kind="destination"
                     label="Lokasi pengantaran"
@@ -540,6 +542,13 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       justifyContent: "space-between",
       alignItems: "center",
       paddingVertical: 4,
+    },
+    /* ponytail: warna hardcode abu muda, theme tak punya token lebih muda dari border
+       (sama dengan CheckoutBar); margin negatif nembus px-5 biar full-width */
+    sectionDivider: {
+      height: 8,
+      backgroundColor: "#F3F4F6",
+      marginHorizontal: -20,
     },
     feeLabel: { color: colors.muted, fontSize: 14 },
     feeValue: { color: colors.text, fontSize: 14, fontWeight: "600" },
