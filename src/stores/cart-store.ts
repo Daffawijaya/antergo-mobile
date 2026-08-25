@@ -6,6 +6,8 @@ import type { Merchant, Product } from "@/types/api";
 
 export type CartItem = { product: Product; quantity: number };
 
+export type PaymentMethod = "cash" | "midtrans";
+
 type MerchantCart = {
   merchant: Merchant;
   items: CartItem[];
@@ -14,6 +16,9 @@ type MerchantCart = {
 type CartState = {
   /** Per-merchant carts keyed by merchant ID */
   carts: Record<number, MerchantCart>;
+  /** Selected payment method, shared across the cart flow */
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: (method: PaymentMethod) => void;
   /** Add item to a specific merchant's cart */
   addItem: (merchant: Merchant, product: Product) => void;
   /** Replace entire cart for a merchant (used when switching product type) */
@@ -38,6 +43,8 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       carts: {},
+      paymentMethod: "cash",
+      setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
 
       addItem: (merchant, product) =>
         set((state) => {

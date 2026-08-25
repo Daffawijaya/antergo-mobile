@@ -2,7 +2,8 @@ import { useMemo as useThemeMemo, useState } from "react";
 import { useTranslation } from "@/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { LocationField } from "@/components/location-field";
 import {
   BackButton,
@@ -17,7 +18,7 @@ import {
   StatusState,
 } from "@/components/ui";
 import { Spacing, Typography } from "@/constants/colors";
-import { createFoodOrder } from "@/lib/api/food";
+import { createFoodOrder, payWithMidtrans } from "@/lib/api/food";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { foodKeys } from "@/lib/food-query-keys";
 import { formatRupiah } from "@/lib/format";
@@ -37,6 +38,7 @@ export default function FoodCheckoutScreen() {
   const merchantId = Number(merchantIdParam);
 
   const cart = useCartStore((s) => s.carts[merchantId]);
+  const paymentMethod = useCartStore((s) => s.paymentMethod);
   const merchant = cart?.merchant;
   const items = cart?.items ?? [];
   const clearMerchant = useCartStore((s) => s.clearMerchant);
@@ -58,6 +60,18 @@ export default function FoodCheckoutScreen() {
   const mutation = useMutation({
     mutationFn: createFoodOrder,
     onSuccess: async ({ order }) => {
+      if (paymentMethod === "midtrans") {
+        try {
+          const snapUrl = await payWithMidtrans(order.id);
+          if (snapUrl) await WebBrowser.openBrowserAsync(snapUrl);
+          else throw new Error("missing redirect_url");
+        } catch {
+          Alert.alert(
+            "Pembayaran",
+            "Gagal membuka halaman pembayaran. Coba bayar dari detail pesanan.",
+          );
+        }
+      }
       clearMerchant(merchantId);
       await Promise.all([
         client.invalidateQueries({ queryKey: orderKeys.all }),
@@ -86,7 +100,7 @@ export default function FoodCheckoutScreen() {
       destination_address: destination.address,
       destination_latitude: destination.coordinate.latitude,
       destination_longitude: destination.coordinate.longitude,
-      payment_method: "cash",
+      payment_method: paymentMethod,
       notes: notes.trim() || null,
       service_type: service,
     });
@@ -153,7 +167,10 @@ export default function FoodCheckoutScreen() {
       </View>
       <Card>
         <KeyValue label={`${itemCount} item`} value={formatRupiah(subtotal)} />
-        <KeyValue label="Pembayaran" value="Tunai" />
+        <KeyValue
+          label="Pembayaran"
+          value={paymentMethod === "midtrans" ? "Midtrans" : "Tunai"}
+        />
         <View style={styles.divider} />
         <KeyValue label="Total sementara" value={formatRupiah(subtotal)} />
       </Card>

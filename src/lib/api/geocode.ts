@@ -29,8 +29,7 @@ export type NearbyMerchant = {
   id: number;
   name: string;
   coordinate: Coordinate;
-  distance: number;
-  category_id: number | null;
+  distance?: number;
 };
 
 export type MapBounds = {

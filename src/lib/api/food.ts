@@ -64,6 +64,12 @@ export async function createFoodOrder(input: CreateFoodOrderInput) {
 export async function getFoodOrderDetail(id: number) {
   return (await apiClient.get<{ order: Order }>(`/orders/${id}`)).data.order;
 }
+export async function payWithMidtrans(orderId: number) {
+  const { data } = await apiClient.post<{ redirect_url: string }>(
+    `/orders/${orderId}/pay`,
+  );
+  return data.redirect_url;
+}
 export async function listMerchantOrders(page = 1) {
   return (
     await apiClient.get<LaravelPaginator<Order>>("/merchant/orders", {

@@ -71,10 +71,6 @@ export default function MerchantHome() {
               value={profile.data.is_active ? "Aktif" : "Tidak aktif"}
             />
             <KeyValue
-              label="Kategori"
-              value={profile.data.category?.name ?? "-"}
-            />
-            <KeyValue
               label="Jumlah produk"
               value={(profile.data.products ?? []).length}
             />

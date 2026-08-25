@@ -271,7 +271,7 @@ function MerchantSection({
                   {merchant.name}
                 </Text>
                 <Text numberOfLines={1} className="text-xs text-muted">
-                  {merchant.category?.name ?? t("home.umkmKuliner")}
+                  {t("home.umkmKuliner")}
                 </Text>
                 <Text
                   className={`font-semibold text-xs ${merchant.is_open ? "text-brand-dark" : "text-muted"}`}

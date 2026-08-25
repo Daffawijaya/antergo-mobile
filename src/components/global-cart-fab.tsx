@@ -2,42 +2,32 @@ import { useRouter, usePathname } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { AppIcon } from "@/components/app-icon";
 import { useCartStore } from "@/stores/cart-store";
+import { useAuthStore } from "@/stores/auth-store";
 
-/** Routes where the global cart FAB should be hidden. */
-const HIDDEN_ROUTES = [
-  "/food/merchant/",
-  "/food/cart",
-  "/food/checkout",
-  "/food/order/",
-];
+/** Tab roots where the tabs-layout cart FAB is allowed to appear.
+ *  The standalone `force` instance (food/product pages) ignores this. */
+const VISIBLE_TABS = new Set(["/", "/orders", "/chat", "/profile"]);
 
 export function GlobalCartFab({
   force = false,
-  // Skip penyembunyian berbasis route: dipakai instance di tabs layout agar
-  // FAB tetap terpasang saat navigasi (tidak hilang sebelum tertutup screen
-  // baru yang sedang slide).
-  alwaysVisible = false,
 }: {
   force?: boolean;
-  alwaysVisible?: boolean;
 } = {}) {
   const router = useRouter();
   const pathname = usePathname();
+  const activeRole = useAuthStore((s) => s.activeRole);
 
   const totalCartItems = useCartStore((s) => s.totalItems());
 
-  // Don't render at all on hidden routes or when cart is empty.
-  // The food/shopping list page renders its own FAB with `force` so it
-  // slides with the screen transition.
-  const shouldHide = alwaysVisible
-    ? false
-    : HIDDEN_ROUTES.some((route) => pathname.includes(route)) ||
-      (!force &&
-        (pathname.endsWith("/food") || pathname.endsWith("/food/")));
+  const normalized =
+    pathname.length > 1 ? pathname.replace(/\/+$/, "") : "/";
+  const shouldHide =
+    !force &&
+    (activeRole !== "customer" || !VISIBLE_TABS.has(normalized));
   if (shouldHide || totalCartItems === 0) return null;
 
-  // Selalu terpasang (instance tabs) = posisi juga diam di atas tab bar,
-  // jangan ikut berubah saat pathname pindah ke route inner.
+  // Instance tabs menempel di atas tab bar; instance `force` di halaman
+  // tanpa tab bar melayang lebih rendah.
   const fabBottom = force ? "bottom-8" : "bottom-28";
 
   return (

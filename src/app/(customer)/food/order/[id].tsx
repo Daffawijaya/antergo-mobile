@@ -1,7 +1,8 @@
 import { useMemo as useThemeMemo , useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { useTranslation } from "@/i18n";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { PaymentSummary } from "@/components/payment-summary";
@@ -17,7 +18,7 @@ import {
   StatusState,
 } from "@/components/ui";
 import { Colors } from "@/constants/colors";
-import { getFoodOrderDetail } from "@/lib/api/food";
+import { getFoodOrderDetail, payWithMidtrans } from "@/lib/api/food";
 import { cancelRide } from "@/lib/api/rides";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { foodKeys } from "@/lib/food-query-keys";
@@ -41,6 +42,19 @@ export default function FoodOrderDetailScreen() {
     enabled: Number.isInteger(orderId) && orderId > 0,
     refetchInterval: ({ state }) =>
       state.data && terminal.has(state.data.status) ? false : 5_000,
+  });
+  const pay = useMutation({
+    mutationFn: async () => {
+      const url = await payWithMidtrans(orderId);
+      if (!url) throw new Error("missing redirect_url");
+      await WebBrowser.openBrowserAsync(url);
+    },
+    onError: () => {
+      Alert.alert("Pembayaran", "Gagal membuka halaman pembayaran Midtrans.");
+    },
+    onSettled: async () => {
+      await client.invalidateQueries({ queryKey: foodKeys.order(orderId) });
+    },
   });
   const cancel = useMutation({
     mutationFn: () => cancelRide(orderId, reason),
@@ -97,6 +111,18 @@ export default function FoodOrderDetailScreen() {
             />
           </Card>
           <PaymentSummary order={query.data} />
+          {query.data.payment_method === "gateway" &&
+          ["pending", "failed"].includes(query.data.payment_status) ? (
+            <Button
+              title={
+                query.data.payment_status === "failed"
+                  ? "Bayar ulang sekarang"
+                  : "Bayar sekarang"
+              }
+              loading={pay.isPending}
+              onPress={() => pay.mutate()}
+            />
+          ) : null}
           <Card>
             <Text style={styles.heading}>Item</Text>
             {query.data.items?.map((item) => (

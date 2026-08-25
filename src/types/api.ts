@@ -87,11 +87,11 @@ export type Product = {
 export type Merchant = {
   id: number;
   user_id: number;
-  category_id: number | null;
   name: string;
   description: string | null;
   phone: string;
   address: string;
+  notes: string | null;
   latitude: string | null;
   longitude: string | null;
   logo: string | null;
@@ -99,7 +99,6 @@ export type Merchant = {
   is_open: boolean;
   is_active: boolean;
   products?: Product[];
-  category?: { id: number; name: string; slug?: string } | null;
   average_rating: number;
   rating_count: number;
   created_at?: string;
@@ -109,7 +108,6 @@ export type Merchant = {
 export type OrderType = "ride" | "send" | "food";
 export type ServiceVariant = "bike" | "car" | "delivery" | "food" | "shopping";
 export type VehicleType = "motorcycle" | "car";
-export type MerchantCategory = { id: number; name: string; slug: string };
 export type OrderStatus =
   | "pending"
   | "searching_driver"
@@ -274,7 +272,7 @@ export type CreateFoodOrderInput = {
   destination_address: string;
   destination_latitude: number;
   destination_longitude: number;
-  payment_method: "cash";
+  payment_method: "cash" | "midtrans";
   notes?: string | null;
   service_type?: "food" | "shopping";
 };

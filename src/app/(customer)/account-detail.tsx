@@ -198,7 +198,7 @@ export default function AccountDetailScreen() {
             onPress={save}
             className="h-10 items-center justify-center px-1 active:opacity-70"
           >
-            <Text className="font-sans text-base text-brand">
+            <Text className="font-sans text-base text-secondary">
               {saving ? t("accountDetail.saving") : t("common.save")}
             </Text>
           </Pressable>

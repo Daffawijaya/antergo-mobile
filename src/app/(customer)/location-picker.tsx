@@ -45,6 +45,7 @@ const LABEL_KEYS: Record<LocationPurpose, { title: TranslationKey; cta: Translat
   "jastip-purchase": { title: "jastip.whereToBuy", cta: "common.confirm" },
   "jastip-destination": { title: "jastip.deliverTo", cta: "common.confirm" },
   "food-destination": { title: "location.foodDest", cta: "location.foodDestCta" },
+  "merchant-location": { title: "location.merchantTitle", cta: "location.merchantCta" },
 };
 
 const TOP_LABEL_KEYS: Record<LocationPurpose, TranslationKey> = {
@@ -55,6 +56,7 @@ const TOP_LABEL_KEYS: Record<LocationPurpose, TranslationKey> = {
   "jastip-purchase": "jastip.whereToBuy",
   "jastip-destination": "jastip.deliverTo",
   "food-destination": "location.topFoodDest",
+  "merchant-location": "location.topMerchant",
 };
 
 // Marker colors/icons matching the search fields and result list on the

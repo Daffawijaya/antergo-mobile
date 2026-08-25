@@ -1,4 +1,4 @@
-import type { Driver, DriverDocument, DriverDocumentType, LaravelPaginator, Merchant, MerchantCategory, Order, Product, Vehicle, VehicleType } from "@/types/api";
+import type { Driver, DriverDocument, DriverDocumentType, LaravelPaginator, Merchant, Order, Product, Vehicle, VehicleType } from "@/types/api";
 import { appendPhoto, type OptimizedPhoto } from "@/lib/image-upload";
 import { apiClient } from "./client";
 export const getDriverProfile=async()=> (await apiClient.get<{driver:Driver}>("/driver/profile")).data.driver;
@@ -18,5 +18,4 @@ export async function updateDriverDocument(input:{type:DriverDocumentType;photo?
 export const listDriverDocuments=async()=> (await apiClient.get<{documents:DriverDocument[]}>("/driver/documents")).data.documents;
 export const getDriverDocumentUrl=async(type:DriverDocumentType)=>(await apiClient.get<{photo_url:string|null}>(`/driver/documents/${type}/url`)).data.photo_url;
 export const deleteDriverDocument=async(type:DriverDocumentType)=>(await apiClient.delete<{driver:Driver}>(`/driver/documents/${type}`)).data.driver;
-export const listMerchantCategories=async()=>(await apiClient.get<{categories:MerchantCategory[]}>("/merchant-categories")).data.categories;
-export async function registerMerchant(input:{category_id:number;name:string;description?:string;phone:string;address:string;latitude:number;longitude:number;image:OptimizedPhoto}){const f=new FormData();for(const [k,v] of Object.entries(input)){if(k!=="image"&&v!==undefined)f.append(k,String(v));}await appendPhoto(f,"image",input.image);return(await apiClient.post<{merchant:Merchant}>("/merchant",f,{headers:{"Content-Type":"multipart/form-data"}})).data.merchant;}
+export async function registerMerchant(input:{name:string;description?:string;phone:string;address:string;notes?:string;latitude:number;longitude:number;image:OptimizedPhoto}){const f=new FormData();for(const [k,v] of Object.entries(input)){if(k!=="image"&&v!==undefined)f.append(k,String(v));}await appendPhoto(f,"image",input.image);return(await apiClient.post<{merchant:Merchant}>("/merchant",f,{headers:{"Content-Type":"multipart/form-data"}})).data.merchant;}

@@ -10,7 +10,7 @@ import {
   serviceLabelKey,
   ServiceIcon,
 } from "@/components/service-icon";
-import { Button, PageHeader, Screen, StatusState } from "@/components/ui";
+import { Button, Screen, StatusState } from "@/components/ui";
 import { WarmGradientBg } from "@/components/warm-gradient-bg";
 import { Colors } from "@/constants/colors";
 import { listCustomerOrders } from "@/lib/api/rides";
@@ -67,93 +67,88 @@ export default function CustomerOrders() {
   return (
     <Screen padded={false} scrollBottomPadding={false} className="gap-0 bg-background">
       <WarmGradientBg height={380} />
-      <View className="gap-4 px-4 pb-4" style={{ paddingTop: insets.top + 16 }}>
-        <PageHeader
-          eyebrow="ANTERGO"
-          title={t("orders.title")}
-          description={t("orders.description")}
-        />
-        <View style={styles.filters}>
-          <CustomerChip
-            label={t("orders.all")}
-            selected={filter === "all"}
-            onPress={() => setFilter("all")}
-          />
-          <CustomerChip
-            label={t("orders.active")}
-            selected={filter === "active"}
-            onPress={() => setFilter("active")}
-          />
-          <CustomerChip
-            label={t("orders.history")}
-            selected={filter === "history"}
-            onPress={() => setFilter("history")}
-          />
-        </View>
+      <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
+        <Text className="font-bold text-[22px] leading-7 text-foreground">
+          {t("orders.title")}
+        </Text>
       </View>
-      <View className="gap-3 px-4 pb-4">
-        {query.isLoading ? (
-          <StatusState type="loading" />
-        ) : query.isError ? (
-          <StatusState
-            type="error"
-            message={getApiErrorMessage(query.error)}
-            action={
-              <Button
-                title={t("common.tryAgain")}
-                variant="secondary"
-                onPress={() => query.refetch()}
-              />
-            }
-          />
-        ) : !orders.length ? (
-          <StatusState
-            type="empty"
-            title={t("orders.noActivity")}
-            message={
-              filter === "active"
-                ? t("orders.noActive")
-                : t("orders.historyDesc")
-            }
-          />
-        ) : (
-          <View className="gap-3 px-4">
-            {orders.map((order) => (
-              <Pressable
-                key={order.id}
-                onPress={() => router.push(orderPath(order))}
-                style={({ pressed }) => [
-                  styles.orderRow,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <ServiceIcon type={orderService(order)} size={50} />
-                <View style={styles.copy}>
-                  <View style={styles.titleRow}>
-                    <Text style={styles.type}>
-                      {t(serviceLabelKey(orderService(order)))}
-                    </Text>
-                    <Text style={styles.total}>
-                      {formatRupiah(order.total_price)}
-                    </Text>
-                  </View>
-                  <Text style={styles.number}>{order.order_number}</Text>
-                  <Text numberOfLines={1} style={styles.address}>
-                    {order.destination_address ??
-                      order.pickup_address ??
-                      t("orders.orderDetails")}
+      <View style={styles.filters} className="px-5 pb-3 pt-4">
+        <CustomerChip
+          label={t("orders.all")}
+          selected={filter === "all"}
+          onPress={() => setFilter("all")}
+        />
+        <CustomerChip
+          label={t("orders.active")}
+          selected={filter === "active"}
+          onPress={() => setFilter("active")}
+        />
+        <CustomerChip
+          label={t("orders.history")}
+          selected={filter === "history"}
+          onPress={() => setFilter("history")}
+        />
+      </View>
+      {query.isLoading ? (
+        <StatusState type="loading" />
+      ) : query.isError ? (
+        <StatusState
+          type="error"
+          message={getApiErrorMessage(query.error)}
+          action={
+            <Button
+              title={t("common.tryAgain")}
+              variant="secondary"
+              onPress={() => query.refetch()}
+            />
+          }
+        />
+      ) : !orders.length ? (
+        <StatusState
+          type="empty"
+          title={t("orders.noActivity")}
+          message={
+            filter === "active"
+              ? t("orders.noActive")
+              : t("orders.historyDesc")
+          }
+        />
+      ) : (
+        <View style={styles.list}>
+          {orders.map((order) => (
+            <Pressable
+              key={order.id}
+              onPress={() => router.push(orderPath(order))}
+              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            >
+              <ServiceIcon type={orderService(order)} size={50} />
+              <View style={styles.copy}>
+                <View style={styles.titleRow}>
+                  <Text numberOfLines={1} style={styles.type}>
+                    {t(serviceLabelKey(orderService(order)))}
                   </Text>
-                  <View style={styles.metaRow}>
-                    <OrderStatusBadge status={order.status} />
-                    <Text style={styles.date}>
-                      {formatDateTime(order.created_at)}
-                    </Text>
-                  </View>
+                  <Text style={styles.total}>
+                    {formatRupiah(order.total_price)}
+                  </Text>
                 </View>
-              </Pressable>
-            ))}
-          </View>
-        )}
+                <Text style={styles.number}>{order.order_number}</Text>
+                <Text numberOfLines={1} style={styles.address}>
+                  {order.destination_address ??
+                    order.pickup_address ??
+                    t("orders.orderDetails")}
+                </Text>
+                <View style={styles.metaRow}>
+                  <OrderStatusBadge status={order.status} />
+                  <Text style={styles.date}>
+                    {formatDateTime(order.created_at)}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      <View className="px-4 pb-4">
         {query.data && query.data.last_page > 1 ? (
           <View style={styles.pagination}>
             <View style={styles.flex}>
@@ -185,26 +180,35 @@ export default function CustomerOrders() {
 }
 const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) => StyleSheet.create({
   filters: { flexDirection: "row", gap: 7 },
-  orderRow: {
-    minHeight: 108,
+  list: { borderTopWidth: 1, borderTopColor: colors.border },
+  row: {
+    minHeight: 96,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 13,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   copy: { flex: 1, gap: 3 },
   titleRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  type: { color: colors.text, fontSize: 18, fontFamily: "Outfit_700Bold" },
+  type: {
+    flexShrink: 1,
+    color: colors.text,
+    fontSize: 17,
+    fontFamily: "Outfit_700Bold",
+  },
   total: {
     color: Colors.primaryDark,
     fontSize: 15,
     fontFamily: "Outfit_700Bold",
   },
-  number: { color: colors.muted, fontSize: 12, fontFamily: "Outfit_500Medium" },
+  number: {
+    color: Colors.primaryDark,
+    fontSize: 11,
+    fontFamily: "Outfit_600SemiBold",
+  },
   address: { color: colors.muted, fontSize: 14, fontFamily: "Outfit_400Regular" },
   metaRow: {
     marginTop: 5,

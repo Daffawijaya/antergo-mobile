@@ -134,10 +134,7 @@ export default function CommerceCatalogScreen() {
   const merchantList = useMemo(() => {
     const term = search.toLowerCase();
     return (merchants.data?.data ?? []).filter(
-      (merchant) =>
-        !term ||
-        merchant.name.toLowerCase().includes(term) ||
-        merchant.category?.name.toLowerCase().includes(term),
+      (merchant) => !term || merchant.name.toLowerCase().includes(term),
     );
   }, [merchants.data?.data, search]);
   const productList = useMemo(() => {
@@ -425,7 +422,7 @@ export default function CommerceCatalogScreen() {
                       {merchant.name}
                     </Text>
                     <Text numberOfLines={1} className="text-sm text-muted">
-                      {merchant.category?.name ?? t("food.foodDrink")}
+                      {t("food.foodDrink")}
                     </Text>
                     <Text
                       numberOfLines={2}

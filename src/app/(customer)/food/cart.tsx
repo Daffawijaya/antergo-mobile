@@ -348,6 +348,7 @@ export default function CartScreen() {
                     <Text style={styles.feeValue}>{formatRupiah(singleTotals.platformFee)}</Text>
                   </View>
                   </Card>
+                  <PaymentMethodPicker />
                 </>
               ) : null}
               <Button
@@ -464,6 +465,7 @@ export default function CartScreen() {
                     <Text style={styles.feeValue}>{formatRupiah(allTotals.platformFee)}</Text>
                   </View>
                   </Card>
+                  <PaymentMethodPicker />
                 </>
               ) : null}
               </View>
@@ -515,6 +517,56 @@ function CheckoutBar({
       </View>
       <Button title={t("cart.checkout")} onPress={onPress} />
     </View>
+  );
+}
+
+/* Pilih metode pembayaran: Tunai atau Midtrans. Pilihan disimpan di
+   cart-store biar checkout ikut memakainya saat submit pesanan. */
+function PaymentMethodPicker() {
+  const { styles } = useScreenStyles();
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  const method = useCartStore((s) => s.paymentMethod);
+  const setMethod = useCartStore((s) => s.setPaymentMethod);
+  const options = [
+    { value: "cash" as const, label: "Tunai", desc: "Bayar ke driver saat pesanan diterima" },
+    { value: "midtrans" as const, label: "Midtrans", desc: "QRIS, e-wallet, VA, kartu" },
+  ];
+  return (
+    <Card style={styles.feeCard}>
+      <Text style={styles.merchantName}>{t("checkout.paymentMethod")}</Text>
+      {options.map((opt) => {
+        const selected = method === opt.value;
+        return (
+          <Pressable
+            key={opt.value}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            onPress={() => setMethod(opt.value)}
+            className="flex-row items-center gap-3 py-2 active:opacity-70"
+          >
+            <View
+              className="h-5 w-5 items-center justify-center rounded-full"
+              style={{
+                borderWidth: 2,
+                borderColor: selected ? "#92400E" : colors.border,
+              }}
+            >
+              {selected ? (
+                <View
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: "#FFB900" }}
+                />
+              ) : null}
+            </View>
+            <View className="flex-1">
+              <Text style={styles.feeLabelBold}>{opt.label}</Text>
+              <Text style={[styles.muted, { fontSize: 12 }]}>{opt.desc}</Text>
+            </View>
+          </Pressable>
+        );
+      })}
+    </Card>
   );
 }
 

@@ -14,7 +14,8 @@ export type LocationPurpose =
   | "send-destination"
   | "jastip-purchase"
   | "jastip-destination"
-  | "food-destination";
+  | "food-destination"
+  | "merchant-location";
 
 export type PickedLocation = { coordinate: Coordinate; address: string };
 

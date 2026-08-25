@@ -102,7 +102,7 @@ export default function TabsLayout() {
         <Tabs.Screen key={name} name={name} options={{ href: null, tabBarStyle: { display: "none" } }} />
       ))}
     </Tabs>
-      <GlobalCartFab alwaysVisible />
+      <GlobalCartFab />
     </>
   );
 }

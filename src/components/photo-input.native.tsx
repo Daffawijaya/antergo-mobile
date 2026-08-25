@@ -1,13 +1,16 @@
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert, Image, Pressable, Text, View } from "react-native";
+import { Alert, Image, Modal, Pressable, Text, View } from "react-native";
 
+import { ActionSheet } from "./action-sheet";
+import { HiMiniCameraIcon } from "./brand-icons";
 import { Button } from "@/components/ui";
 import {
   optimizePhoto,
   type OptimizedPhoto,
   type PhotoKind,
 } from "@/lib/image-upload";
+import { useAppTheme } from "@/stores/theme-store";
 
 type PhotoInputProps = {
   label: string;
@@ -16,6 +19,8 @@ type PhotoInputProps = {
   value?: OptimizedPhoto;
   onChange: (value?: OptimizedPhoto) => void;
   document?: boolean;
+  /** "card" = kotak besar (dokumen); "avatar" = lingkaran profil minimalis. */
+  variant?: "card" | "avatar";
 };
 
 export function PhotoInput({
@@ -25,8 +30,12 @@ export function PhotoInput({
   value,
   onChange,
   document = false,
+  variant = "card",
 }: PhotoInputProps) {
   const [busy, setBusy] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetActive, setSheetActive] = useState(false);
+  const { colors } = useAppTheme();
 
   const launch = async (source: "camera" | "gallery") => {
     try {
@@ -93,6 +102,74 @@ export function PhotoInput({
 
     onChange(undefined);
   };
+
+  // Close beranimasi: sheet dulu slide-down + fade (200ms), baru Modal di-unmount.
+  const openSheet = () => {
+    setSheetVisible(true);
+    setSheetActive(true);
+  };
+  const closeSheet = () => {
+    setSheetActive(false);
+    // ponytail: 220ms hardcoded mengikuti durasi exit animation ActionSheet.
+    setTimeout(() => setSheetVisible(false), 220);
+  };
+
+  // Varian avatar: lingkaran profil minimalis, tap → sheet kamera/galeri/hapus.
+  if (variant === "avatar") {
+    return (
+      <View className="items-center gap-2">
+        {/* ActionSheet pakai absolute inset-0 — dibungkus Modal agar overlay
+            menutupi seluruh layar, bukan hanya card tempat dia ter-pasang. */}
+        <Modal
+          transparent
+          visible={sheetVisible}
+          animationType="none"
+          onRequestClose={closeSheet}
+        >
+          <ActionSheet
+            visible={sheetActive}
+            onClose={closeSheet}
+            photoMode={{
+              kind,
+              onPicked: (photo) => onChange(photo),
+              remove: value
+                ? { label: `Hapus ${label}`, onRemove: () => onChange(undefined) }
+                : undefined,
+            }}
+          />
+        </Modal>
+        <Pressable
+          onPress={openSheet}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          className="relative active:opacity-70"
+        >
+          <View className="h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-dashed border-border bg-surface-muted">
+            {value ? (
+              <Image
+                source={{ uri: value.uri }}
+                className="h-full w-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <HiMiniCameraIcon size={28} color={colors.muted} />
+            )}
+          </View>
+          {value ? (
+            <View className="absolute bottom-0.5 right-0.5 rounded-full bg-surface p-1.5 shadow-sm">
+              <HiMiniCameraIcon size={13} color={colors.text} />
+            </View>
+          ) : null}
+        </Pressable>
+        <Text className="text-base font-medium text-foreground">
+          {label} <Text className="text-red-500">*</Text>
+        </Text>
+        <Text className="text-center text-sm leading-5 text-muted">
+          {helper}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View className="gap-2 border-b border-border pb-5">
