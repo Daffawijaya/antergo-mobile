@@ -230,14 +230,33 @@ export default function CartScreen() {
 
   return (
     <Animated.View style={{ flex: 1, transform: [{ translateY: slideY }] }}>
-    <Screen padded={false} scrollBottomPadding={false}>
+    <Screen
+      padded={false}
+      scrollBottomPadding={false}
+      /* Header "< Keranjang" sticky: konten scroll ke bawahnya, header tetap
+         di atas dengan bg putih + shadow halus. */
+      header={
+        <View
+          className="absolute left-0 right-0 top-0 bg-background px-5"
+          style={{
+            paddingTop: insets.top + 8,
+            paddingBottom: 8,
+            // Shadow sama dengan navbar tab, arahnya dibalik ke bawah.
+            boxShadow:
+              "0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.05)",
+          }}
+        >
+          <BackButton onPress={animateClose} title={t("cart.title")} />
+        </View>
+      }
+    >
       <View
         className="pb-6"
-        style={{ paddingTop: insets.top + 8, paddingBottom: hasItems ? 110 : 24 }}
+        style={{
+          paddingTop: insets.top + 64,
+          paddingBottom: hasItems ? 110 : 24,
+        }}
       >
-      <View className="px-5">
-      <BackButton onPress={animateClose} title={t("cart.title")} />
-      </View>
 
       {isSingleMode ? (
         /* ---- Single merchant view ---- */
@@ -364,23 +383,45 @@ export default function CartScreen() {
               {allMerchantEntries.map((cart) => {
                 return (
                   <View key={cart.merchant.id}>
-                    {/* Merchant name — tanpa logo, tap untuk buka keranjang toko */}
-                    <Pressable
-                      onPress={() =>
-                        router.push({
-                          pathname: "/(customer)/food/cart",
-                          params: {
-                            merchantId: String(cart.merchant.id),
-                            service: "food",
-                          },
-                        })
-                      }
-                      className="py-3 px-5 active:opacity-70"
-                    >
-                      <Text style={styles.merchantName}>
-                        {cart.merchant.name}
-                      </Text>
-                    </Pressable>
+                    {/* Merchant name — tanpa logo, tap untuk buka keranjang toko.
+                        Tombol "Ubah" di kanan: ke detail UMKM untuk tambah pesanan. */}
+                    <View className="flex-row items-center py-3 px-5">
+                      <Pressable
+                        onPress={() =>
+                          router.push({
+                            pathname: "/(customer)/food/cart",
+                            params: {
+                              merchantId: String(cart.merchant.id),
+                              service: "food",
+                            },
+                          })
+                        }
+                        className="flex-1 active:opacity-70"
+                      >
+                        <Text style={styles.merchantName}>
+                          {cart.merchant.name}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Ubah pesanan"
+                        onPress={() =>
+                          router.push({
+                            pathname: "/(customer)/food/merchant/[id]",
+                            params: {
+                              id: String(cart.merchant.id),
+                              service: "food",
+                              returnTo: `/(customer)/food/cart?service=food&merchantId=${cart.merchant.id}`,
+                            },
+                          })
+                        }
+                        className="ml-2 px-1 active:opacity-70"
+                      >
+                        <Text className="font-medium text-[14px] text-secondary">
+                          Ubah
+                        </Text>
+                      </Pressable>
+                    </View>
 
                     {/* Items — baris produk persis halaman detail UMKM */}
                     {cart.items.map((item, i) => (
@@ -502,10 +543,12 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
     },
     feeLabel: { color: colors.muted, fontSize: 14 },
     feeValue: { color: colors.text, fontSize: 14, fontWeight: "600" },
-    /* ponytail: override gap-3 & elevation-sm bawaan Card via style, NativeWind tak menjamin urutan kelas */
+    /* ponytail: override gap-3 & elevation-sm bawaan Card via style, NativeWind
+       tak menjamin urutan kelas; card detail cukup border tanpa shadow */
     feeCard: {
       gap: 2,
       elevation: 0,
+      boxShadow: "none",
       shadowOpacity: 0,
       shadowRadius: 0,
       shadowOffset: { width: 0, height: 0 },
