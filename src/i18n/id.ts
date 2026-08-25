@@ -218,7 +218,7 @@ const id = {
   "cart.removeConfirm": "Hapus semua item dari cart?",
   "cart.subtotal": "Subtotal",
   "cart.deliveryFee": "Ongkos kirim",
-  "cart.platformFee": "Biaya platform (8%)",
+  "cart.platformFee": "Biaya platform",
   "cart.total": "Total",
   "cart.orderSummary": "Ringkasan Pesanan",
   "cart.estimatedFee": "Perkiraan. Biaya final dihitung saat checkout.",

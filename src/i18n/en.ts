@@ -216,7 +216,7 @@ const en = {
   "cart.removeConfirm": "Remove all items from cart?",
   "cart.subtotal": "Subtotal",
   "cart.deliveryFee": "Delivery fee",
-  "cart.platformFee": "Platform fee (8%)",
+  "cart.platformFee": "Platform fee",
   "cart.total": "Total",
   "cart.orderSummary": "Order Summary",
   "cart.estimatedFee": "Estimated. Final fees are calculated at checkout.",

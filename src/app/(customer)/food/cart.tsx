@@ -65,11 +65,6 @@ export default function CartScreen() {
 
   const isSingleMode = !!merchantId && !!singleCart;
 
-  const totalAllItems = allMerchantEntries.reduce(
-    (sum, cart) => sum + cart.items.reduce((s, i) => s + i.quantity, 0),
-    0,
-  );
-
   const totalAllPrice = allMerchantEntries.reduce(
     (sum, cart) =>
       sum +
@@ -277,8 +272,7 @@ export default function CartScreen() {
                 </Card>
               ))}
               {singleTotals ? (
-                <Card>
-                  <Text style={styles.title}>{t("cart.orderSummary")}</Text>
+                <Card style={styles.feeCard}>
                   <View style={styles.feeRow}>
                     <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(singleTotals.subtotal)}</Text>
@@ -291,13 +285,6 @@ export default function CartScreen() {
                     <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(singleTotals.platformFee)}</Text>
                   </View>
-                  <View style={[styles.feeRow, styles.feeTotal]}>
-                    <Text style={styles.feeLabelBold}>{t("cart.total")}</Text>
-                    <Text style={styles.feeValueBold}>{formatRupiah(singleTotals.total)}</Text>
-                  </View>
-                  <Text style={styles.muted}>
-                    {t("cart.estimatedFee")}
-                  </Text>
                 </Card>
               ) : null}
               <Button
@@ -368,10 +355,7 @@ export default function CartScreen() {
               {/* Grand total */}
               <View className="px-5 gap-4">
               {allTotals ? (
-                <Card>
-                  <Text style={styles.title}>
-                    {`Total ${allMerchantEntries.length} ${t("home.umkmAnterGo")} • ${totalAllItems} item`}
-                  </Text>
+                <Card style={styles.feeCard}>
                   <View style={styles.feeRow}>
                     <Text style={styles.feeLabel}>{t("cart.subtotal")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(allTotals.subtotal)}</Text>
@@ -384,13 +368,6 @@ export default function CartScreen() {
                     <Text style={styles.feeLabel}>{t("cart.platformFee")}</Text>
                     <Text style={styles.feeValue}>{formatRupiah(allTotals.platformFee)}</Text>
                   </View>
-                  <View style={[styles.feeRow, styles.feeTotal]}>
-                    <Text style={styles.feeLabelBold}>{t("cart.total")}</Text>
-                    <Text style={styles.feeValueBold}>{formatRupiah(allTotals.total)}</Text>
-                  </View>
-                  <Text style={styles.muted}>
-                    {t("cart.estimatedFee")}
-                  </Text>
                 </Card>
               ) : null}
               </View>
@@ -472,6 +449,14 @@ const createStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
     },
     feeLabel: { color: colors.muted, fontSize: 14 },
     feeValue: { color: colors.text, fontSize: 14, fontWeight: "600" },
+    /* ponytail: override gap-3 & elevation-sm bawaan Card via style, NativeWind tak menjamin urutan kelas */
+    feeCard: {
+      gap: 2,
+      elevation: 0,
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      shadowOffset: { width: 0, height: 0 },
+    },
     feeTotal: {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
