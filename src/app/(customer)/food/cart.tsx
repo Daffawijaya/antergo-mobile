@@ -113,10 +113,39 @@ export default function CartScreen() {
     return () => sub.remove();
   }, [animateClose]);
 
+  const hasItems = isSingleMode
+    ? singleItems.length > 0
+    : allMerchantEntries.length > 0;
+
+  const goCheckout = useCallback(() => {
+    if (isSingleMode) {
+      router.push({
+        pathname: "/(customer)/food/checkout",
+        params: { service, merchantId: String(merchantId) },
+      });
+      return;
+    }
+    const first = allMerchantEntries[0];
+    if (!first) return;
+    router.push({
+      pathname: "/(customer)/food/checkout",
+      params: {
+        service:
+          first.items[0]?.product.product_type === "goods"
+            ? "shopping"
+            : "food",
+        merchantId: String(first.merchant.id),
+      },
+    });
+  }, [allMerchantEntries, isSingleMode, merchantId, router, service]);
+
   return (
     <Animated.View style={{ flex: 1, transform: [{ translateY: slideY }] }}>
     <Screen padded={false} scrollBottomPadding={false}>
-      <View className="pb-6" style={{ paddingTop: insets.top + 8 }}>
+      <View
+        className="pb-6"
+        style={{ paddingTop: insets.top + 8, paddingBottom: hasItems ? 110 : 24 }}
+      >
       <View className="px-5">
       <BackButton onPress={animateClose} title={t("cart.title")} />
       </View>
@@ -197,15 +226,6 @@ export default function CartScreen() {
                 </Text>
               </Card>
               <Button
-                title={t("cart.checkout")}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(customer)/food/checkout",
-                    params: { service, merchantId: String(merchantId) },
-                  })
-                }
-              />
-              <Button
                 title={t("cart.clearCart")}
                 variant="danger"
                 onPress={() => clearMerchant(merchantId)}
@@ -281,31 +301,6 @@ export default function CartScreen() {
                   {t("cart.checkoutNote")}
                 </Text>
               </Card>
-
-              <Button
-                title={t("cart.checkout")}
-                onPress={() => {
-                  const first = allMerchantEntries[0];
-                  if (!first) return;
-                  router.push({
-                    pathname: "/(customer)/food/checkout",
-                    params: {
-                      service:
-                        first.items[0]?.product.product_type === "goods"
-                          ? "shopping"
-                          : "food",
-                      merchantId: String(first.merchant.id),
-                    },
-                  });
-                }}
-              />
-              <Button
-                title={t("cart.clearAll")}
-                variant="danger"
-                onPress={() => {
-                  if (confirm(t("cart.removeConfirm"))) clearAll();
-                }}
-              />
               </View>
             </>
           )}
@@ -314,7 +309,47 @@ export default function CartScreen() {
       )}
       </View>
     </Screen>
+    {hasItems ? (
+      <CheckoutBar total={isSingleMode ? singleSubtotal : totalAllPrice} onPress={goCheckout} />
+    ) : null}
     </Animated.View>
+  );
+}
+
+/* Bar checkout sticky di bawah layar: kiri total harga + "Lihat detail",
+   kanan tombol Lanjut ke Checkout. Pembungkus full-lebar layar. */
+function CheckoutBar({
+  total,
+  onPress,
+}: {
+  total: number;
+  onPress: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  return (
+    <View
+      className="absolute left-0 right-0 flex-row items-center gap-3 bg-surface px-5"
+      style={{
+        // ponytail: warna border hardcode abu muda, theme tak punya token lebih muda dari border.
+        bottom: Math.max(insets.bottom, 8),
+        borderTopWidth: 1.5,
+        borderBottomWidth: 1.5,
+        borderColor: "#F3F4F6",
+        paddingTop: 12,
+        paddingBottom: 12,
+      }}
+    >
+      <View className="flex-1">
+        <Text className="font-extrabold text-[17px] text-foreground">
+          {formatRupiah(total)}
+        </Text>
+        <Pressable className="self-start active:opacity-70">
+          <Text className="text-[13px] text-muted">{t("cart.viewDetail")}</Text>
+        </Pressable>
+      </View>
+      <Button title={t("cart.checkout")} onPress={onPress} />
+    </View>
   );
 }
 
@@ -462,7 +497,11 @@ function CartItemRow({
           )}
         </View>
       </View>
-      <View className="h-px" style={{ backgroundColor: colors.border }} />
+      {/* Garis pemisah sejajar konten, bukan full width */}
+      <View
+        className="h-px mx-5"
+        style={{ backgroundColor: colors.border }}
+      />
       </View>
     </Swipeable>
   );

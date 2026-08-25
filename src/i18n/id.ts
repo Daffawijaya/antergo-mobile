@@ -214,6 +214,7 @@ const id = {
   "cart.subtotalPreviewLabel": "Subtotal preview",
   "cart.checkoutNote":
     "Biaya antar, biaya layanan, harga, dan total akhir dihitung saat checkout.",
+  "cart.viewDetail": "Lihat detail",
   "cart.removeConfirm": "Hapus semua item dari cart?",
 
   /* ── checkout ───────────────────────────────────────────── */

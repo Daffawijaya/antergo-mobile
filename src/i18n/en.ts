@@ -212,6 +212,7 @@ const en = {
   "cart.stockKnown": "Known stock",
   "cart.subtotalPreviewLabel": "Subtotal preview",
   "cart.checkoutNote": "Delivery fee, service fee, prices, and final total are calculated at checkout.",
+  "cart.viewDetail": "View details",
   "cart.removeConfirm": "Remove all items from cart?",
 
   /* ── checkout ───────────────────────────────────────────── */
