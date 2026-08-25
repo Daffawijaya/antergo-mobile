@@ -349,3 +349,26 @@ export function TbTrashXIcon({
     </Svg>
   );
 }
+
+// Tabler — TbBuildingStore (outline, stroke)
+export function TbBuildingStoreIcon({
+  size = 24,
+  color = "#111827",
+}: BrandIconProps) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M3 21h18" />
+      <Path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4" />
+      <Path d="M5 21V10.85M19 21V10.85M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
+    </Svg>
+  );
+}

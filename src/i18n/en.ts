@@ -34,6 +34,7 @@ const en = {
   /* ── navigation (tabs) ──────────────────────────────────── */
   "nav.home": "Home",
   "nav.orders": "Orders",
+  "nav.store": "Store",
   "nav.messages": "Messages",
   "nav.profile": "Profile",
 

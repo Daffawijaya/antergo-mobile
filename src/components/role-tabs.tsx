@@ -3,6 +3,7 @@ import { AnimatedTabButton } from "@/components/animated-tab-button";
 import {
   FaRegUserIcon,
   FaUserIcon,
+  TbBuildingStoreIcon,
   TbClipboardTextFilledIcon,
   TbClipboardTextIcon,
   TiHomeIcon,
@@ -14,9 +15,12 @@ import { useTranslation } from "@/i18n";
 export function RoleTabs({
   middle,
   hidden,
+  store,
 }: {
   middle: string;
   hidden?: string | string[];
+  /** Nama route tab "Toko" — hanya dirender kalau diisi. */
+  store?: string;
 }) {
   const { colors } = useAppTheme();
   const { t } = useTranslation();
@@ -29,13 +33,21 @@ export function RoleTabs({
         tabBarHideOnKeyboard: true,
         tabBarButton: (props) => <AnimatedTabButton {...props} />,
         tabBarStyle: {
-          height: 78,
-          paddingTop: 8,
-          paddingBottom: 15,
-          borderTopColor: colors.border,
+          height: 76,
+          paddingTop: 5,
+          paddingBottom: 20,
+          borderTopWidth: 0,
           backgroundColor: colors.surface,
+          // Setara shadow-lg nativewind, dibalik ke atas, opacity 50%.
+          boxShadow:
+            "0 -10px 15px -3px rgba(0,0,0,0.05), 0 -4px 6px -4px rgba(0,0,0,0.05)",
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+          fontFamily: "Outfit_600SemiBold",
+          paddingTop: 4,
+        },
       }}
     >
       <Tabs.Screen
@@ -62,6 +74,17 @@ export function RoleTabs({
             ),
         }}
       />
+      {store ? (
+        <Tabs.Screen
+          name={store}
+          options={{
+            title: t("nav.store"),
+            tabBarIcon: ({ color }) => (
+              <TbBuildingStoreIcon size={23} color={String(color)} />
+            ),
+          }}
+        />
+      ) : null}
       <Tabs.Screen
         name="profile"
         options={{

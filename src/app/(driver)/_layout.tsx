@@ -29,13 +29,21 @@ export default function DriverLayout() {
           tabBarHideOnKeyboard: true,
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
           tabBarStyle: {
-            height: 72,
-            paddingTop: 8,
-            paddingBottom: 9,
-            borderTopColor: colors.border,
+            height: 76,
+            paddingTop: 5,
+            paddingBottom: 20,
+            borderTopWidth: 0,
             backgroundColor: colors.surface,
+            // Setara shadow-lg nativewind, dibalik ke atas, opacity 50%.
+            boxShadow:
+              "0 -10px 15px -3px rgba(0,0,0,0.05), 0 -4px 6px -4px rgba(0,0,0,0.05)",
           },
-          tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "600",
+            fontFamily: "Outfit_600SemiBold",
+            paddingTop: 4,
+          },
         }}
       >
         <Tabs.Screen

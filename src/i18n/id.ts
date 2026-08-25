@@ -34,6 +34,7 @@ const id = {
   /* ── navigation (tabs) ──────────────────────────────────── */
   "nav.home": "Beranda",
   "nav.orders": "Pesanan",
+  "nav.store": "Toko",
   "nav.messages": "Pesan",
   "nav.profile": "Profil",
 
